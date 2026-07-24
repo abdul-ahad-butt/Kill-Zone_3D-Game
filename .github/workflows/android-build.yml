@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  GODOT_VERSION: 4.3.0
+  GODOT_VERSION: 4.7.1
 
 jobs:
   export-android:
