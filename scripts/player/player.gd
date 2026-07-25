@@ -47,6 +47,10 @@ func _ready():
 	hud_instance = hud_scene.instantiate()
 	add_child(hud_instance)
 	
+	var loadout_ui = hud_instance.get_node_or_null("LoadoutUI")
+	if loadout_ui:
+		loadout_ui.local_player = self
+	
 	if OS.has_feature("mobile") or OS.has_feature("web"):
 		touch_instance = touch_scene.instantiate()
 		add_child(touch_instance)

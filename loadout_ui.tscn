@@ -1,0 +1,67 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/loadout_ui.gd" id="1_ldout"]
+[ext_resource type="Resource" path="res://resources/weapon_data/Rifle.tres" id="2_rifle"]
+[ext_resource type="Resource" path="res://resources/weapon_data/SMG.tres" id="3_smg"]
+
+[node name="LoadoutUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ldout")
+rifle_data = ExtResource("2_rifle")
+smg_data = ExtResource("3_smg")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -100.0
+offset_right = 250.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.15, 0.15, 0.15, 0.8)
+
+[node name="Label" type="Label" parent="ColorRect"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 20.0
+offset_bottom = 50.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 24
+text = "Choose Loadout"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -25.0
+offset_right = 150.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 40
+
+[node name="RifleButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(130, 50)
+layout_mode = 2
+text = "Rifle + Pistol"
+
+[node name="SMGButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(130, 50)
+layout_mode = 2
+text = "SMG + Pistol"
