@@ -26,6 +26,24 @@ func _build_rig():
 	head = _create_box(Vector3(0.3, 0.3, 0.3), Vector3(0, 0.9, 0))
 	add_child(head)
 	
+	# Helmet / Mask
+	var accessory = MeshInstance3D.new()
+	if team == 1:
+		# Police Helmet
+		var cyl = CylinderMesh.new()
+		cyl.top_radius = 0.16
+		cyl.bottom_radius = 0.16
+		cyl.height = 0.15
+		accessory.mesh = cyl
+		accessory.position = Vector3(0, 0.16, 0)
+	else:
+		# Terrorist Mask (Bandana/Visor)
+		var box = BoxMesh.new()
+		box.size = Vector3(0.31, 0.1, 0.31)
+		accessory.mesh = box
+		accessory.position = Vector3(0, -0.05, 0)
+	head.add_child(accessory)
+	
 	# Arms (Parents for rotation)
 	arm_l = Node3D.new()
 	arm_l.position = Vector3(-0.35, 0.6, 0)
@@ -78,6 +96,12 @@ func _apply_materials():
 	arm_r.get_child(0).set_surface_override_material(0, mat_secondary)
 	leg_l.get_child(0).set_surface_override_material(0, mat_secondary)
 	leg_r.get_child(0).set_surface_override_material(0, mat_secondary)
+	
+	if head.get_child_count() > 0:
+		var acc = head.get_child(0)
+		var mat_acc = StandardMaterial3D.new()
+		mat_acc.albedo_color = Color(0.1, 0.1, 0.1) if team == 1 else Color(0.8, 0.2, 0.2)
+		acc.set_surface_override_material(0, mat_acc)
 
 func play_anim(anim: String):
 	current_anim = anim

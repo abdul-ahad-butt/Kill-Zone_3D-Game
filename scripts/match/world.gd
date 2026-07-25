@@ -134,9 +134,8 @@ func _spawn_local_offline():
 		for i in range(6, 11):
 			_spawn_bot(i, enemy_team, _get_random_spawn(enemy_team))
 	else:
-		# Free for all - 9 enemies
-		for i in range(2, 11):
-			_spawn_bot(i, enemy_team, _get_random_spawn(enemy_team))
+		# 1v1 Mode - 1 enemy
+		_spawn_bot(2, enemy_team, _get_random_spawn(enemy_team))
 			
 	# Start the match timer and logic
 	if multiplayer.is_server():
