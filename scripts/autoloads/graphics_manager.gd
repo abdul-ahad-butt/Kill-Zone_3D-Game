@@ -82,9 +82,12 @@ func apply_quality(q: Quality) -> void:
 	if vp:
 		vp.scaling_3d_scale  = p["viewport_scale"]
 		vp.msaa_3d           = p["msaa"]
-		vp.screen_space_aa   = (Viewport.SCREEN_SPACE_AA_FXAA
-								if p["fxaa"] else
-								Viewport.SCREEN_SPACE_AA_DISABLED)
+		if OS.has_feature("web"):
+			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+		else:
+			vp.screen_space_aa   = (Viewport.SCREEN_SPACE_AA_FXAA
+									if p["fxaa"] else
+									Viewport.SCREEN_SPACE_AA_DISABLED)
 
 	# 2. Shadow quality (global)
 	RenderingServer.directional_soft_shadow_filter_set_quality(p["shadow_quality"])

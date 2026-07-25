@@ -15,6 +15,7 @@ func _ready():
 	if nav:
 		if nav.navigation_mesh == null:
 			nav.navigation_mesh = NavigationMesh.new()
+		nav.navigation_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 		nav.bake_navigation_mesh(false)
 		
 	NetworkManager.player_connected.connect(_on_player_connected)
@@ -39,45 +40,50 @@ func _setup_next_gen_graphics():
 	env.sky = sky
 	
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.ssao_enabled = true
-	env.sdfgi_enabled = true
-	env.sdfgi_use_occlusion = true
-	env.volumetric_fog_enabled = true
-	env.volumetric_fog_density = 0.015
-	env.volumetric_fog_albedo = Color(0.6, 0.7, 0.8)
+	
+	var is_web = OS.has_feature("web")
+	
+	if not is_web:
+		env.ssao_enabled = true
+		env.sdfgi_enabled = true
+		env.sdfgi_use_occlusion = true
+		env.volumetric_fog_enabled = true
+		env.volumetric_fog_density = 0.015
+		env.volumetric_fog_albedo = Color(0.6, 0.7, 0.8)
 	
 	var we = WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 	
-	# Rain Particle System
-	var rain = GPUParticles3D.new()
-	var r_mat = ParticleProcessMaterial.new()
-	r_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	r_mat.emission_box_extents = Vector3(120, 1, 120)
-	r_mat.direction = Vector3(0.1, -1, 0)
-	r_mat.spread = 2.0
-	r_mat.initial_velocity_min = 25.0
-	r_mat.initial_velocity_max = 35.0
-	rain.process_material = r_mat
-	
-	var r_mesh = RibbonTrailMesh.new()
-	var r_smat = StandardMaterial3D.new()
-	r_smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	r_smat.albedo_color = Color(0.7, 0.8, 0.9, 0.3)
-	r_smat.emission_enabled = true
-	r_smat.emission = Color(0.6, 0.7, 0.8)
-	r_mesh.material = r_smat
-	r_mesh.size = 0.03
-	r_mesh.sections = 2
-	r_mesh.section_length = 0.6
-	
-	rain.draw_pass_1 = r_mesh
-	rain.amount = 12000
-	rain.lifetime = 1.5
-	rain.visibility_aabb = AABB(Vector3(-100, -30, -100), Vector3(200, 60, 200))
-	rain.position = Vector3(0, 30, 0)
-	add_child(rain)
+	if not is_web:
+		# Rain Particle System
+		var rain = GPUParticles3D.new()
+		var r_mat = ParticleProcessMaterial.new()
+		r_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+		r_mat.emission_box_extents = Vector3(120, 1, 120)
+		r_mat.direction = Vector3(0.1, -1, 0)
+		r_mat.spread = 2.0
+		r_mat.initial_velocity_min = 25.0
+		r_mat.initial_velocity_max = 35.0
+		rain.process_material = r_mat
+		
+		var r_mesh = RibbonTrailMesh.new()
+		var r_smat = StandardMaterial3D.new()
+		r_smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		r_smat.albedo_color = Color(0.7, 0.8, 0.9, 0.3)
+		r_smat.emission_enabled = true
+		r_smat.emission = Color(0.6, 0.7, 0.8)
+		r_mesh.material = r_smat
+		r_mesh.size = 0.03
+		r_mesh.sections = 2
+		r_mesh.section_length = 0.6
+		
+		rain.draw_pass_1 = r_mesh
+		rain.amount = 12000
+		rain.lifetime = 1.5
+		rain.visibility_aabb = AABB(Vector3(-100, -30, -100), Vector3(200, 60, 200))
+		rain.position = Vector3(0, 30, 0)
+		add_child(rain)
 
 func _apply_hq_materials():
 	# Create a clean solid green grass material instead of blurry noise
