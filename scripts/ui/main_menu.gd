@@ -40,6 +40,7 @@ var shotgun_data = preload("res://resources/weapon_data/Shotgun.tres")
 
 func _ready() -> void:
 	print("MainMenu ready")
+	_style_buttons(self)
 	
 	# Initial UI State
 	mode_select.show()
@@ -245,3 +246,23 @@ func _on_start_pressed() -> void:
 		NetworkManager.host_game()
 	else:
 		NetworkManager.join_game(join_ip)
+
+func _style_buttons(node: Node) -> void:
+	if node is Button:
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.15, 0.18, 0.25, 0.9)
+		style.set_corner_radius_all(8)
+		style.set_border_width_all(2)
+		style.border_color = Color(0.3, 0.4, 0.5, 0.5)
+		
+		var hover_style = style.duplicate()
+		hover_style.bg_color = Color(0.25, 0.3, 0.4, 0.9)
+		hover_style.border_color = Color(0.4, 0.6, 0.8, 1.0)
+		
+		node.add_theme_stylebox_override("normal", style)
+		node.add_theme_stylebox_override("hover", hover_style)
+		node.add_theme_stylebox_override("pressed", style)
+		node.add_theme_stylebox_override("disabled", style)
+	
+	for child in node.get_children():
+		_style_buttons(child)

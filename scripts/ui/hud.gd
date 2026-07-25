@@ -13,7 +13,8 @@ var _round_tween: Tween
 var _bomb_tween: Tween
 var _banner_tween: Tween
 
-var spectator_label: Label
+@onready var death_screen = $DeathScreen
+@onready var spectating_info = $DeathScreen/SpectatingInfo
 
 var _graphics_ui: CanvasLayer = null
 var _settings_btn: Button = null
@@ -43,14 +44,7 @@ func _ready() -> void:
 
 	banner_label.hide()
 	bomb_timer_label.hide()
-	
-	spectator_label = Label.new()
-	spectator_label.add_theme_font_size_override("font_size", 24)
-	spectator_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	spectator_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	spectator_label.position.y = 80
-	add_child(spectator_label)
-	spectator_label.hide()
+	death_screen.hide()
 
 	# Make sure pivot is centered for scaling
 	round_timer_label.pivot_offset = round_timer_label.size / 2.0
@@ -204,7 +198,7 @@ func _update_scoreboard():
 func _process(delta):
 	if local_player:
 		if not local_player.is_dead:
-			spectator_label.hide()
+			death_screen.hide()
 			_update_crosshair()
 			_process_money()
 			_update_grenade_indicator()
@@ -294,10 +288,14 @@ func hide_crosshair_and_scope():
 	if scope_overlay: scope_overlay.hide()
 
 func set_spectator_text(txt: String, color: Color):
-	if spectator_label:
-		spectator_label.text = txt
-		spectator_label.add_theme_color_override("font_color", color)
-		spectator_label.show()
+	if death_screen:
+		spectating_info.text = txt
+		spectating_info.add_theme_color_override("font_color", color)
+		if not death_screen.visible:
+			death_screen.modulate.a = 0.0
+			death_screen.show()
+			var tween = create_tween()
+			tween.tween_property(death_screen, "modulate:a", 1.0, 0.5)
 	
 func show_hitmarker():
 	if _hitmarker_tween and _hitmarker_tween.is_running():
