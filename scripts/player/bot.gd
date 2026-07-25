@@ -100,7 +100,8 @@ func _physics_process(delta):
 		shoot_timer -= delta
 		if shoot_timer <= 0.0:
 			shoot_timer = randf_range(0.2, 0.6)
-			AudioManager.play_2d(AudioManager.gunshot_sound)
+			var am = get_node_or_null("/root/AudioManager")
+			if am: am.play_2d(am.gunshot_sound)
 			if current_target.has_method("take_damage"):
 				current_target.take_damage(15, team, 999)
 				

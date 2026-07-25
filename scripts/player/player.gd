@@ -85,8 +85,10 @@ func _physics_process(delta):
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
 		if is_on_floor() and footstep_audio and not footstep_audio.playing:
-			footstep_audio.stream = AudioManager.footstep_sound
-			footstep_audio.play()
+			var am = get_node_or_null("/root/AudioManager")
+			if am:
+				footstep_audio.stream = am.footstep_sound
+				footstep_audio.play()
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
@@ -117,7 +119,8 @@ func _physics_process(delta):
 
 func _start_reload():
 	is_reloading = true
-	AudioManager.play_2d(AudioManager.reload_sound)
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_2d(am.reload_sound)
 	await get_tree().create_timer(current_weapon.reload_time).timeout
 	is_reloading = false
 
@@ -166,7 +169,8 @@ func fire_weapon():
 			t.tween_property(light, "visible", false, 0.05).set_delay(0.05)
 			
 	if gunshot_audio:
-		gunshot_audio.stream = AudioManager.gunshot_sound
+		var am = get_node_or_null("/root/AudioManager")
+		if am: gunshot_audio.stream = am.gunshot_sound
 		gunshot_audio.play()
 	
 	# Send request to server
