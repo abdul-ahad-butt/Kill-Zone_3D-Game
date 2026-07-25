@@ -62,6 +62,18 @@ func _update_faction_visuals():
 func _on_start_game_pressed():
 	NetworkManager.start_offline(is_team_mode, selected_faction)
 	hide()
+	
+	if not OS.has_feature("mobile"):
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		
+	# Disable the spectator camera
+	var spectator = get_tree().current_scene.get_node_or_null("SpectatorCamera")
+	if spectator:
+		spectator.current = false
+		
+	var level = get_tree().current_scene
+	if level and level.has_method("_spawn_local_offline"):
+		level._spawn_local_offline()
 
 func _on_join_pressed():
 	var ip = ip_input.text
