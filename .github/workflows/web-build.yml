@@ -1,0 +1,47 @@
+name: "Web Build & Deploy"
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: 4.2.2
+
+jobs:
+  export-web:
+    name: Export Web Build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          
+      - name: Export Godot Project
+        uses: firebelley/godot-export@v5.2.1
+        with:
+          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64.zip
+          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
+          relative_project_path: ./
+          archive_output: false
+          export_debug: false
+        env:
+          GODOT_EXPORT_PRESET_NAME: "Web"
+
+      - name: Commit and Push Web Build to Root
+        run: |
+          # Copy all exported files to the root directory
+          cp ~/.local/share/godot/archives/*/* ./ -r || cp ~/.local/share/godot/archives/* ./ -r
+          
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add index.html index.js index.pck index.wasm index.icon.png index.apple-touch-icon.png coi-serviceworker.js index.audio.worklet.js index.audio.position.worklet.js || true
+          
+          # Only commit if there are changes
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-deploy: Web Build"
+            git push origin main
+          fi

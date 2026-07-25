@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="1_a1b2c"]
+
+[node name="TouchControls" type="CanvasLayer"]
+script = ExtResource("1_a1b2c")
+
+[node name="LookArea" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FireButton" type="TouchScreenButton" parent="."]
+position = Vector2(800, 500)
+scale = Vector2(2, 2)
+action = "fire"
+
+[node name="JumpButton" type="TouchScreenButton" parent="."]
+position = Vector2(900, 400)
+scale = Vector2(2, 2)
+action = "jump"
+
+[node name="ReloadButton" type="TouchScreenButton" parent="."]
+position = Vector2(700, 400)
+scale = Vector2(2, 2)
+action = "reload"
+
+[node name="UseButton" type="TouchScreenButton" parent="."]
+position = Vector2(800, 300)
+scale = Vector2(2, 2)
+action = "use"
+
+[node name="Joypad" type="TouchScreenButton" parent="."]
+position = Vector2(100, 450)
+scale = Vector2(3, 3)
+action = "move_forward"
