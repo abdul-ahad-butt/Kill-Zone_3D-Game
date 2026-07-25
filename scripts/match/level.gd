@@ -29,14 +29,25 @@ func _ready():
 	if not multiplayer.is_server():
 		return
 		
-	NetworkManager.player_connected.connect(_spawn_player)
+	# We no longer auto-spawn on connect, wait for request_spawn RPC
 	NetworkManager.player_disconnected.connect(_remove_player)
 	
 	# Spawn host if server is also a player (i.e. not headless)
 	var args = OS.get_cmdline_args() + OS.get_cmdline_user_args()
-		
 	if not "--server" in args and not "--headless" in args:
-		_spawn_player(multiplayer.get_unique_id())
+		# Host spawns itself with its choices
+		_spawn_specific_player(multiplayer.get_unique_id(), MatchManager.solo_faction, MatchManager.solo_primary_weapon.resource_path if MatchManager.solo_primary_weapon else "res://resources/weapon_data/Rifle.tres")
+		
+	if not multiplayer.is_server():
+		if multiplayer.get_peers().is_empty():
+			# Not connected yet
+			multiplayer.connected_to_server.connect(_on_connected_to_server)
+		else:
+			_on_connected_to_server()
+
+func _on_connected_to_server():
+	var weapon_path = MatchManager.solo_primary_weapon.resource_path if MatchManager.solo_primary_weapon else "res://resources/weapon_data/Rifle.tres"
+	rpc_id(1, "request_spawn", MatchManager.solo_faction, weapon_path)
 
 func _get_random_spawn(base_pos: Vector3) -> Vector3:
 	return base_pos + Vector3(randf_range(-4.0, 4.0), 0.0, randf_range(-4.0, 4.0))
@@ -84,14 +95,22 @@ func _spawn_solo_player(p_name: String, team: Team.TeamId, is_bot: bool):
 	else:
 		print("Player spawned and controllable. Team: ", "Police" if team == Team.TeamId.POLICE else "Terrorist")
 
-func _spawn_player(id: int):
-	var team = MatchManager.get_auto_balanced_team(id)
+@rpc("any_peer", "call_remote", "reliable")
+func request_spawn(faction: int, weapon_path: String):
+	if not multiplayer.is_server(): return
+	var sender_id = multiplayer.get_remote_sender_id()
+	_spawn_specific_player(sender_id, faction, weapon_path)
+
+func _spawn_specific_player(id: int, team: Team.TeamId, weapon_path: String):
 	PlayerStats.register_player(id, "Player " + str(id), team)
 	
 	var player = player_scene.instantiate()
 	player.name = str(id)
 	player.team = team
 	
+	if ResourceLoader.exists(weapon_path):
+		player.primary_weapon = load(weapon_path)
+		
 	players_container.add_child(player, true)
 	
 	if team == Team.TeamId.POLICE:

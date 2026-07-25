@@ -46,6 +46,15 @@ var touch_instance: CanvasLayer
 func _enter_tree():
 	add_to_group("Players")
 	set_multiplayer_authority(name.to_int())
+	
+	var sync = MultiplayerSynchronizer.new()
+	sync.name = "MultiplayerSynchronizer"
+	var config = SceneReplicationConfig.new()
+	config.add_property(".:position")
+	config.add_property(".:rotation")
+	config.add_property("Camera3D:rotation")
+	sync.replication_config = config
+	add_child(sync)
 
 func _ready():
 	if not is_multiplayer_authority():
@@ -225,6 +234,17 @@ func fire_weapon():
 		request_fire(camera.global_transform.origin, -camera.global_transform.basis.z * current_weapon.range)
 	else:
 		rpc_id(1, "request_fire", camera.global_transform.origin, -camera.global_transform.basis.z * current_weapon.range)
+		rpc("sync_shoot_effects")
+
+@rpc("any_peer", "call_remote", "unreliable")
+func sync_shoot_effects():
+	# Play sound and animation on remote clients
+	var tween = create_tween()
+	weapon_model.position.z += 0.1
+	tween.tween_property(weapon_model, "position:z", weapon_model.position.z - 0.1, 0.1)
+	
+	if fire_sound:
+		fire_sound.play()
 
 @rpc("any_peer", "call_local", "reliable")
 func request_fire(origin: Vector3, direction: Vector3):

@@ -21,6 +21,14 @@ var weapon_box: HBoxContainer
 var rifle_btn: Button
 var smg_btn: Button
 
+var network_box: VBoxContainer
+var host_btn: Button
+var join_btn: Button
+var ip_input: LineEdit
+
+var is_hosting: bool = false
+var join_ip: String = ""
+
 var dummy_audio: AudioStreamPlayer
 
 var rifle_data = preload("res://resources/weapon_data/Rifle.tres")
@@ -71,6 +79,37 @@ func _ready() -> void:
 	weapon_box.add_child(rifle_btn)
 	weapon_box.add_child(smg_btn)
 	
+	# Build Network UI dynamically
+	network_box = VBoxContainer.new()
+	network_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	network_box.add_theme_constant_override("separation", 15)
+	network_box.hide()
+	
+	host_btn = Button.new()
+	host_btn.text = "Host Game"
+	host_btn.custom_minimum_size = Vector2(250, 60)
+	host_btn.add_theme_font_size_override("font_size", 24)
+	host_btn.pressed.connect(_on_host_pressed)
+	
+	join_btn = Button.new()
+	join_btn.text = "Join Game"
+	join_btn.custom_minimum_size = Vector2(250, 60)
+	join_btn.add_theme_font_size_override("font_size", 24)
+	join_btn.pressed.connect(_on_join_pressed)
+	
+	ip_input = LineEdit.new()
+	ip_input.placeholder_text = "Enter IP Address (e.g. 127.0.0.1)"
+	ip_input.custom_minimum_size = Vector2(250, 40)
+	ip_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ip_input.text = "127.0.0.1"
+	
+	network_box.add_child(host_btn)
+	network_box.add_child(ip_input)
+	network_box.add_child(join_btn)
+	
+	add_child(network_box)
+	network_box.set_anchors_preset(Control.PRESET_CENTER)
+	
 	# Add it above the start button
 	var start_idx = start_btn.get_index()
 	faction_select.add_child(weapon_box)
@@ -97,9 +136,28 @@ func _on_solo_pressed() -> void:
 
 func _on_multiplayer_pressed() -> void:
 	print("Menu flow: Mode selected -> Multiplayer")
-	network_lbl.show()
-	solo_btn.hide()
-	multi_btn.hide()
+	mode_select.hide()
+	network_box.show()
+
+func _on_host_pressed() -> void:
+	print("Menu flow: Network -> Host Game")
+	is_hosting = true
+	MatchManager.is_offline_solo = false
+	network_box.hide()
+	match_size_select.show()
+
+func _on_join_pressed() -> void:
+	print("Menu flow: Network -> Join Game")
+	is_hosting = false
+	join_ip = ip_input.text.strip_edges()
+	MatchManager.is_offline_solo = false
+	network_box.hide()
+	faction_select.show()
+	selected_faction = Team.TeamId.NONE
+	selected_weapon = null
+	start_btn.disabled = true
+	weapon_box.hide()
+	_update_faction_buttons()
 
 func _on_match_size_pressed(ms: MatchManager.MatchSize) -> void:
 	MatchManager.match_size = ms
@@ -155,4 +213,10 @@ func _on_start_pressed() -> void:
 	print("Menu flow: Start Game pressed with Faction ", selected_faction, " and Weapon ", selected_weapon.resource_path.get_file())
 	MatchManager.solo_faction = selected_faction
 	MatchManager.solo_primary_weapon = selected_weapon
-	get_tree().change_scene_to_file("res://node_3d.tscn")
+	
+	if MatchManager.is_offline_solo:
+		get_tree().change_scene_to_file("res://node_3d.tscn")
+	elif is_hosting:
+		NetworkManager.host_game()
+	else:
+		NetworkManager.join_game(join_ip)
