@@ -11,6 +11,7 @@ const SPEED = 3.0
 
 var target_position: Vector3
 
+enum State {
 	PATROL,
 	ENGAGE
 }
@@ -107,28 +108,28 @@ func _physics_process(delta):
 				
 	elif current_state == State.PATROL:
 		if nav_agent.is_navigation_finished():
-		velocity.x = 0
-		velocity.z = 0
-	else:
-		var current_agent_position: Vector3 = global_position
-		var next_path_position: Vector3 = nav_agent.get_next_path_position()
-		
-		var new_velocity: Vector3 = next_path_position - current_agent_position
-		new_velocity = new_velocity.normalized()
-		new_velocity = new_velocity * SPEED
-		
-		velocity.x = move_toward(velocity.x, new_velocity.x, 0.25)
-		velocity.z = move_toward(velocity.z, new_velocity.z, 0.25)
-		
-		# Look at target
-		if new_velocity.length() > 0.1:
-			var look_target = global_position + Vector3(velocity.x, 0, velocity.z)
-			look_at(look_target, Vector3.UP)
-			var sol = get_node_or_null("TacticalSoldier")
-			if sol: sol.play_anim("run")
+			velocity.x = 0
+			velocity.z = 0
 		else:
-			var sol = get_node_or_null("TacticalSoldier")
-			if sol: sol.play_anim("idle")
+			var current_agent_position: Vector3 = global_position
+			var next_path_position: Vector3 = nav_agent.get_next_path_position()
+			
+			var new_velocity: Vector3 = next_path_position - current_agent_position
+			new_velocity = new_velocity.normalized()
+			new_velocity = new_velocity * SPEED
+			
+			velocity.x = move_toward(velocity.x, new_velocity.x, 0.25)
+			velocity.z = move_toward(velocity.z, new_velocity.z, 0.25)
+			
+			# Look at target
+			if new_velocity.length() > 0.1:
+				var look_target = global_position + Vector3(velocity.x, 0, velocity.z)
+				look_at(look_target, Vector3.UP)
+				var sol = get_node_or_null("TacticalSoldier")
+				if sol: sol.play_anim("run")
+			else:
+				var sol = get_node_or_null("TacticalSoldier")
+				if sol: sol.play_anim("idle")
 
 	move_and_slide()
 
