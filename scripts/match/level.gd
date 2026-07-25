@@ -158,6 +158,7 @@ func _spawn_specific_player(id: int, team: Team.TeamId, weapon_path: String):
 
 func _on_round_state_changed(state: int):
 	if state == MatchManager.MatchState.ROUND_START:
+		PlayerStats.reset_grenades_for_round()
 		_respawn_all_players()
 
 func _respawn_all_players():

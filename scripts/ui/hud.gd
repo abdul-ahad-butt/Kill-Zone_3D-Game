@@ -35,6 +35,7 @@ func _ready() -> void:
 	_setup_crosshair()
 	_setup_scope()
 	_setup_buy_menu()
+	_setup_grenade_indicator()
 	
 	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
 	var active_sites = "A, B" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "A, B, C, D"
@@ -206,6 +207,7 @@ func _process(delta):
 			spectator_label.hide()
 			_update_crosshair()
 			_process_money()
+			_update_grenade_indicator()
 			
 			if local_player.is_ads and local_player.current_weapon and local_player.current_weapon.ads_fov < 30.0:
 				if local_player.camera.fov < local_player.current_weapon.ads_fov + 10.0:
@@ -463,6 +465,32 @@ func _setup_scope():
 	scope_overlay.hide()
 	add_child(scope_overlay)
 
+# --- GRENADE INDICATOR ---
+var grenade_indicator: Label
+
+func _setup_grenade_indicator():
+	grenade_indicator = Label.new()
+	grenade_indicator.add_theme_font_size_override("font_size", 18)
+	grenade_indicator.add_theme_color_override("font_color", Color.WHITE)
+	grenade_indicator.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	grenade_indicator.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	grenade_indicator.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	grenade_indicator.position = Vector2(-180, -50)
+	add_child(grenade_indicator)
+
+func _update_grenade_indicator():
+	if not grenade_indicator or not local_player: return
+	var p_id = local_player.name.to_int()
+	if not PlayerStats.stats.has(p_id):
+		grenade_indicator.text = ""
+		return
+	var g = PlayerStats.stats[p_id].get("grenade_count", 0)
+	var s = PlayerStats.stats[p_id].get("smoke_count", 0)
+	var parts = []
+	if g > 0: parts.append("💣 x%d [G]" % g)
+	if s > 0: parts.append("🌫 x%d [Shift+G]" % s)
+	grenade_indicator.text = "\n".join(parts)
+
 # --- BUY MENU & MONEY ---
 var buy_menu_panel: PanelContainer
 var money_label: Label
@@ -505,7 +533,9 @@ func _setup_buy_menu():
 	
 	var utility = [
 		{"name": "Kevlar Armor", "cost": 1000, "path": "item_armor"},
-		{"name": "Defuse Kit (Police Only)", "cost": 400, "path": "item_defuse_kit"}
+		{"name": "Defuse Kit (Police Only)", "cost": 400, "path": "item_defuse_kit"},
+		{"name": "Frag Grenade ($300) [G]", "cost": 300, "path": "item_frag"},
+		{"name": "Smoke Grenade ($400) [Shift+G]", "cost": 400, "path": "item_smoke"}
 	]
 	
 	for w in weapons:
@@ -555,8 +585,9 @@ func request_buy_server(peer_id: int, cost: int, path: String):
 func _process_buy(peer_id: int, cost: int, path: String):
 	if PlayerStats.request_buy(peer_id, cost, path):
 		print("Player ", peer_id, " bought ", path)
-		# Update player weapon immediately if they exist and it's a weapon
-		if path != "item_armor" and path != "item_defuse_kit":
+		var utility_items = ["item_armor", "item_defuse_kit", "item_frag", "item_smoke"]
+		# Update player weapon immediately if it's a weapon (not utility)
+		if not utility_items.has(path):
 			if get_tree().root.has_node("Level/PlayersContainer/" + str(peer_id)):
 				var p = get_tree().root.get_node("Level/PlayersContainer/" + str(peer_id))
 				if ResourceLoader.exists(path):

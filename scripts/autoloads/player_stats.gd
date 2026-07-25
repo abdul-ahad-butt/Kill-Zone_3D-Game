@@ -20,6 +20,8 @@ func register_player(peer_id: int, player_name: String, team: Team.TeamId, weapo
 			"money": 800,
 			"has_armor": false,
 			"has_defuse_kit": false,
+			"grenade_count": 1,
+			"smoke_count": 0,
 			"kills": 0,
 			"deaths": 0
 		}
@@ -66,6 +68,12 @@ func request_buy(peer_id: int, cost: int, item_path: String) -> bool:
 				if stats[peer_id].get("has_defuse_kit", false): return false
 				if stats[peer_id]["team"] != Team.TeamId.POLICE: return false
 				stats[peer_id]["has_defuse_kit"] = true
+			elif item_path == "item_frag":
+				if stats[peer_id].get("grenade_count", 0) >= 2: return false
+				stats[peer_id]["grenade_count"] = stats[peer_id].get("grenade_count", 0) + 1
+			elif item_path == "item_smoke":
+				if stats[peer_id].get("smoke_count", 0) >= 1: return false
+				stats[peer_id]["smoke_count"] = stats[peer_id].get("smoke_count", 0) + 1
 			else:
 				stats[peer_id]["weapon_path"] = item_path
 				
@@ -93,6 +101,13 @@ func sync_all_stats():
 func receive_stats(new_stats: Dictionary):
 	stats = new_stats
 	emit_signal("stats_updated")
+
+func reset_grenades_for_round():
+	if not multiplayer.is_server(): return
+	for id in stats.keys():
+		stats[id]["grenade_count"] = 1
+		stats[id]["smoke_count"] = 0
+	sync_all_stats()
 
 @rpc("authority", "call_local", "reliable")
 func sync_kill_feed(killer: String, victim: String, weapon: String):

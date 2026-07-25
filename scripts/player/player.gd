@@ -347,20 +347,35 @@ func _play_footstep():
 			equip_weapon(secondary_weapon)
 		
 		if Input.is_key_pressed(KEY_G) and not grenade_cooldown:
-			grenade_cooldown = true
-			_throw_grenade()
-			get_tree().create_timer(2.0).timeout.connect(func(): grenade_cooldown = false)
+			var p_id = name.to_int()
+			var want_smoke = Input.is_key_pressed(KEY_SHIFT)
+			if want_smoke:
+				var s_count = PlayerStats.stats[p_id].get("smoke_count", 0) if PlayerStats.stats.has(p_id) else 0
+				if s_count > 0:
+					grenade_cooldown = true
+					PlayerStats.stats[p_id]["smoke_count"] = s_count - 1
+					PlayerStats.sync_all_stats()
+					_throw_grenade(true)
+					get_tree().create_timer(1.0).timeout.connect(func(): grenade_cooldown = false)
+			else:
+				var g_count = PlayerStats.stats[p_id].get("grenade_count", 0) if PlayerStats.stats.has(p_id) else 0
+				if g_count > 0:
+					grenade_cooldown = true
+					PlayerStats.stats[p_id]["grenade_count"] = g_count - 1
+					PlayerStats.sync_all_stats()
+					_throw_grenade(false)
+					get_tree().create_timer(1.0).timeout.connect(func(): grenade_cooldown = false)
 		
 	_update_hud(is_interacting, bomb_progress)
 
-func _throw_grenade():
+func _throw_grenade(smoke: bool = false):
 	if MatchManager.is_offline_solo:
-		request_throw_grenade(camera.global_transform.origin, -camera.global_transform.basis.z, velocity)
+		request_throw_grenade(camera.global_transform.origin, -camera.global_transform.basis.z, velocity, smoke)
 	else:
-		rpc_id(1, "request_throw_grenade", camera.global_transform.origin, -camera.global_transform.basis.z, velocity)
+		rpc_id(1, "request_throw_grenade", camera.global_transform.origin, -camera.global_transform.basis.z, velocity, smoke)
 
 @rpc("any_peer", "call_local", "reliable")
-func request_throw_grenade(origin: Vector3, direction: Vector3, thrower_vel: Vector3):
+func request_throw_grenade(origin: Vector3, direction: Vector3, thrower_vel: Vector3, smoke: bool = false):
 	if not MatchManager.is_offline_solo and not multiplayer.is_server(): return
 	
 	var thrower_id = get_multiplayer_authority() if MatchManager.is_offline_solo else multiplayer.get_remote_sender_id()
@@ -368,6 +383,7 @@ func request_throw_grenade(origin: Vector3, direction: Vector3, thrower_vel: Vec
 	var grenade = grenade_script.new()
 	grenade.thrower_id = thrower_id
 	grenade.thrower_team = team
+	grenade.is_smoke = smoke
 	grenade.position = origin + direction * 1.5
 	grenade.linear_velocity = thrower_vel + direction * 15.0
 	
