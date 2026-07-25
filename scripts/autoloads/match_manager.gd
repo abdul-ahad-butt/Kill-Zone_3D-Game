@@ -17,7 +17,7 @@ var max_rounds: int = 9
 var is_bomb_planted: bool = false
 
 var freeze_time: float = 5.0
-var round_time: float = 120.0
+var round_time: float = 600.0
 var bomb_time: float = 40.0
 var round_end_delay: float = 5.0
 

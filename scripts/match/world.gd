@@ -8,6 +8,14 @@ var bot_scene = preload("res://scenes/player/bot.tscn")
 
 func _ready():
 	_apply_hq_materials()
+	
+	# Bake navmesh for bots
+	var nav = get_node_or_null("NavigationRegion3D")
+	if nav:
+		if nav.navigation_mesh == null:
+			nav.navigation_mesh = NavigationMesh.new()
+		nav.bake_navigation_mesh(false)
+		
 	NetworkManager.player_connected.connect(_on_player_connected)
 	
 	if NetworkManager.is_offline:
@@ -15,9 +23,11 @@ func _ready():
 		_spawn_local_offline()
 
 func _apply_hq_materials():
-	# Load new materials and force triplanar mapping so they don't stretch
-	var grass = load("res://Assets/textures/mat_grass.tres")
-	if grass: grass.uv1_triplanar = true
+	# Create a clean solid green grass material instead of blurry noise
+	var grass = StandardMaterial3D.new()
+	grass.albedo_color = Color(0.15, 0.35, 0.1)
+	grass.roughness = 0.9
+	
 	var concrete = load("res://Assets/textures/mat_concrete.tres")
 	if concrete: concrete.uv1_triplanar = true
 	var brick = load("res://Assets/textures/mat_brick.tres")
