@@ -1,8 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/match/world.gd" id="1_world"]
-[ext_resource type="PackedScene" path="res://scenes/player/bot.tscn" id="1_bot"]
+[ext_resource type="Material" path="res://resources/materials/concrete.tres" id="1_71j4m"]
 [ext_resource type="PackedScene" path="res://scenes/ui/main_menu.tscn" id="2_menu"]
+[ext_resource type="Material" path="res://resources/materials/dirt.tres" id="2_qfnet"]
+[ext_resource type="Material" path="res://resources/materials/brick.tres" id="3_i7141"]
+[ext_resource type="Material" path="res://resources/materials/metal.tres" id="4_4mrxx"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_A"]
 size = Vector3(8, 2, 8)
@@ -10,132 +12,166 @@ size = Vector3(8, 2, 8)
 [sub_resource type="BoxShape3D" id="BoxShape3D_B"]
 size = Vector3(8, 2, 8)
 
-[node name="World" type="Node3D"]
-script = ExtResource("1_world")
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7r4gi"]
+sky_top_color = Color(0.3, 0.45, 0.6, 1)
+sky_horizon_color = Color(0.6, 0.7, 0.8, 1)
+ground_bottom_color = Color(0.15, 0.15, 0.15, 1)
+ground_horizon_color = Color(0.6, 0.7, 0.8, 1)
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[sub_resource type="Sky" id="Sky_w7kh3"]
+sky_material = SubResource("ProceduralSkyMaterial_7r4gi")
+
+[sub_resource type="Environment" id="Environment_e3hyu"]
+background_mode = 2
+sky = SubResource("Sky_w7kh3")
+ambient_light_source = 3
+tonemap_mode = 2
+ssr_enabled = true
+ssao_enabled = true
+
+[node name="World" type="Node3D" unique_id=65326711]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1437765875]
 transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 20, 0)
 shadow_enabled = true
+directional_shadow_mode = 0
+directional_shadow_fade_start = 1.0
+directional_shadow_max_distance = 200.0
 
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=778866495]
 
-[node name="MapGeometry" type="CSGCombiner3D" parent="NavigationRegion3D"]
+[node name="MapGeometry" type="CSGCombiner3D" parent="NavigationRegion3D" unique_id=1309501952]
+material_override = ExtResource("1_71j4m")
 use_collision = true
 
-[node name="Ground" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+[node name="Ground" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=319492723]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 size = Vector3(100, 1, 100)
+material = ExtResource("2_qfnet")
 
-[node name="BuildingA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+[node name="BuildingA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1317948560]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 4, 0)
 size = Vector3(16, 8, 16)
+material = ExtResource("3_i7141")
 
-[node name="InteriorA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA"]
+[node name="InteriorA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=1125458000]
 operation = 2
 size = Vector3(15, 7, 15)
 
-[node name="DoorA1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA"]
+[node name="DoorA1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=1902740841]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5, 8)
 operation = 2
 size = Vector3(4, 3, 2)
 
-[node name="DoorA2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA"]
+[node name="DoorA2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=1280008887]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -2.5, 0)
 operation = 2
 size = Vector3(2, 3, 4)
 
-[node name="BuildingB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+[node name="BuildingB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=532743647]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 4, 0)
 size = Vector3(16, 8, 16)
+material = ExtResource("3_i7141")
 
-[node name="InteriorB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB"]
+[node name="InteriorB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=286601313]
 operation = 2
 size = Vector3(15, 7, 15)
 
-[node name="DoorB1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB"]
+[node name="DoorB1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=169352221]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5, -8)
 operation = 2
 size = Vector3(4, 3, 2)
 
-[node name="DoorB2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB"]
+[node name="DoorB2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=480689589]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -2.5, 0)
 operation = 2
 size = Vector3(2, 3, 4)
 
-[node name="CenterStructure" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+[node name="CenterStructure" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1539133479]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 size = Vector3(10, 6, 10)
+material = ExtResource("4_4mrxx")
 
-[node name="RoofRamp" type="CSGPolygon3D" parent="NavigationRegion3D/MapGeometry/CenterStructure"]
+[node name="RoofRamp" type="CSGPolygon3D" parent="NavigationRegion3D/MapGeometry/CenterStructure" unique_id=95637676]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 5, -3, -5)
 polygon = PackedVector2Array(0, 0, 0, 6, 10, 0)
 depth = 4.0
 
-[node name="CoverWall1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+[node name="CoverWall1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=392902175]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 15)
 size = Vector3(6, 2, 1)
+material = ExtResource("1_71j4m")
 
-[node name="CoverWall2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+[node name="CoverWall2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1407494099]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, -15)
 size = Vector3(6, 2, 1)
+material = ExtResource("1_71j4m")
 
-[node name="Spawns" type="Node3D" parent="."]
+[node name="Spawns" type="Node3D" parent="." unique_id=1149072706]
 
-[node name="Police" type="Node3D" parent="Spawns"]
+[node name="Police" type="Node3D" parent="Spawns" unique_id=1101393323]
 
-[node name="Spawn1" type="Marker3D" parent="Spawns/Police"]
+[node name="Spawn1" type="Marker3D" parent="Spawns/Police" unique_id=94788341]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, 40)
 
-[node name="Spawn2" type="Marker3D" parent="Spawns/Police"]
+[node name="Spawn2" type="Marker3D" parent="Spawns/Police" unique_id=137701692]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, 40)
 
-[node name="Spawn3" type="Marker3D" parent="Spawns/Police"]
+[node name="Spawn3" type="Marker3D" parent="Spawns/Police" unique_id=1621391891]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 40)
 
-[node name="Spawn4" type="Marker3D" parent="Spawns/Police"]
+[node name="Spawn4" type="Marker3D" parent="Spawns/Police" unique_id=72383995]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, 40)
 
-[node name="Spawn5" type="Marker3D" parent="Spawns/Police"]
+[node name="Spawn5" type="Marker3D" parent="Spawns/Police" unique_id=314834268]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 40)
 
-[node name="Terrorist" type="Node3D" parent="Spawns"]
+[node name="Terrorist" type="Node3D" parent="Spawns" unique_id=45806578]
 
-[node name="Spawn1" type="Marker3D" parent="Spawns/Terrorist"]
+[node name="Spawn1" type="Marker3D" parent="Spawns/Terrorist" unique_id=1488741233]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -40)
 
-[node name="Spawn2" type="Marker3D" parent="Spawns/Terrorist"]
+[node name="Spawn2" type="Marker3D" parent="Spawns/Terrorist" unique_id=1410861455]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, -40)
 
-[node name="Spawn3" type="Marker3D" parent="Spawns/Terrorist"]
+[node name="Spawn3" type="Marker3D" parent="Spawns/Terrorist" unique_id=1830124096]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -40)
 
-[node name="Spawn4" type="Marker3D" parent="Spawns/Terrorist"]
+[node name="Spawn4" type="Marker3D" parent="Spawns/Terrorist" unique_id=673964719]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, -40)
 
-[node name="Spawn5" type="Marker3D" parent="Spawns/Terrorist"]
+[node name="Spawn5" type="Marker3D" parent="Spawns/Terrorist" unique_id=680622867]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, -40)
 
-[node name="BombSites" type="Node3D" parent="."]
+[node name="BombSites" type="Node3D" parent="." unique_id=1919832463]
 
-[node name="SiteA" type="Area3D" parent="BombSites"]
+[node name="SiteA" type="Area3D" parent="BombSites" unique_id=387555126]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1, 0)
 collision_layer = 4
 collision_mask = 2
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="BombSites/SiteA"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BombSites/SiteA" unique_id=1188726158]
 shape = SubResource("BoxShape3D_A")
 
-[node name="SiteB" type="Area3D" parent="BombSites"]
+[node name="SiteB" type="Area3D" parent="BombSites" unique_id=1738366441]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1, 0)
 collision_layer = 4
 collision_mask = 2
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="BombSites/SiteB"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BombSites/SiteB" unique_id=904632457]
 shape = SubResource("BoxShape3D_B")
 
-[node name="SpectatorCamera" type="Camera3D" parent="."]
+[node name="SpectatorCamera" type="Camera3D" parent="." unique_id=485150426]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 45, 45)
 current = true
-fov = 75.0
 
-[node name="MainMenuUI" parent="." instance=ExtResource("2_menu")]
+[node name="MainMenuUI" type="Control" parent="." unique_id=341392689 instance=ExtResource("2_menu")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1281496174]
+environment = SubResource("Environment_e3hyu")

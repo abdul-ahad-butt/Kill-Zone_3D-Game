@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene format=3]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
 albedo_color = Color(0.3, 0.3, 0.3, 1)
@@ -23,18 +23,36 @@ emission_energy_multiplier = 2.0
 material = SubResource("StandardMaterial3D_2")
 size = Vector3(0.02, 0.02, 0.1)
 
-[node name="SMGViewmodel" type="Node3D"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bpx7s"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[sub_resource type="BoxMesh" id="BoxMesh_ak8qb"]
+material = SubResource("StandardMaterial3D_bpx7s")
+size = Vector3(0.05, 0.15, 0.08)
+
+[node name="SMGViewmodel" type="Node3D" unique_id=1591060503]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1913267504]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.25, -0.5)
 mesh = SubResource("BoxMesh_1")
 
-[node name="MuzzleFlash" type="GPUParticles3D" parent="."]
+[node name="MuzzleFlash" type="GPUParticles3D" parent="." unique_id=1449442321]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.2, -0.7)
 emitting = false
-amount = 8
 lifetime = 0.1
 one_shot = true
 explosiveness = 1.0
 process_material = SubResource("ParticleProcessMaterial_1")
 draw_pass_1 = SubResource("BoxMesh_2")
+
+[node name="Magazine" type="MeshInstance3D" parent="." unique_id=4557049]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.4, -0.4)
+mesh = SubResource("BoxMesh_ak8qb")
+
+[node name="MuzzleLight" type="OmniLight3D" parent="." unique_id=1621076924]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.2, -0.7)
+visible = false
+light_color = Color(1, 0.8, 0.2, 1)
+light_energy = 5.0
+shadow_enabled = true
+omni_range = 10.0

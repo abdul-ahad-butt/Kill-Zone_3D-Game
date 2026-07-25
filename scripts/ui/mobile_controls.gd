@@ -10,8 +10,7 @@ var max_radius: float = 100.0
 
 func _ready():
 	hide()
-	var os_name = OS.get_name()
-	if OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios") or os_name == "Android" or os_name == "iOS":
+	if DisplayServer.is_touchscreen_available() or ProjectSettings.get_setting("input_devices/pointing/emulate_touch_from_mouse"):
 		show()
 		
 	base_rect.hide()

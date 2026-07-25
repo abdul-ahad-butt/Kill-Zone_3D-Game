@@ -36,7 +36,7 @@ func _ready():
 		return
 		
 	if camera: camera.current = true
-	if not OS.has_feature("mobile"):
+	if not DisplayServer.is_touchscreen_available():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if primary_weapon:
 		equip_weapon(primary_weapon)
@@ -126,6 +126,12 @@ func fire_weapon():
 		var flash = current_viewmodel.get_node_or_null("MuzzleFlash")
 		if flash and flash is GPUParticles3D:
 			flash.restart()
+			
+		var light = current_viewmodel.get_node_or_null("MuzzleLight")
+		if light and light is OmniLight3D:
+			light.visible = true
+			var t = create_tween()
+			t.tween_property(light, "visible", false, 0.05).set_delay(0.05)
 			
 	if gunshot_audio:
 		gunshot_audio.play()

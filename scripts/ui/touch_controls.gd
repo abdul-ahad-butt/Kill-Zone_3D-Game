@@ -7,8 +7,7 @@ var look_touch_index: int = -1
 var look_sensitivity: float = 1.0
 
 func _ready():
-	# Hide if not on mobile (unless testing in editor with emulation)
-	if not OS.has_feature("mobile") and not ProjectSettings.get_setting("input_devices/pointing/emulate_touch_from_mouse"):
+	if not DisplayServer.is_touchscreen_available() and not ProjectSettings.get_setting("input_devices/pointing/emulate_touch_from_mouse"):
 		hide()
 		set_process_input(false)
 		return

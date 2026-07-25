@@ -30,7 +30,28 @@ func _ready():
 	bomb_timer_label.pivot_offset = bomb_timer_label.size / 2.0
 	banner_label.pivot_offset = banner_label.size / 2.0
 	
+	_apply_hud_styling()
 	_setup_mobile_ui()
+
+func _apply_hud_styling():
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0, 0, 0, 0.5)
+	panel_style.corner_radius_top_left = 8
+	panel_style.corner_radius_top_right = 8
+	panel_style.corner_radius_bottom_left = 8
+	panel_style.corner_radius_bottom_right = 8
+	panel_style.content_margin_left = 15
+	panel_style.content_margin_right = 15
+	panel_style.content_margin_top = 5
+	panel_style.content_margin_bottom = 5
+	
+	score_label.add_theme_stylebox_override("normal", panel_style)
+	
+	var status_style = panel_style.duplicate()
+	status_style.content_margin_top = 10
+	status_style.content_margin_bottom = 10
+	health_label.add_theme_stylebox_override("normal", status_style)
+	ammo_label.add_theme_stylebox_override("normal", status_style)
 
 func update_health(health: int):
 	if health_label: health_label.text = "HP: " + str(health)
@@ -49,7 +70,9 @@ func hide_interact_progress():
 	if interact_progress: interact_progress.hide()
 
 func _setup_mobile_ui():
-	# Always show for testing or if mobile
+	if not DisplayServer.is_touchscreen_available() and not ProjectSettings.get_setting("input_devices/pointing/emulate_touch_from_mouse"):
+		return
+		
 	var joystick_scene = load("res://scenes/ui/virtual_joystick.tscn")
 	if joystick_scene:
 		add_child(joystick_scene.instantiate())
@@ -58,10 +81,18 @@ func _setup_mobile_ui():
 	if minimap_scene:
 		add_child(minimap_scene.instantiate())
 		
+	var btn_style = StyleBoxFlat.new()
+	btn_style.bg_color = Color(0, 0, 0, 0.4)
+	btn_style.corner_radius_top_left = 10
+	btn_style.corner_radius_top_right = 10
+	btn_style.corner_radius_bottom_left = 10
+	btn_style.corner_radius_bottom_right = 10
+		
 	var jump_btn = Button.new()
 	jump_btn.text = "JUMP"
 	jump_btn.custom_minimum_size = Vector2(100, 100)
-	jump_btn.position = Vector2(get_viewport().size.x - 150, get_viewport().size.y - 300)
+	jump_btn.position = Vector2(get_viewport().size.x - 120, get_viewport().size.y - 300)
+	jump_btn.add_theme_stylebox_override("normal", btn_style)
 	jump_btn.button_down.connect(func(): Input.action_press("jump"))
 	jump_btn.button_up.connect(func(): Input.action_release("jump"))
 	add_child(jump_btn)
@@ -69,7 +100,8 @@ func _setup_mobile_ui():
 	var reload_btn = Button.new()
 	reload_btn.text = "RELOAD"
 	reload_btn.custom_minimum_size = Vector2(100, 100)
-	reload_btn.position = Vector2(get_viewport().size.x - 300, get_viewport().size.y - 150)
+	reload_btn.position = Vector2(get_viewport().size.x - 240, get_viewport().size.y - 120)
+	reload_btn.add_theme_stylebox_override("normal", btn_style)
 	reload_btn.button_down.connect(func(): Input.action_press("reload"))
 	reload_btn.button_up.connect(func(): Input.action_release("reload"))
 	add_child(reload_btn)
@@ -77,7 +109,8 @@ func _setup_mobile_ui():
 	var interact_btn = Button.new()
 	interact_btn.text = "PLANT/DEFUSE"
 	interact_btn.custom_minimum_size = Vector2(120, 80)
-	interact_btn.position = Vector2(get_viewport().size.x - 450, get_viewport().size.y - 150)
+	interact_btn.position = Vector2(get_viewport().size.x - 380, get_viewport().size.y - 100)
+	interact_btn.add_theme_stylebox_override("normal", btn_style)
 	interact_btn.button_down.connect(func(): Input.action_press("interact"))
 	interact_btn.button_up.connect(func(): Input.action_release("interact"))
 	add_child(interact_btn)
