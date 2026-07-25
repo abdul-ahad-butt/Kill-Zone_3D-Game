@@ -345,16 +345,31 @@ func _on_bomb_planted():
 	hide_tween.tween_callback(bomb_alert_label.hide)
 
 # --- RADAR ---
+var radar_bg_panel: PanelContainer
 var radar_container: SubViewportContainer
 var radar_viewport: SubViewport
 var radar_camera: Camera3D
 var radar_pings_container: Control
+var radar_player_icon: Polygon2D
+var radar_bomb_markers: Array = []
+var friendly_dots: Dictionary = {}
 
 func _setup_radar():
+	radar_bg_panel = PanelContainer.new()
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.6)
+	style.set_corner_radius_all(100)
+	style.set_border_width_all(4)
+	style.border_color = Color(0.25, 0.3, 0.4, 0.9)
+	radar_bg_panel.add_theme_stylebox_override("panel", style)
+	radar_bg_panel.custom_minimum_size = Vector2(210, 210)
+	radar_bg_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	radar_bg_panel.position = Vector2(15, 15)
+
 	radar_container = SubViewportContainer.new()
 	radar_container.custom_minimum_size = Vector2(200, 200)
-	radar_container.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	radar_container.position = Vector2(20, 20)
+	radar_container.set_anchors_preset(Control.PRESET_CENTER)
+	radar_bg_panel.add_child(radar_container)
 	
 	radar_viewport = SubViewport.new()
 	radar_viewport.size = Vector2i(200, 200)
@@ -372,11 +387,26 @@ func _setup_radar():
 	radar_pings_container.custom_minimum_size = Vector2(200, 200)
 	radar_container.add_child(radar_pings_container)
 	
-	add_child(radar_container)
+	add_child(radar_bg_panel)
 	
-	# Wait one frame to ensure get_viewport().world_3d is valid
+	radar_player_icon = Polygon2D.new()
+	radar_player_icon.polygon = PackedVector2Array([Vector2(0, -8), Vector2(6, 6), Vector2(0, 3), Vector2(-6, 6)])
+	radar_player_icon.color = Color.GREEN
+	radar_player_icon.position = Vector2(100, 100)
+	radar_pings_container.add_child(radar_player_icon)
+	
 	await get_tree().process_frame
 	radar_viewport.world_3d = get_viewport().world_3d
+	
+	for site in get_tree().get_nodes_in_group("BombSite"):
+		var marker = Label.new()
+		marker.text = site.site_name
+		marker.add_theme_font_size_override("font_size", 14)
+		marker.add_theme_color_override("font_color", Color.ORANGE)
+		marker.add_theme_color_override("font_outline_color", Color.BLACK)
+		marker.add_theme_constant_override("outline_size", 4)
+		radar_pings_container.add_child(marker)
+		radar_bomb_markers.append({"node": marker, "site": site})
 
 func add_radar_ping(shooter_team: int, world_pos: Vector3):
 	if not local_player or local_player.team == shooter_team: return
@@ -385,17 +415,13 @@ func add_radar_ping(shooter_team: int, world_pos: Vector3):
 	ping.color = Color.RED
 	ping.size = Vector2(6, 6)
 	
-	# Calculate offset in 2D (x and z)
 	var diff = Vector2(world_pos.x - local_player.global_position.x, world_pos.z - local_player.global_position.z)
-	
-	# Radar camera size is 60.0, mapping to 200x200 viewport
 	var scale_factor = 200.0 / 60.0
 	var offset_px = diff * scale_factor
 	
 	ping.position = Vector2(100, 100) + offset_px - (ping.size / 2.0)
 	
-	# Don't show if way off radar
-	if offset_px.length() > 120.0:
+	if offset_px.length() > 95.0:
 		return
 		
 	radar_pings_container.add_child(ping)
@@ -408,6 +434,51 @@ func _process_radar():
 	if is_instance_valid(radar_camera) and is_instance_valid(local_player):
 		radar_camera.global_position.x = local_player.global_position.x
 		radar_camera.global_position.z = local_player.global_position.z
+		
+		if local_player.camera:
+			radar_player_icon.rotation = -local_player.camera.global_rotation.y
+		
+		var scale_factor = 200.0 / 60.0
+		for bm in radar_bomb_markers:
+			var site_pos = bm.site.global_position
+			var diff = Vector2(site_pos.x - local_player.global_position.x, site_pos.z - local_player.global_position.z)
+			var offset_px = diff * scale_factor
+			if offset_px.length() < 90.0:
+				bm.node.show()
+				bm.node.position = Vector2(100, 100) + offset_px - (bm.node.size / 2.0)
+			else:
+				bm.node.hide()
+				
+		var current_friendlies = []
+		for p in get_tree().get_nodes_in_group("Players"):
+			if p != local_player and not p.is_dead and p.team == local_player.team:
+				current_friendlies.append(p)
+				
+		for p in current_friendlies:
+			if not friendly_dots.has(p):
+				var dot = ColorRect.new()
+				dot.color = Color.CYAN
+				dot.size = Vector2(6, 6)
+				radar_pings_container.add_child(dot)
+				friendly_dots[p] = dot
+				
+			var dot = friendly_dots[p]
+			var p_pos = p.global_position
+			var diff = Vector2(p_pos.x - local_player.global_position.x, p_pos.z - local_player.global_position.z)
+			var offset_px = diff * scale_factor
+			if offset_px.length() < 95.0:
+				dot.show()
+				dot.position = Vector2(100, 100) + offset_px - (dot.size / 2.0)
+			else:
+				dot.hide()
+				
+		var to_erase = []
+		for p in friendly_dots.keys():
+			if not is_instance_valid(p) or p.is_dead or p.team != local_player.team:
+				friendly_dots[p].queue_free()
+				to_erase.append(p)
+		for e in to_erase:
+			friendly_dots.erase(e)
 		
 func _process_crosshair():
 	if is_instance_valid(local_player) and local_player.current_weapon:
