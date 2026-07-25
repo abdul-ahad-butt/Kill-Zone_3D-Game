@@ -9,18 +9,21 @@ var stats: Dictionary = {}
 signal stats_updated()
 signal player_killed(killer_name: String, victim_name: String, weapon_name: String)
 
-func register_player(peer_id: int, player_name: String, team: Team.TeamId):
+func register_player(peer_id: int, player_name: String, team: Team.TeamId, weapon_path: String = ""):
 	if not multiplayer.is_server(): return
 	
 	if not stats.has(peer_id):
 		stats[peer_id] = {
 			"name": player_name,
 			"team": team,
+			"weapon_path": weapon_path,
 			"kills": 0,
 			"deaths": 0
 		}
 	else:
 		stats[peer_id]["team"] = team
+		if weapon_path != "":
+			stats[peer_id]["weapon_path"] = weapon_path
 		
 	sync_all_stats()
 

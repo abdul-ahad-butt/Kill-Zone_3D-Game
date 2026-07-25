@@ -17,6 +17,8 @@ func _ready():
 	else:
 		print("Match Size: 5v5. Active Sites: A, B, C, D")
 		
+	MatchManager.round_state_changed.connect(_on_round_state_changed)
+		
 	# Assign site names based on node names
 	for child in get_children():
 		if child.is_in_group("BombSite"):
@@ -105,7 +107,7 @@ func request_spawn(faction: int, weapon_path: String):
 	_spawn_specific_player(sender_id, faction, weapon_path)
 
 func _spawn_specific_player(id: int, team: Team.TeamId, weapon_path: String):
-	PlayerStats.register_player(id, "Player " + str(id), team)
+	PlayerStats.register_player(id, "Player " + str(id), team, weapon_path)
 	
 	var player = player_scene.instantiate()
 	player.name = str(id)
@@ -124,18 +126,51 @@ func _spawn_specific_player(id: int, team: Team.TeamId, weapon_path: String):
 		player.global_position = _get_random_spawn(spawn_terrorist.global_position)
 		player.has_bomb = true
 
+func _on_round_state_changed(state: int):
+	if state == MatchManager.MatchState.ROUND_START:
+		_respawn_all_players()
+
+func _respawn_all_players():
+	if not MatchManager.is_offline_solo and not multiplayer.is_server(): return
+	
+	for child in players_container.get_children():
+		child.queue_free()
+		
+	await get_tree().process_frame
+	
+	if MatchManager.is_offline_solo:
+		_setup_offline_match()
+	else:
+		for id in PlayerStats.stats.keys():
+			var team = PlayerStats.stats[id]["team"]
+			var wp = PlayerStats.stats[id].get("weapon_path", "res://resources/weapon_data/Rifle.tres")
+			_spawn_specific_player(id, team, wp)
+
 func _on_player_died(id: int, team: Team.TeamId, weapon_path: String):
 	if MatchManager.is_offline_solo or multiplayer.is_server():
-		# Start a 3-second respawn timer
-		await get_tree().create_timer(3.0).timeout
 		
-		if MatchManager.is_offline_solo:
-			var is_bot = (id != 1)
-			_spawn_solo_player(str(id), team, is_bot)
+		if MatchManager.match_size == MatchManager.MatchSize.SOLO:
+			# Start a 3-second respawn timer for Deathmatch
+			await get_tree().create_timer(3.0).timeout
+			
+			if MatchManager.is_offline_solo:
+				var is_bot = (id != 1)
+				_spawn_solo_player(str(id), team, is_bot)
+			else:
+				# Verify player hasn't disconnected
+				if PlayerStats.stats.has(id) or id == multiplayer.get_unique_id():
+					_spawn_specific_player(id, team, weapon_path)
 		else:
-			# Verify player hasn't disconnected
-			if PlayerStats.stats.has(id) or id == multiplayer.get_unique_id():
-				_spawn_specific_player(id, team, weapon_path)
+			# 5v5 Mode: No respawn! Check elimination.
+			var alive_police = 0
+			var alive_terrorists = 0
+			for child in players_container.get_children():
+				if child.health > 0:
+					if child.team == Team.TeamId.POLICE:
+						alive_police += 1
+					else:
+						alive_terrorists += 1
+			MatchManager.check_elimination(alive_police, alive_terrorists)
 
 func _remove_player(id: int):
 	MatchManager.remove_player(id)

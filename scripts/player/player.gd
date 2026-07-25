@@ -108,9 +108,12 @@ func _ready():
 		equip_weapon(primary_weapon)
 
 func _input(event):
-	if not is_multiplayer_authority(): return
-	
 	if not is_multiplayer_authority() or is_bot: return
+	
+	if is_dead:
+		if event.is_action_pressed("fire"):
+			cycle_spectator()
+		return
 	
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_rotate_camera(event.relative)
@@ -126,6 +129,13 @@ func _rotate_camera(relative: Vector2):
 
 func _physics_process(delta):
 	if not is_multiplayer_authority(): return
+	
+	if is_dead:
+		if is_instance_valid(spectator_target) and not spectator_target.is_dead:
+			camera.global_transform = spectator_target.camera.global_transform
+		else:
+			_find_spectator_target()
+		return
 	
 	# Handle Recoil Recovery
 	recoil_target = recoil_target.lerp(Vector3.ZERO, delta * 8.0)
@@ -467,9 +477,50 @@ func die(attacker_id: int):
 	PlayerStats.record_kill_event(attacker_id, name.to_int(), current_weapon.weapon_name if current_weapon else "Unknown")
 	emit_signal("on_death", name.to_int(), team, primary_weapon.resource_path if primary_weapon else "")
 	rpc("sync_death")
-	queue_free()
+	
+	if MatchManager.match_size == MatchManager.MatchSize.SOLO:
+		queue_free()
 
-@rpc("authority", "call_remote", "reliable")
+var is_dead: bool = false
+var spectator_target: Node3D = null
+
+@rpc("authority", "call_local", "reliable")
 func sync_death():
-	queue_free()
+	is_dead = true
+	health = 0
+	collision_shape.disabled = true
+	mesh_instance.hide()
+	weapon_model.hide()
+	
+	if is_multiplayer_authority():
+		_find_spectator_target()
+		
+	if MatchManager.match_size == MatchManager.MatchSize.SOLO and not multiplayer.is_server():
+		queue_free()
+
+func _find_spectator_target():
+	spectator_target = null
+	var players = get_tree().get_nodes_in_group("Players")
+	for p in players:
+		if p != self and not p.is_dead and p.team == team:
+			spectator_target = p
+			break
+
+func cycle_spectator():
+	var players = get_tree().get_nodes_in_group("Players")
+	var valid = []
+	for p in players:
+		if p != self and not p.is_dead and p.team == team:
+			valid.append(p)
+			
+	if valid.is_empty():
+		spectator_target = null
+		return
+		
+	if not spectator_target in valid:
+		spectator_target = valid[0]
+	else:
+		var idx = valid.find(spectator_target)
+		idx = (idx + 1) % valid.size()
+		spectator_target = valid[idx]
 
