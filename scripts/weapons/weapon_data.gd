@@ -11,3 +11,6 @@ class_name WeaponData
 @export var recoil_pattern: Array[Vector2] = []
 @export var pellet_count: int = 1
 @export var model_scene: PackedScene
+
+@export var can_ads: bool = false
+@export var ads_fov: float = 40.0

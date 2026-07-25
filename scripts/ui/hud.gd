@@ -31,6 +31,7 @@ func _ready() -> void:
 	_setup_bomb_alert()
 	_setup_radar()
 	_setup_crosshair()
+	_setup_scope()
 	_setup_buy_menu()
 	
 	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
@@ -189,14 +190,28 @@ func _update_scoreboard():
 		lbl.add_theme_color_override("font_color", color)
 		scoreboard_list.add_child(lbl)
 
-func _process(_delta):
-	if scoreboard_panel:
-		if Input.is_key_pressed(KEY_TAB):
-			if not scoreboard_panel.visible:
-				_update_scoreboard()
-				scoreboard_panel.show()
+func _process(delta):
+	if local_player:
+		_update_crosshair()
+		_process_money()
+		
+		if local_player.is_ads and local_player.current_weapon and local_player.current_weapon.ads_fov < 30.0:
+			if local_player.camera.fov < local_player.current_weapon.ads_fov + 10.0:
+				scope_overlay.show()
+				crosshair.hide()
+			else:
+				scope_overlay.hide()
+				crosshair.show()
 		else:
-			scoreboard_panel.hide()
+			scope_overlay.hide()
+			crosshair.show()
+
+	if Input.is_action_pressed("show_scoreboard"):
+		if not scoreboard_panel.visible:
+			_update_scoreboard()
+			scoreboard_panel.show()
+	else:
+		scoreboard_panel.hide()
 			
 	_process_radar()
 	_process_crosshair()
@@ -356,6 +371,41 @@ func _process_crosshair():
 		# Right
 		crosshair_lines[3].size = Vector2(12, 2)
 		crosshair_lines[3].position = Vector2(current_spread_px, -1)
+
+var scope_overlay: ColorRect
+
+func _setup_scope():
+	scope_overlay = ColorRect.new()
+	scope_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scope_overlay.color = Color(0, 0, 0, 1)
+	
+	var scope_shader = ShaderMaterial.new()
+	scope_shader.shader = Shader.new()
+	scope_shader.shader.code = """
+	shader_type canvas_item;
+	void fragment() {
+		vec2 uv = UV * 2.0 - 1.0;
+		uv.x *= (SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x);
+		float d = length(uv);
+		
+		float line_thickness = 0.002;
+		bool is_line = abs(uv.x) < line_thickness || abs(uv.y) < line_thickness;
+		
+		if (d > 0.9) {
+			COLOR = vec4(0.0, 0.0, 0.0, 1.0);
+		} else if (d > 0.88) {
+			COLOR = vec4(0.0, 0.0, 0.0, smoothstep(0.88, 0.9, d));
+		} else if (is_line) {
+			COLOR = vec4(0.0, 0.0, 0.0, 1.0);
+		} else {
+			COLOR = vec4(0.0, 0.0, 0.0, 0.0);
+		}
+	}
+	"""
+	scope_overlay.material = scope_shader
+	scope_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scope_overlay.hide()
+	add_child(scope_overlay)
 
 # --- BUY MENU & MONEY ---
 var buy_menu_panel: PanelContainer

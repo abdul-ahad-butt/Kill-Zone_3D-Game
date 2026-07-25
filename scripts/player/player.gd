@@ -28,6 +28,8 @@ var has_bomb: bool = false
 var is_dead: bool = false
 var is_crouching: bool = false
 var is_walking: bool = false
+var is_ads: bool = false
+var current_sens_mult: float = 1.0
 var distance_moved: float = 0.0
 var grenade_cooldown: bool = false
 var grenade_script = preload("res://scripts/weapons/grenade.gd")
@@ -132,8 +134,8 @@ func _input(event):
 			_rotate_camera(event.relative * 0.5)
 
 func _rotate_camera(relative: Vector2):
-	rotate_y(-relative.x * 0.005)
-	camera.rotate_x(-relative.y * 0.005)
+	rotate_y(-relative.x * 0.005 * current_sens_mult)
+	camera.rotate_x(-relative.y * 0.005 * current_sens_mult)
 	camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
 
 func _physics_process(delta):
@@ -154,6 +156,21 @@ func _physics_process(delta):
 			current_spread = current_weapon.spread * 0.1
 		else:
 			current_spread = current_weapon.spread * min(float(shots_fired_in_burst) / 5.0, 3.0)
+			
+	var target_fov = 75.0
+	if not is_bot and Input.is_action_pressed("aim") and current_weapon and current_weapon.can_ads:
+		is_ads = true
+		target_fov = current_weapon.ads_fov
+	else:
+		is_ads = false
+		
+	camera.fov = lerp(camera.fov, target_fov, delta * 15.0)
+	current_sens_mult = camera.fov / 75.0
+	
+	if is_ads and abs(camera.fov - target_fov) < 5.0:
+		weapon_model.hide()
+	else:
+		weapon_model.show()
 	
 	# Handle Recoil Recovery
 	recoil_target = recoil_target.lerp(Vector3.ZERO, delta * 8.0)
@@ -187,7 +204,7 @@ func _physics_process(delta):
 	
 	CAMERA_BASE_Y = lerp(CAMERA_BASE_Y, target_cam_y, delta * 10.0)
 	
-	var current_speed = SPEED * (0.5 if is_crouching or is_walking else 1.0)
+	var current_speed = SPEED * (0.5 if is_crouching or is_walking or is_ads else 1.0)
 		
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
