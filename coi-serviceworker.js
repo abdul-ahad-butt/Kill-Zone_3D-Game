@@ -4,9 +4,7 @@ self.addEventListener('install', function (event) {
 
 self.addEventListener('activate', function (event) {
 	event.waitUntil(
-		self.registration.unregister().then(function () {
-			return self.clients.claim();
-		})
+		self.registration.unregister()
 	);
 });
 
