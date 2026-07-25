@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="AudioStream" path="res://resources/audio/footstep.tres" id="2_onrkg"]
 [ext_resource type="AudioStream" path="res://Assets/audio/gunshot.wav" id="4_audio"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m1"]
@@ -36,3 +37,8 @@ one_shot = true
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=1381582018]
 avoidance_enabled = true
+
+[node name="FootstepAudio" type="AudioStreamPlayer3D" parent="." unique_id=806773740]
+stream = ExtResource("2_onrkg")
+attenuation_model = 2
+max_distance = 25.0

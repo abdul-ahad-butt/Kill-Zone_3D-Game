@@ -20,11 +20,15 @@ var bot_input_dir: Vector2 = Vector2.ZERO
 var bot_wants_fire: bool = false
 var bot_wants_interact: bool = false
 var bot_wants_reload: bool = false
+var bot_wants_walk: bool = false
 
 var can_fire: bool = true
 var is_reloading: bool = false
 var has_bomb: bool = false
+var is_dead: bool = false
 var is_crouching: bool = false
+var is_walking: bool = false
+var distance_moved: float = 0.0
 var grenade_cooldown: bool = false
 var grenade_script = preload("res://scripts/weapons/grenade.gd")
 
@@ -33,6 +37,7 @@ var grenade_script = preload("res://scripts/weapons/grenade.gd")
 @onready var weapon_model = $Camera3D/WeaponModel
 @onready var weapon_timer = $WeaponTimer
 @onready var fire_sound = $Camera3D/WeaponModel/FireSound
+@onready var footstep_audio = $FootstepAudio
 
 var is_planting: bool = false
 var is_defusing: bool = false
@@ -166,9 +171,11 @@ func _physics_process(delta):
 	if not is_bot:
 		input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		is_crouching = Input.is_key_pressed(KEY_C) or Input.is_key_pressed(KEY_CTRL)
+		is_walking = Input.is_key_pressed(KEY_SHIFT)
 	else:
 		input_dir = bot_input_dir
 		is_crouching = false
+		is_walking = bot_wants_walk
 		
 	var target_height = 1.0 if is_crouching else 2.0
 	var target_cam_y = 0.2 if is_crouching else 0.6
@@ -180,7 +187,7 @@ func _physics_process(delta):
 	
 	CAMERA_BASE_Y = lerp(CAMERA_BASE_Y, target_cam_y, delta * 10.0)
 	
-	var current_speed = SPEED * (0.5 if is_crouching else 1.0)
+	var current_speed = SPEED * (0.5 if is_crouching or is_walking else 1.0)
 		
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
@@ -192,16 +199,47 @@ func _physics_process(delta):
 
 	move_and_slide()
 	
-	# Headbob logic
+	# Headbob & Footsteps logic
 	if is_on_floor() and velocity.length() > 0.5:
 		t_bob += delta * velocity.length()
 		var pos = Vector3.ZERO
 		pos.y = sin(t_bob * BOB_FREQ) * BOB_AMP + CAMERA_BASE_Y
 		pos.x = cos(t_bob * BOB_FREQ / 2.0) * BOB_AMP
 		camera.position = camera.position.lerp(pos, delta * 10.0)
+		
+		if not is_walking and not is_crouching:
+			distance_moved += velocity.length() * delta
+			if distance_moved > 2.5: # Emit footstep every 2.5 meters
+				distance_moved = 0.0
+				_emit_footstep()
 	else:
 		t_bob = 0.0
 		camera.position = camera.position.lerp(Vector3(0, CAMERA_BASE_Y, 0), delta * 10.0)
+
+func _emit_footstep():
+	if MatchManager.is_offline_solo:
+		_play_footstep()
+	else:
+		rpc("play_footstep_rpc")
+		
+@rpc("any_peer", "call_local", "unreliable")
+func play_footstep_rpc():
+	_play_footstep()
+
+func _play_footstep():
+	if footstep_audio:
+		footstep_audio.pitch_scale = randf_range(0.9, 1.1)
+		footstep_audio.play()
+		
+	# Bot Hearing System
+	if multiplayer.is_server() or MatchManager.is_offline_solo:
+		for bot in get_tree().get_nodes_in_group("Players"):
+			if bot.is_bot and bot.team != team and bot.health > 0:
+				if bot.global_position.distance_to(global_position) <= 15.0:
+					# Alert bot
+					var controller = bot.get_node_or_null("BotController")
+					if controller:
+						controller.hear_footstep(self)
 
 	# Bomb interactions
 	var bomb_progress = 0.0

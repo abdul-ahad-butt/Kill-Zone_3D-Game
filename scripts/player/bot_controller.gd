@@ -80,7 +80,15 @@ func _physics_process(delta):
 func _update_bot_brain():
 	_find_closest_enemy()
 	_evaluate_objective()
-
+func hear_footstep(source: CharacterBody3D):
+	if target_enemy == null or target_enemy.health <= 0 or not _has_line_of_sight(target_enemy):
+		# Prioritize the player making noise if we aren't actively engaging someone we can see
+		target_enemy = source
+		# Face the noise immediately
+		var look_dir = (source.global_position - player.global_position).normalized()
+		player.rotation.y = atan2(look_dir.x, look_dir.z)
+		# Force an update cycle soon
+		update_timer = 0.1
 func _find_closest_enemy():
 	var closest_dist = 9999.0
 	target_enemy = null
