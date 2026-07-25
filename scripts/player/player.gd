@@ -82,12 +82,19 @@ func _ready():
 		collision_shape.shape = collision_shape.shape.duplicate()
 	if mesh_instance and mesh_instance.mesh:
 		mesh_instance.mesh = mesh_instance.mesh.duplicate()
+		var mat = StandardMaterial3D.new()
+		if team == Team.TeamId.POLICE:
+			mat.albedo_color = Color(0.2, 0.4, 0.8) # Police Blue
+		elif team == Team.TeamId.TERRORIST:
+			mat.albedo_color = Color(0.8, 0.2, 0.2) # Terrorist Red
+		mesh_instance.mesh.surface_set_material(0, mat)
 		
 	if not OS.has_feature("mobile") and not OS.has_feature("web"):
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		
 	hud_instance = hud_scene.instantiate()
 	add_child(hud_instance)
+	hud_instance.local_player = self
 	
 	var loadout_ui = hud_instance.get_node_or_null("LoadoutUI")
 	if loadout_ui:

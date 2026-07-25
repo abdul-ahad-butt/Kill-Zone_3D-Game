@@ -29,6 +29,7 @@ func _ready() -> void:
 	_setup_killfeed()
 	_setup_hitmarker()
 	_setup_bomb_alert()
+	_setup_radar()
 	
 	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
 	var active_sites = "A, B" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "A, B, C, D"
@@ -287,6 +288,41 @@ func _on_bomb_planted():
 	_bomb_alert_tween.tween_property(bomb_alert_label, "modulate:a", 0.2, 0.25)
 	_bomb_alert_tween.tween_property(bomb_alert_label, "modulate:a", 1.0, 0.25)
 	
+	
 	var hide_tween = create_tween()
 	hide_tween.tween_interval(3.0)
 	hide_tween.tween_callback(bomb_alert_label.hide)
+
+# --- RADAR ---
+var radar_container: SubViewportContainer
+var radar_viewport: SubViewport
+var radar_camera: Camera3D
+
+func _setup_radar():
+	radar_container = SubViewportContainer.new()
+	radar_container.custom_minimum_size = Vector2(200, 200)
+	radar_container.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	radar_container.position = Vector2(20, 20)
+	
+	radar_viewport = SubViewport.new()
+	radar_viewport.size = Vector2i(200, 200)
+	radar_viewport.transparent_bg = true
+	radar_container.add_child(radar_viewport)
+	
+	radar_camera = Camera3D.new()
+	radar_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	radar_camera.size = 60.0
+	radar_camera.rotation_degrees.x = -90
+	radar_camera.position.y = 50.0
+	radar_viewport.add_child(radar_camera)
+	
+	add_child(radar_container)
+	
+	# Wait one frame to ensure get_viewport().world_3d is valid
+	await get_tree().process_frame
+	radar_viewport.world_3d = get_viewport().world_3d
+
+func _process(_delta):
+	if is_instance_valid(radar_camera) and is_instance_valid(local_player):
+		radar_camera.global_position.x = local_player.global_position.x
+		radar_camera.global_position.z = local_player.global_position.z

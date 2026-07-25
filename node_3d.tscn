@@ -1,8 +1,13 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/match/level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://bomb_site.tscn" id="1_bsite"]
-[ext_resource type="PackedScene" path="res://player.tscn" id="2_playr"]
+[ext_resource type="Script" path="res://scripts/match/bomb_site.gd" id="2_noarx"]
+
+[sub_resource type="Environment" id="Environment_sky"]
+background_mode = 1
+background_color = Color(0.4, 0.6, 0.8, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.3, 0.3, 0.3, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(100, 1, 100)
@@ -16,102 +21,119 @@ albedo_color = Color(0.2, 0.6, 0.2, 1)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
 albedo_color = Color(0.5, 0.5, 0.5, 1)
 
-[sub_resource type="Environment" id="Environment_sky"]
-background_mode = 1
-background_color = Color(0.4, 0.6, 0.8, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.3, 0.3, 0.3, 1)
+[node name="Node3D" type="Node3D" unique_id=1504528723]
 
-[node name="Node3D" type="Node3D"]
-script = ExtResource("1_level")
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1048578893]
 environment = SubResource("Environment_sky")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=630190117]
 transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 10, 0)
 shadow_enabled = true
 
-[node name="Floor" type="StaticBody3D" parent="."]
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1375689394]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=1837040365]
 shape = SubResource("BoxShape3D_floor")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=2115973019]
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("StandardMaterial3D_floor")
 
-[node name="MapGeometry" type="CSGCombiner3D" parent="."]
+[node name="MapGeometry" type="CSGCombiner3D" parent="." unique_id=76959689]
 use_collision = true
 
-[node name="BuildingA" type="CSGBox3D" parent="MapGeometry"]
+[node name="BuildingA" type="CSGBox3D" parent="MapGeometry" unique_id=152400145]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2.5, -20)
 size = Vector3(15, 5, 15)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="BuildingA_Inside" type="CSGBox3D" parent="MapGeometry/BuildingA"]
+[node name="BuildingA_Inside" type="CSGBox3D" parent="MapGeometry/BuildingA" unique_id=452372435]
 operation = 2
 size = Vector3(13, 5, 13)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="BuildingA_Door1" type="CSGBox3D" parent="MapGeometry/BuildingA"]
+[node name="BuildingA_Door1" type="CSGBox3D" parent="MapGeometry/BuildingA" unique_id=698325471]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 7.5)
 operation = 2
 size = Vector3(3, 3, 2)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="BuildingA_Door2" type="CSGBox3D" parent="MapGeometry/BuildingA"]
+[node name="BuildingA_Door2" type="CSGBox3D" parent="MapGeometry/BuildingA" unique_id=809497795]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, -1.5, 0)
 operation = 2
 size = Vector3(2, 3, 3)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="BuildingB" type="CSGBox3D" parent="MapGeometry"]
+[node name="BuildingB" type="CSGBox3D" parent="MapGeometry" unique_id=1969841868]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 2.5, -20)
 size = Vector3(20, 5, 15)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="BuildingB_Inside" type="CSGBox3D" parent="MapGeometry/BuildingB"]
+[node name="BuildingB_Inside" type="CSGBox3D" parent="MapGeometry/BuildingB" unique_id=44639474]
 operation = 2
 size = Vector3(18, 5, 13)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="BuildingB_Door1" type="CSGBox3D" parent="MapGeometry/BuildingB"]
+[node name="BuildingB_Door1" type="CSGBox3D" parent="MapGeometry/BuildingB" unique_id=1250954055]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1.5, 0)
 operation = 2
 size = Vector3(2, 3, 3)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="CenterWall1" type="CSGBox3D" parent="MapGeometry"]
+[node name="CenterWall1" type="CSGBox3D" parent="MapGeometry" unique_id=62959488]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 size = Vector3(20, 4, 2)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="CenterWall2" type="CSGBox3D" parent="MapGeometry"]
+[node name="CenterWall2" type="CSGBox3D" parent="MapGeometry" unique_id=1647228585]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -10)
 size = Vector3(2, 4, 15)
 material = SubResource("StandardMaterial3D_wall")
 
-[node name="BombSiteA" parent="." instance=ExtResource("1_bsite")]
+[node name="BombSiteA" type="Area3D" parent="." unique_id=1399124466 instance=ExtResource("1_bsite")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.5, -20)
+script = ExtResource("2_noarx")
 
-[node name="BombSiteB" parent="." instance=ExtResource("1_bsite")]
+[node name="BombSiteB" type="Area3D" parent="." unique_id=322489224 instance=ExtResource("1_bsite")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1.5, -20)
+script = ExtResource("2_noarx")
 
-[node name="BombSiteC" parent="." instance=ExtResource("1_bsite")]
+[node name="BombSiteC" type="Area3D" parent="." unique_id=1630205916 instance=ExtResource("1_bsite")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1.5, 20)
+script = ExtResource("2_noarx")
 
-[node name="BombSiteD" parent="." instance=ExtResource("1_bsite")]
+[node name="BombSiteD" type="Area3D" parent="." unique_id=1069259769 instance=ExtResource("1_bsite")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 1.5, 20)
+script = ExtResource("2_noarx")
 
-[node name="SpawnPolice" type="Marker3D" parent="."]
+[node name="SpawnPolice" type="Marker3D" parent="." unique_id=1895701097]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 30)
 
-[node name="SpawnTerrorist" type="Marker3D" parent="."]
+[node name="SpawnTerrorist" type="Marker3D" parent="." unique_id=7719026]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -30)
 
-[node name="Players" type="Node3D" parent="."]
+[node name="Players" type="Node3D" parent="." unique_id=739487361]
 
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=20119007]
 _spawnable_scenes = PackedStringArray("res://player.tscn")
 spawn_path = NodePath("../Players")
+
+[node name="CoverA1" type="CSGBox3D" parent="." unique_id=1477710374]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 2.1, -18)
+use_collision = true
+size = Vector3(2, 1.2, 1)
+
+[node name="CoverA2" type="CSGBox3D" parent="." unique_id=105015276]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 2.1, -24)
+use_collision = true
+size = Vector3(2, 1.2, 1)
+
+[node name="CoverB1" type="CSGBox3D" parent="." unique_id=1614234645]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 2.1, -15)
+use_collision = true
+size = Vector3(4, 1.2, 1)
+
+[node name="CoverB2" type="CSGBox3D" parent="." unique_id=774049542]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2.1, -20)
+use_collision = true
+size = Vector3(1, 1.2, 4)
