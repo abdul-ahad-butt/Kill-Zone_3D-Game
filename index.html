@@ -9,12 +9,11 @@
 	<title>Kill-Zone 3D Game</title>
 
 	<!--
-	  COI SERVICE WORKER — must be first script on the page.
-	  Registers coi-serviceworker.js which injects COOP + COEP headers
-	  making window.crossOriginIsolated = true (required by Godot 4 / Emscripten).
-	  GitHub Pages does NOT send these headers natively.
-	  First visit: registers SW → page reloads automatically.
-	  All subsequent visits: SW active, headers injected, game starts normally.
+	  COI SERVICE WORKER — must be the very first script.
+	  Injects COOP + COEP headers so window.crossOriginIsolated = true,
+	  which is required by Godot 4 / Emscripten on GitHub Pages.
+	  First visit: SW installs → page auto-reloads with headers active.
+	  All later visits: SW already active, game loads normally.
 	-->
 	<script>
 	(function () {
@@ -25,9 +24,7 @@
 					if (reg.installing) {
 						var sw = reg.installing;
 						sw.addEventListener('statechange', function () {
-							if (sw.state === 'activated') {
-								window.location.reload();
-							}
+							if (sw.state === 'activated') { window.location.reload(); }
 						});
 					} else if (reg.waiting) {
 						reg.waiting.postMessage({ type: 'SKIP_WAITING' });
@@ -44,135 +41,90 @@
 	</script>
 
 	<style>
-	* {
-		margin: 0;
-		padding: 0;
-		box-sizing: border-box;
-	}
+	* { margin: 0; padding: 0; box-sizing: border-box; }
 
 	html, body {
-		width: 100%;
-		height: 100%;
+		width: 100%; height: 100%;
 		overflow: hidden;
-		background: #000;
-		color: #fff;
+		background: #000; color: #fff;
 		font-family: 'Segoe UI', Arial, sans-serif;
 	}
 
-	/* Game canvas fills the full window */
+	/* Full-viewport game canvas */
 	#canvas {
 		display: block;
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		touch-action: none;
-		outline: none;
+		position: fixed; top: 0; left: 0;
+		width: 100%; height: 100%;
+		touch-action: none; outline: none;
 		background: #000;
 	}
+	#canvas:focus { outline: none; }
 
-	#canvas:focus {
-		outline: none;
-	}
-
-	/* ── Loading / status overlay ── */
+	/* ── Loading overlay ── */
 	#status {
-		position: fixed;
-		inset: 0;
-		z-index: 200;
+		position: fixed; inset: 0; z-index: 200;
 		background: linear-gradient(160deg, #0d0d1a 0%, #1a1a2e 55%, #16213e 100%);
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
+		display: flex; flex-direction: column;
+		justify-content: center; align-items: center;
 		visibility: visible;
 		transition: opacity 0.4s ease;
 	}
-
-	#status.hidden {
-		opacity: 0;
-		pointer-events: none;
-	}
+	#status.hidden { opacity: 0; pointer-events: none; }
 
 	#status-splash {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		object-fit: contain;
-		opacity: 0.2;
+		position: absolute; inset: 0;
+		width: 100%; height: 100%;
+		object-fit: contain; opacity: 0.18;
 	}
-
 	#status-splash.show-image--false { display: none; }
 
 	#status-title {
-		position: relative;
-		z-index: 1;
+		position: relative; z-index: 1;
 		font-size: clamp(1.4rem, 5vw, 2.8rem);
-		font-weight: 700;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: #fff;
-		text-shadow: 0 0 40px rgba(230, 57, 70, 0.9);
+		font-weight: 700; letter-spacing: 0.12em;
+		text-transform: uppercase; color: #fff;
+		text-shadow: 0 0 40px rgba(230,57,70,0.9);
 		margin-bottom: 2.5rem;
 	}
 
 	#progress-wrapper {
-		position: relative;
-		z-index: 1;
+		position: relative; z-index: 1;
 		width: min(70%, 420px);
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.7rem;
+		display: flex; flex-direction: column;
+		align-items: center; gap: 0.7rem;
 	}
 
 	#status-progress {
-		display: none;
-		width: 100%;
-		height: 5px;
-		-webkit-appearance: none;
-		appearance: none;
-		border: none;
-		border-radius: 3px;
-		background: rgba(255,255,255,0.1);
-		overflow: hidden;
+		display: none; width: 100%; height: 5px;
+		-webkit-appearance: none; appearance: none;
+		border: none; border-radius: 3px;
+		background: rgba(255,255,255,0.1); overflow: hidden;
 	}
-
 	#status-progress::-webkit-progress-bar  { background: rgba(255,255,255,0.08); border-radius: 3px; }
 	#status-progress::-webkit-progress-value { background: linear-gradient(90deg,#e63946,#ff6b6b); border-radius: 3px; transition: width .15s ease; }
 	#status-progress::-moz-progress-bar     { background: linear-gradient(90deg,#e63946,#ff6b6b); border-radius: 3px; }
 
 	#status-label {
-		font-size: clamp(10px, 1.5vw, 13px);
-		letter-spacing: 3px;
-		text-transform: uppercase;
+		font-size: clamp(10px,1.5vw,13px);
+		letter-spacing: 3px; text-transform: uppercase;
 		color: rgba(255,255,255,0.5);
 	}
 
 	#status-notice {
 		display: none;
-		position: absolute;
-		bottom: 12%;
-		left: 50%;
-		transform: translateX(-50%);
+		position: absolute; bottom: 12%;
+		left: 50%; transform: translateX(-50%);
 		width: min(86%, 520px);
 		background: rgba(91,57,67,0.92);
-		border: 1px solid #c0404f;
-		border-radius: 8px;
-		padding: 1rem 1.5rem;
-		text-align: center;
-		font-size: clamp(12px, 1.8vw, 14px);
-		line-height: 1.6;
-		color: #f0d0d4;
-		z-index: 1;
-		backdrop-filter: blur(6px);
+		border: 1px solid #c0404f; border-radius: 8px;
+		padding: 1rem 1.5rem; text-align: center;
+		font-size: clamp(12px,1.8vw,14px); line-height: 1.6;
+		color: #f0d0d4; z-index: 1; backdrop-filter: blur(6px);
 	}
 
 	@keyframes pulse {
-		0%, 80%, 100% { opacity: 0.3; }
-		40%            { opacity: 1;   }
+		0%,80%,100% { opacity: 0.3; }
+		40%          { opacity: 1;   }
 	}
 	.dot { display: inline-block; animation: pulse 1.2s infinite; }
 	.dot:nth-child(2) { animation-delay: 0.2s; }
@@ -209,12 +161,12 @@
 /*
  * Godot 4.7.1 Web Export — Kill-Zone 3D Game
  *
- * IMPORTANT CONFIG NOTES:
- *  canvasResizePolicy: 2  → canvas auto-fills window (responsive)
- *  ensureCrossOriginIsolationHeaders: false
- *    → We handle COOP/COEP ourselves via coi-serviceworker.js above.
- *      Setting this true causes Godot to call getMissingFeatures() and
- *      silently fail on GitHub Pages since GODOT_CONFIG.serviceWorker is unset.
+ * ensureCrossOriginIsolationHeaders: false
+ *   — We handle COOP/COEP via coi-serviceworker.js above.
+ *     Setting true causes Godot's getMissingFeatures() to silently fail
+ *     on GitHub Pages (GODOT_CONFIG.serviceWorker is undefined).
+ *
+ * fileSizes must match the actual exported files exactly.
  */
 const GODOT_CONFIG = {
 	args: [],
@@ -223,7 +175,7 @@ const GODOT_CONFIG = {
 	ensureCrossOriginIsolationHeaders: false,
 	executable: "index",
 	experimentalVK: false,
-	fileSizes: { "index.pck": 99996, "index.wasm": 37900721 },
+	fileSizes: { "index.pck": 106684, "index.wasm": 37900721 },
 	focusCanvas: true,
 	gdextensionLibs: [],
 	godotPoolSize: 4
@@ -281,9 +233,7 @@ const engine = new Engine(GODOT_CONFIG);
 
 	showProgress();
 	engine.startGame({
-		onProgress: function (current, total) {
-			updateProgress(current, total);
-		}
+		onProgress: function (current, total) { updateProgress(current, total); }
 	}).then(function () {
 		hideStatus();
 	}).catch(function (err) {
