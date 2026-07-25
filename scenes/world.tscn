@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="Script" path="res://scripts/match/world.gd" id="1_world"]
 [ext_resource type="Material" path="res://resources/materials/concrete.tres" id="1_71j4m"]
 [ext_resource type="PackedScene" path="res://scenes/ui/main_menu.tscn" id="2_menu"]
 [ext_resource type="Material" path="res://resources/materials/dirt.tres" id="2_qfnet"]
@@ -30,6 +31,7 @@ ssr_enabled = true
 ssao_enabled = true
 
 [node name="World" type="Node3D" unique_id=65326711]
+script = ExtResource("1_world")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1437765875]
 transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 20, 0)
