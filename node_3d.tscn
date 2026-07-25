@@ -55,271 +55,142 @@ shape = SubResource("BoxShape3D_floor")
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = ExtResource("5_dirt")
 
-[node name="MapGeometry" type="CSGCombiner3D" parent="." unique_id=76959689]
+[node name="MapGeometry" type="CSGCombiner3D" parent="."]
 use_collision = true
 
-[node name="MidPlazaPlatform" type="CSGCylinder3D" parent="MapGeometry"]
+[node name="OuterWallNorth" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -50)
+size = Vector3(100, 10, 2)
+material = ExtResource("3_conc")
+
+[node name="OuterWallSouth" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 50)
+size = Vector3(100, 10, 2)
+material = ExtResource("3_conc")
+
+[node name="OuterWallEast" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 5, 0)
+size = Vector3(2, 10, 100)
+material = ExtResource("3_conc")
+
+[node name="OuterWallWest" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 5, 0)
+size = Vector3(2, 10, 100)
+material = ExtResource("3_conc")
+
+[node name="MidFloor" type="CSGBox3D" parent="MapGeometry"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-radius = 6.0
-height = 1.0
-sides = 16
-material = ExtResource("3_conc")
+size = Vector3(20, 1, 60)
+material = ExtResource("5_dirt")
 
-[node name="MidPlazaObelisk" type="CSGBox3D" parent="MapGeometry/MidPlazaPlatform"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
-size = Vector3(2.5, 5, 2.5)
+[node name="MidBlocker" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+size = Vector3(8, 3, 2)
 material = ExtResource("4_brick")
 
-[node name="BuildingA" type="CSGBox3D" parent="MapGeometry" unique_id=152400145]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2.5, -20)
-size = Vector3(15, 5, 15)
+[node name="ASitePlaza" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0.5, -20)
+size = Vector3(30, 1, 30)
+material = ExtResource("3_conc")
+
+[node name="ASiteWall" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 3, -20)
+size = Vector3(2, 6, 30)
 material = ExtResource("4_brick")
 
-[node name="BuildingA_Inside" type="CSGBox3D" parent="MapGeometry/BuildingA" unique_id=452372435]
+[node name="ASiteDoorToMid" type="CSGBox3D" parent="MapGeometry/ASiteWall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
 operation = 2
-size = Vector3(13, 5, 13)
+size = Vector3(4, 4, 6)
 material = ExtResource("3_conc")
 
-[node name="BuildingA_Door1" type="CSGBox3D" parent="MapGeometry/BuildingA" unique_id=698325471]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 7.5)
-operation = 2
-size = Vector3(3, 3, 2)
-material = ExtResource("3_conc")
-
-[node name="BuildingA_Door2" type="CSGBox3D" parent="MapGeometry/BuildingA" unique_id=809497795]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, -1.5, 0)
-operation = 2
-size = Vector3(2, 3, 3)
-material = ExtResource("3_conc")
-
-[node name="BuildingB" type="CSGBox3D" parent="MapGeometry" unique_id=1969841868]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 2.5, -20)
-size = Vector3(20, 5, 15)
+[node name="BSiteBuilding" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 4, -15)
+size = Vector3(30, 8, 40)
 material = ExtResource("4_brick")
 
-[node name="BuildingB_Inside" type="CSGBox3D" parent="MapGeometry/BuildingB" unique_id=44639474]
+[node name="BSiteInside" type="CSGBox3D" parent="MapGeometry/BSiteBuilding"]
 operation = 2
-size = Vector3(18, 5, 13)
+size = Vector3(28, 8, 38)
 material = ExtResource("3_conc")
 
-[node name="BuildingB_Door1" type="CSGBox3D" parent="MapGeometry/BuildingB" unique_id=1250954055]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1.5, 0)
+[node name="BSiteDoorToMid" type="CSGBox3D" parent="MapGeometry/BSiteBuilding"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, -2, 0)
 operation = 2
-size = Vector3(2, 3, 3)
+size = Vector3(4, 4, 6)
 material = ExtResource("3_conc")
 
-[node name="SniperBridge" type="CSGBox3D" parent="MapGeometry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
-size = Vector3(10, 1, 40)
-material = ExtResource("3_conc")
-
-[node name="BridgeRampPolice" type="CSGBox3D" parent="MapGeometry"]
-transform = Transform3D(1, 0, 0, 0, 0.866025, -0.5, 0, 0.5, 0.866025, 0, 2.5, 24)
-size = Vector3(10, 1, 10)
-material = ExtResource("3_conc")
-
-[node name="BridgeRampTerrorist" type="CSGBox3D" parent="MapGeometry"]
-transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 2.5, -24)
-size = Vector3(10, 1, 10)
-material = ExtResource("3_conc")
-
-[node name="FlankLeft" type="CSGBox3D" parent="MapGeometry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 3, 0)
-size = Vector3(10, 6, 80)
-material = ExtResource("4_brick")
-
-[node name="FlankLeft_Inside" type="CSGBox3D" parent="MapGeometry/FlankLeft"]
+[node name="BSiteDoorToSpawnCT" type="CSGBox3D" parent="MapGeometry/BSiteBuilding"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 20)
 operation = 2
-size = Vector3(8, 6, 82)
+size = Vector3(6, 4, 4)
 material = ExtResource("3_conc")
 
-[node name="FlankLeft_MidCutout" type="CSGBox3D" parent="MapGeometry/FlankLeft"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, -1, 0)
-operation = 2
-size = Vector3(5, 4, 4)
+[node name="CTSpawnArea" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 35)
+size = Vector3(60, 1, 20)
 material = ExtResource("3_conc")
 
-[node name="FlankLeft_MidTunnel" type="CSGBox3D" parent="MapGeometry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21, 2, 0)
-size = Vector3(28, 4, 6)
-material = ExtResource("4_brick")
+[node name="TSpawnArea" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -35)
+size = Vector3(60, 1, 20)
+material = ExtResource("5_dirt")
 
-[node name="FlankLeft_MidTunnel_Inside" type="CSGBox3D" parent="MapGeometry/FlankLeft_MidTunnel"]
-operation = 2
-size = Vector3(28, 4, 4)
-material = ExtResource("3_conc")
+[node name="CrateMid1" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, -5, 2, 5)
+size = Vector3(2, 2, 2)
+material = ExtResource("7_wood")
 
-[node name="FlankRight" type="CSGBox3D" parent="MapGeometry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 3, 0)
-size = Vector3(10, 6, 80)
-material = ExtResource("4_brick")
+[node name="CrateMid2" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 6, 2, -10)
+size = Vector3(2, 2, 2)
+material = ExtResource("7_wood")
 
-[node name="FlankRight_Inside" type="CSGBox3D" parent="MapGeometry/FlankRight"]
-operation = 2
-size = Vector3(8, 6, 82)
-material = ExtResource("3_conc")
+[node name="CrateA1" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 2, -15)
+size = Vector3(2.5, 2, 2.5)
+material = ExtResource("7_wood")
 
-[node name="SpawnWallPolice" type="CSGBox3D" parent="MapGeometry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 45)
-size = Vector3(50, 8, 2)
-material = ExtResource("3_conc")
+[node name="BarrelA1" type="CSGCylinder3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 1.5, -25)
+radius = 0.5
+height = 1.5
+material = ExtResource("6_metal")
 
-[node name="SpawnWallTerrorist" type="CSGBox3D" parent="MapGeometry"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -45)
-size = Vector3(50, 8, 2)
-material = ExtResource("3_conc")
+[node name="CoverB1" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 2, -15)
+size = Vector3(4, 2, 1)
+material = ExtResource("6_metal")
 
-[node name="BombSiteA" type="Area3D" parent="." unique_id=1399124466 instance=ExtResource("1_bsite")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.5, -20)
+[node name="BarrelB1" type="CSGCylinder3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 1.5, -10)
+radius = 0.5
+height = 1.5
+material = ExtResource("6_metal")
+
+[node name="BSiteLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 6, -15)
+light_color = Color(1, 0.9, 0.7, 1)
+light_energy = 3.0
+shadow_enabled = true
+omni_range = 25.0
+
+[node name="BombSiteA" type="Area3D" parent="." instance=ExtResource("1_bsite")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1.5, -20)
 script = ExtResource("2_noarx")
 
-[node name="BombSiteB" type="Area3D" parent="." unique_id=322489224 instance=ExtResource("1_bsite")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1.5, -20)
+[node name="BombSiteB" type="Area3D" parent="." instance=ExtResource("1_bsite")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 1.5, -15)
 script = ExtResource("2_noarx")
 
-[node name="BombSiteC" type="Area3D" parent="." unique_id=1630205916 instance=ExtResource("1_bsite")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1.5, 20)
-script = ExtResource("2_noarx")
+[node name="SpawnPolice" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 40)
 
-[node name="BombSiteD" type="Area3D" parent="." unique_id=1069259769 instance=ExtResource("1_bsite")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 1.5, 20)
-script = ExtResource("2_noarx")
+[node name="SpawnTerrorist" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -40)
 
-[node name="SpawnPolice" type="Marker3D" parent="." unique_id=1895701097]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 30)
+[node name="Players" type="Node3D" parent="."]
 
-[node name="SpawnTerrorist" type="Marker3D" parent="." unique_id=7719026]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -30)
-
-[node name="Players" type="Node3D" parent="." unique_id=739487361]
-
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=20119007]
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("res://player.tscn")
 spawn_path = NodePath("../Players")
-
-[node name="CoverA1" type="CSGBox3D" parent="." unique_id=1477710374]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 2.1, -18)
-use_collision = true
-size = Vector3(2, 1.2, 1)
-material = ExtResource("6_metal")
-
-[node name="CoverA2" type="CSGBox3D" parent="." unique_id=105015276]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 2.1, -24)
-use_collision = true
-size = Vector3(2, 1.2, 1)
-material = ExtResource("6_metal")
-
-[node name="CoverB1" type="CSGBox3D" parent="." unique_id=1614234645]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 2.1, -15)
-use_collision = true
-size = Vector3(4, 1.2, 1)
-material = ExtResource("6_metal")
-
-[node name="CoverB2" type="CSGBox3D" parent="." unique_id=774049542]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2.1, -20)
-use_collision = true
-size = Vector3(1, 1.2, 4)
-material = ExtResource("6_metal")
-
-[node name="CrateMid1" type="CSGBox3D" parent="."]
-transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, -5, 2, 0)
-use_collision = true
-size = Vector3(2, 2, 2)
-material = ExtResource("7_wood")
-
-[node name="CrateMid2" type="CSGBox3D" parent="."]
-transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 5, 2, 5)
-use_collision = true
-size = Vector3(2, 2, 2)
-material = ExtResource("7_wood")
-
-[node name="CrateA1" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 2, -15)
-use_collision = true
-size = Vector3(2.5, 2, 2.5)
-material = ExtResource("7_wood")
-
-[node name="CrateB1" type="CSGBox3D" parent="."]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 25, 2, -15)
-use_collision = true
-size = Vector3(2.5, 2, 2.5)
-material = ExtResource("7_wood")
-
-[node name="BarrelA1" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1.5, -22)
-use_collision = true
-radius = 0.5
-height = 1.5
-material = ExtResource("6_metal")
-
-[node name="BarrelA2" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 1.5, -23)
-use_collision = true
-radius = 0.5
-height = 1.5
-material = ExtResource("6_metal")
-
-[node name="BarrelB1" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1.5, -22)
-use_collision = true
-radius = 0.5
-height = 1.5
-material = ExtResource("6_metal")
-
-[node name="BuildingA_Light" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 4, -20)
-light_color = Color(1, 0.8, 0.6, 1)
-light_energy = 2.0
-shadow_enabled = true
-omni_range = 12.0
-
-[node name="BuildingA_Crate" type="CSGBox3D" parent="."]
-transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, -22, 1.5, -18)
-use_collision = true
-size = Vector3(2, 3, 2)
-material = ExtResource("7_wood")
-
-[node name="BuildingB_Light" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 4, -20)
-light_color = Color(1, 0.8, 0.6, 1)
-light_energy = 2.0
-shadow_enabled = true
-omni_range = 15.0
-
-[node name="BuildingB_Barrel1" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 1.5, -18)
-use_collision = true
-radius = 0.5
-height = 1.5
-material = ExtResource("6_metal")
-
-[node name="BuildingB_Barrel2" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 1.5, -19)
-use_collision = true
-radius = 0.5
-height = 1.5
-material = ExtResource("6_metal")
-
-[node name="PoliceTruck_Cab" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, 35)
-use_collision = true
-size = Vector3(3, 4, 3)
-material = ExtResource("6_metal")
-
-[node name="PoliceTruck_Bed" type="CSGBox3D" parent="PoliceTruck_Cab"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 4)
-use_collision = true
-size = Vector3(3, 2, 5)
-material = ExtResource("6_metal")
-
-[node name="TerroristTruck_Cab" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, -35)
-use_collision = true
-size = Vector3(3, 4, 3)
-material = ExtResource("6_metal")
-
-[node name="TerroristTruck_Bed" type="CSGBox3D" parent="TerroristTruck_Cab"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, -4)
-use_collision = true
-size = Vector3(3, 2, 5)
-material = ExtResource("6_metal")
