@@ -348,6 +348,7 @@ func _on_bomb_planted():
 var radar_container: SubViewportContainer
 var radar_viewport: SubViewport
 var radar_camera: Camera3D
+var radar_pings_container: Control
 
 func _setup_radar():
 	radar_container = SubViewportContainer.new()
@@ -367,11 +368,41 @@ func _setup_radar():
 	radar_camera.position.y = 50.0
 	radar_viewport.add_child(radar_camera)
 	
+	radar_pings_container = Control.new()
+	radar_pings_container.custom_minimum_size = Vector2(200, 200)
+	radar_container.add_child(radar_pings_container)
+	
 	add_child(radar_container)
 	
 	# Wait one frame to ensure get_viewport().world_3d is valid
 	await get_tree().process_frame
 	radar_viewport.world_3d = get_viewport().world_3d
+
+func add_radar_ping(shooter_team: int, world_pos: Vector3):
+	if not local_player or local_player.team == shooter_team: return
+	
+	var ping = ColorRect.new()
+	ping.color = Color.RED
+	ping.size = Vector2(6, 6)
+	
+	# Calculate offset in 2D (x and z)
+	var diff = Vector2(world_pos.x - local_player.global_position.x, world_pos.z - local_player.global_position.z)
+	
+	# Radar camera size is 60.0, mapping to 200x200 viewport
+	var scale_factor = 200.0 / 60.0
+	var offset_px = diff * scale_factor
+	
+	ping.position = Vector2(100, 100) + offset_px - (ping.size / 2.0)
+	
+	# Don't show if way off radar
+	if offset_px.length() > 120.0:
+		return
+		
+	radar_pings_container.add_child(ping)
+	
+	var t = create_tween()
+	t.tween_property(ping, "modulate:a", 0.0, 2.0).set_trans(Tween.TRANS_EXPO)
+	t.tween_callback(ping.queue_free)
 
 func _process_radar():
 	if is_instance_valid(radar_camera) and is_instance_valid(local_player):

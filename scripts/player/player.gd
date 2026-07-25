@@ -413,6 +413,14 @@ func fire_weapon():
 	
 	if fire_sound:
 		fire_sound.play()
+		
+	# Minimap Radar Ping (Offline Solo bots)
+	if MatchManager.is_offline_solo and is_bot:
+		for p in get_tree().get_nodes_in_group("Players"):
+			if p.is_multiplayer_authority() and not p.is_bot:
+				if p.hud_instance and p.hud_instance.has_method("add_radar_ping"):
+					p.hud_instance.add_radar_ping(team, global_position)
+				break
 	
 	# Hit detection locally for instant feedback
 	if raycast.is_colliding():
@@ -443,6 +451,13 @@ func sync_shoot_effects():
 	
 	if fire_sound:
 		fire_sound.play()
+		
+	# Minimap Radar Ping (Multiplayer remote clients)
+	for p in get_tree().get_nodes_in_group("Players"):
+		if p.is_multiplayer_authority():
+			if p.hud_instance and p.hud_instance.has_method("add_radar_ping"):
+				p.hud_instance.add_radar_ping(team, global_position)
+			break
 
 @rpc("any_peer", "call_local", "reliable")
 func request_fire(origin: Vector3, directions: Array):
