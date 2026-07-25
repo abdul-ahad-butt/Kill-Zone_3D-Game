@@ -1,14 +1,18 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://wpn_smg"]
 
-[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_a1b2c"]
-[ext_resource type="PackedScene" path="res://Assets/models/weapons/smg_viewmodel.tscn" id="2_mdls"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_wpn"]
+[ext_resource type="PackedScene" path="res://Assets/models/weapons/smg_viewmodel.tscn" id="2_mdl"]
 
 [resource]
-script = ExtResource("1_a1b2c")
-model_scene = ExtResource("2_mdls")
+script = ExtResource("1_wpn")
 weapon_name = "SMG"
-damage = 22
+damage = 18
 fire_rate = 0.08
-mag_size = 40
+mag_size = 30
 reload_time = 1.8
-range = 80.0
+range = 60.0
+recoil_kick = 0.08
+ads_fov = 55.0
+ads_position = Vector3(0, -0.15, -0.35)
+default_position = Vector3(0.25, -0.25, -0.45)
+model_scene = ExtResource("2_mdl")

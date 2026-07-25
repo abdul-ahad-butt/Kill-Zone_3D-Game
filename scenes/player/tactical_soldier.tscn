@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://tactical_soldier"]
+
+[ext_resource type="Script" path="res://scripts/player/tactical_soldier.gd" id="1_ts"]
+
+[node name="TacticalSoldier" type="Node3D"]
+script = ExtResource("1_ts")

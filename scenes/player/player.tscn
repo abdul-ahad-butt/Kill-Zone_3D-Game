@@ -3,7 +3,8 @@
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 
 [ext_resource type="Resource" path="res://resources/weapon_data/Rifle.tres" id="2_rifle"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
+[ext_resource type="Resource" path="res://resources/weapon_data/Pistol.tres" id="3_pistol"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="4_hud"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_pl"]
 radius = 0.5
@@ -14,8 +15,9 @@ collision_layer = 2
 collision_mask = 5
 script = ExtResource("1_player")
 primary_weapon = ExtResource("2_rifle")
+secondary_weapon = ExtResource("3_pistol")
 
-[node name="HUD" parent="." instance=ExtResource("3_hud")]
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

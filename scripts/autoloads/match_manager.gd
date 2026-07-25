@@ -137,6 +137,9 @@ func sync_state(state: MatchState, police_score: int, terrorist_score: int, bomb
 	score_terrorist = terrorist_score
 	is_bomb_planted = bomb_planted
 	
+	if state == MatchState.ROUND_START:
+		AudioManager.play_2d(AudioManager.match_start_sound)
+	
 	emit_signal("score_updated", score_police, score_terrorist)
 	emit_signal("round_state_changed", current_state)
 
@@ -149,6 +152,7 @@ func sync_timers(round_t: int, bomb_t: int):
 
 @rpc("authority", "call_local", "reliable")
 func sync_round_ended(winner: int, reason: String):
+	AudioManager.play_2d(AudioManager.win_sound)
 	emit_signal("round_ended", winner, reason)
 
 @rpc("authority", "call_local", "reliable")

@@ -37,6 +37,10 @@ func _spawn_local_offline():
 		# Free for all - 9 enemies
 		for i in range(2, 11):
 			_spawn_bot(i, enemy_team, _get_random_spawn(enemy_team))
+			
+	# Start the match timer and logic
+	if multiplayer.is_server():
+		MatchManager.start_match()
 
 func _get_random_spawn(team: int) -> Vector3:
 	if team == Team.TeamId.POLICE and police_spawns.size() > 0:

@@ -6,6 +6,7 @@
 [ext_resource type="Material" path="res://resources/materials/dirt.tres" id="2_qfnet"]
 [ext_resource type="Material" path="res://resources/materials/brick.tres" id="3_i7141"]
 [ext_resource type="Material" path="res://resources/materials/metal.tres" id="4_4mrxx"]
+[ext_resource type="Script" path="res://scripts/environment/map_decorator.gd" id="5_decorator"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_A"]
 size = Vector3(8, 2, 8)
@@ -27,8 +28,6 @@ background_mode = 2
 sky = SubResource("Sky_w7kh3")
 ambient_light_source = 3
 tonemap_mode = 2
-ssr_enabled = true
-ssao_enabled = true
 
 [node name="World" type="Node3D" unique_id=65326711]
 script = ExtResource("1_world")
@@ -41,6 +40,9 @@ directional_shadow_fade_start = 1.0
 directional_shadow_max_distance = 200.0
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=778866495]
+
+[node name="MapDecorator" type="Node3D" parent="NavigationRegion3D"]
+script = ExtResource("5_decorator")
 
 [node name="MapGeometry" type="CSGCombiner3D" parent="NavigationRegion3D" unique_id=1309501952]
 material_override = ExtResource("1_71j4m")

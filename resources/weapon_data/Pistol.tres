@@ -1,14 +1,18 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://wpn_pistol"]
 
-[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_a1b2c"]
-[ext_resource type="PackedScene" path="res://Assets/models/weapons/pistol_viewmodel.tscn" id="2_mdls"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_wpn"]
+[ext_resource type="PackedScene" path="res://Assets/models/weapons/pistol_viewmodel.tscn" id="2_mdl"]
 
 [resource]
-script = ExtResource("1_a1b2c")
-model_scene = ExtResource("2_mdls")
+script = ExtResource("1_wpn")
 weapon_name = "Pistol"
 damage = 25
-fire_rate = 0.3
+fire_rate = 0.25
 mag_size = 12
 reload_time = 1.2
-range = 50.0
+range = 40.0
+recoil_kick = 0.05
+ads_fov = 60.0
+ads_position = Vector3(0, -0.1, -0.3)
+default_position = Vector3(0.2, -0.2, -0.4)
+model_scene = ExtResource("2_mdl")

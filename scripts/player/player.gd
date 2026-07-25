@@ -41,6 +41,13 @@ func _ready():
 	if primary_weapon:
 		equip_weapon(primary_weapon)
 		
+	var soldier = load("res://scenes/player/tactical_soldier.tscn").instantiate()
+	soldier.team = team
+	soldier.name = "TacticalSoldier"
+	add_child(soldier)
+	if is_multiplayer_authority():
+		soldier.visible = false
+		
 	# Setup Audio
 	gunshot_audio = AudioStreamPlayer3D.new()
 	add_child(gunshot_audio)
@@ -77,11 +84,28 @@ func _physics_process(delta):
 	if direction:
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
+		if is_on_floor() and footstep_audio and not footstep_audio.playing:
+			footstep_audio.stream = AudioManager.footstep_sound
+			footstep_audio.play()
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
 
 	move_and_slide()
+
+	var is_ads = false
+	if Input.is_action_pressed("ads") and current_weapon:
+		is_ads = true
+		camera.fov = lerp(camera.fov, current_weapon.ads_fov, delta * 15.0)
+		if current_viewmodel:
+			current_viewmodel.position = current_viewmodel.position.lerp(current_weapon.ads_position, delta * 15.0)
+	else:
+		camera.fov = lerp(camera.fov, 75.0, delta * 15.0)
+		if current_viewmodel and current_weapon:
+			current_viewmodel.position = current_viewmodel.position.lerp(current_weapon.default_position, delta * 10.0)
+			
+	if Input.is_action_just_pressed("reload") and current_weapon and not is_reloading:
+		_start_reload()
 
 	if Input.is_action_pressed("fire") and can_fire and not is_reloading and current_weapon:
 		fire_weapon()
@@ -90,6 +114,12 @@ func _physics_process(delta):
 		equip_weapon(primary_weapon)
 	elif Input.is_action_just_pressed("switch_weapon_2") and secondary_weapon:
 		equip_weapon(secondary_weapon)
+
+func _start_reload():
+	is_reloading = true
+	AudioManager.play_2d(AudioManager.reload_sound)
+	await get_tree().create_timer(current_weapon.reload_time).timeout
+	is_reloading = false
 
 func equip_weapon(weapon: WeaponData):
 	if current_weapon == weapon: return
@@ -103,6 +133,7 @@ func equip_weapon(weapon: WeaponData):
 	if weapon.model_scene:
 		current_viewmodel = weapon.model_scene.instantiate()
 		camera.add_child(current_viewmodel)
+		current_viewmodel.position = weapon.default_position
 
 func fire_weapon():
 	can_fire = false
@@ -113,13 +144,14 @@ func fire_weapon():
 			_recoil_tween.kill()
 		_recoil_tween = create_tween()
 		var original_pos = current_viewmodel.position
-		# Kick back on Z
-		current_viewmodel.position.z += 0.1
-		# Rotate up on X
-		current_viewmodel.rotation.x += 0.1
+		
+		# Apply recoil kick
+		current_viewmodel.position.z += current_weapon.recoil_kick
+		current_viewmodel.rotation.x += current_weapon.recoil_kick * 0.5
 		
 		_recoil_tween.set_parallel(true)
-		_recoil_tween.tween_property(current_viewmodel, "position:z", original_pos.z, 0.1).set_ease(Tween.EASE_OUT)
+		var target_pos = current_weapon.ads_position if Input.is_action_pressed("ads") else current_weapon.default_position
+		_recoil_tween.tween_property(current_viewmodel, "position", target_pos, 0.1).set_ease(Tween.EASE_OUT)
 		_recoil_tween.tween_property(current_viewmodel, "rotation:x", 0.0, 0.1).set_ease(Tween.EASE_OUT)
 		
 		# Trigger particles
@@ -134,6 +166,7 @@ func fire_weapon():
 			t.tween_property(light, "visible", false, 0.05).set_delay(0.05)
 			
 	if gunshot_audio:
+		gunshot_audio.stream = AudioManager.gunshot_sound
 		gunshot_audio.play()
 	
 	# Send request to server

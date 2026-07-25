@@ -11,13 +11,21 @@ const SPEED = 3.0
 
 var target_position: Vector3
 
+	PATROL,
+	ENGAGE
+}
+var current_state: State = State.PATROL
+var current_target: CharacterBody3D = null
+var shoot_timer: float = 0.0
+
 func _ready():
-	var mat = StandardMaterial3D.new()
-	if team == Team.TeamId.POLICE:
-		mat.albedo_color = Color(0.2, 0.4, 0.8) # Blue for CT
-	else:
-		mat.albedo_color = Color(0.8, 0.2, 0.2) # Red for T
-	mesh.material_override = mat
+	if mesh:
+		mesh.queue_free()
+		
+	var soldier = load("res://scenes/player/tactical_soldier.tscn").instantiate()
+	soldier.team = team
+	soldier.name = "TacticalSoldier"
+	add_child(soldier)
 	
 	# Wait for first physics frame to ensure navmesh is ready
 	await get_tree().physics_frame
@@ -27,6 +35,7 @@ func _ready():
 func pick_new_target():
 	var nearest_dist = 9999.0
 	var nearest_pos = global_position
+	var nearest_pos_node: CharacterBody3D = null
 	
 	var all_nodes = get_tree().get_nodes_in_group("players") # Assuming players are in a group, wait, they aren't.
 	# Let's just find all CharacterBody3D in the world.
@@ -45,10 +54,13 @@ func pick_new_target():
 					if dist < nearest_dist:
 						nearest_dist = dist
 						nearest_pos = child.global_position
+						nearest_pos_node = child
 						
 	if nearest_dist < 9999.0:
+		current_target = nearest_pos_node
 		target_position = nearest_pos
 	else:
+		current_target = null
 		var random_offset = Vector3(randf_range(-40, 40), 0, randf_range(-40, 40))
 		target_position = global_position + random_offset
 		
@@ -58,7 +70,42 @@ func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= ProjectSettings.get_setting("physics/3d/default_gravity") * delta
 
-	if nav_agent.is_navigation_finished():
+	if current_target and is_instance_valid(current_target) and current_target.has_method("take_damage") and current_target.health > 0:
+		var space_state = get_world_3d().direct_space_state
+		var query = PhysicsRayQueryParameters3D.create(global_position + Vector3(0, 1.5, 0), current_target.global_position + Vector3(0, 1.5, 0))
+		query.exclude = [self]
+		query.collision_mask = 5 # World and players
+		var result = space_state.intersect_ray(query)
+		
+		if result and result.collider == current_target:
+			current_state = State.ENGAGE
+		else:
+			current_state = State.PATROL
+			nav_agent.target_position = current_target.global_position
+	else:
+		current_state = State.PATROL
+		if randf() < 0.01:
+			pick_new_target()
+
+	if current_state == State.ENGAGE:
+		velocity.x = 0
+		velocity.z = 0
+		var look_pos = current_target.global_position
+		look_pos.y = global_position.y
+		look_at(look_pos, Vector3.UP)
+		
+		var sol = get_node_or_null("TacticalSoldier")
+		if sol: sol.play_anim("idle")
+		
+		shoot_timer -= delta
+		if shoot_timer <= 0.0:
+			shoot_timer = randf_range(0.2, 0.6)
+			AudioManager.play_2d(AudioManager.gunshot_sound)
+			if current_target.has_method("take_damage"):
+				current_target.take_damage(15, team, 999)
+				
+	elif current_state == State.PATROL:
+		if nav_agent.is_navigation_finished():
 		velocity.x = 0
 		velocity.z = 0
 	else:
@@ -76,6 +123,11 @@ func _physics_process(delta):
 		if new_velocity.length() > 0.1:
 			var look_target = global_position + Vector3(velocity.x, 0, velocity.z)
 			look_at(look_target, Vector3.UP)
+			var sol = get_node_or_null("TacticalSoldier")
+			if sol: sol.play_anim("run")
+		else:
+			var sol = get_node_or_null("TacticalSoldier")
+			if sol: sol.play_anim("idle")
 
 	move_and_slide()
 
