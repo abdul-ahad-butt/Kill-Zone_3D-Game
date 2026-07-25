@@ -4,6 +4,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 env:
   GODOT_VERSION: 4.2.2
 
@@ -30,6 +33,14 @@ jobs:
         env:
           GODOT_EXPORT_PRESET_NAME: "Web"
 
+      - name: Inject COI Service Worker
+        run: |
+          # Download the COI service worker to enable SharedArrayBuffer on GitHub Pages
+          wget https://raw.githubusercontent.com/gzuidhof/coi-serviceworker/master/coi-serviceworker.js -O ~/.local/share/godot/archives/Web/coi-serviceworker.js || true
+          
+          # Inject it into index.html right after <head>
+          sed -i 's/<head>/<head><script src="coi-serviceworker.js"><\/script>/' ~/.local/share/godot/archives/Web/index.html || true
+
       - name: Commit and Push Web Build to Root
         run: |
           # Copy all exported files to the root directory
@@ -42,6 +53,6 @@ jobs:
           
           # Only commit if there are changes
           if ! git diff --cached --quiet; then
-            git commit -m "Auto-deploy: Web Build"
+            git commit -m "Auto-deploy: Web Build (COI enabled)"
             git push origin main
           fi

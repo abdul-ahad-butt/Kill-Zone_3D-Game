@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  GODOT_VERSION: 4.7.1
+  GODOT_VERSION: 4.2.2
 
 jobs:
   export-android:
@@ -23,10 +23,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          
-      - name: Decode Android Keystore
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android_debug.keystore
 
       - name: Export Godot Project
         uses: firebelley/godot-export@v5.2.1
@@ -37,11 +33,7 @@ jobs:
           archive_output: true
           export_debug: true
         env:
-          # We define export presets dynamically in the GitHub Action 
-          # so we don't have to commit export_presets.cfg with passwords.
-          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ github.workspace }}/android_debug.keystore
-          GODOT_ANDROID_KEYSTORE_DEBUG_USER: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
-          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          GODOT_EXPORT_PRESET_NAME: "Android"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
