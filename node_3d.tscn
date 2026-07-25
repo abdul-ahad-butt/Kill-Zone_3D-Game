@@ -58,6 +58,18 @@ surface_material_override/0 = ExtResource("5_dirt")
 [node name="MapGeometry" type="CSGCombiner3D" parent="." unique_id=76959689]
 use_collision = true
 
+[node name="MidPlazaPlatform" type="CSGCylinder3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+radius = 6.0
+height = 1.0
+sides = 16
+material = ExtResource("3_conc")
+
+[node name="MidPlazaObelisk" type="CSGBox3D" parent="MapGeometry/MidPlazaPlatform"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+size = Vector3(2.5, 5, 2.5)
+material = ExtResource("4_brick")
+
 [node name="BuildingA" type="CSGBox3D" parent="MapGeometry" unique_id=152400145]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2.5, -20)
 size = Vector3(15, 5, 15)
@@ -119,6 +131,22 @@ material = ExtResource("4_brick")
 [node name="FlankLeft_Inside" type="CSGBox3D" parent="MapGeometry/FlankLeft"]
 operation = 2
 size = Vector3(8, 6, 82)
+material = ExtResource("3_conc")
+
+[node name="FlankLeft_MidCutout" type="CSGBox3D" parent="MapGeometry/FlankLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, -1, 0)
+operation = 2
+size = Vector3(5, 4, 4)
+material = ExtResource("3_conc")
+
+[node name="FlankLeft_MidTunnel" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21, 2, 0)
+size = Vector3(28, 4, 6)
+material = ExtResource("4_brick")
+
+[node name="FlankLeft_MidTunnel_Inside" type="CSGBox3D" parent="MapGeometry/FlankLeft_MidTunnel"]
+operation = 2
+size = Vector3(28, 4, 4)
 material = ExtResource("3_conc")
 
 [node name="FlankRight" type="CSGBox3D" parent="MapGeometry"]
@@ -236,4 +264,62 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1.5, -22)
 use_collision = true
 radius = 0.5
 height = 1.5
+material = ExtResource("6_metal")
+
+[node name="BuildingA_Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 4, -20)
+light_color = Color(1, 0.8, 0.6, 1)
+light_energy = 2.0
+shadow_enabled = true
+omni_range = 12.0
+
+[node name="BuildingA_Crate" type="CSGBox3D" parent="."]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, -22, 1.5, -18)
+use_collision = true
+size = Vector3(2, 3, 2)
+material = ExtResource("7_wood")
+
+[node name="BuildingB_Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 4, -20)
+light_color = Color(1, 0.8, 0.6, 1)
+light_energy = 2.0
+shadow_enabled = true
+omni_range = 15.0
+
+[node name="BuildingB_Barrel1" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 1.5, -18)
+use_collision = true
+radius = 0.5
+height = 1.5
+material = ExtResource("6_metal")
+
+[node name="BuildingB_Barrel2" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 1.5, -19)
+use_collision = true
+radius = 0.5
+height = 1.5
+material = ExtResource("6_metal")
+
+[node name="PoliceTruck_Cab" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, 35)
+use_collision = true
+size = Vector3(3, 4, 3)
+material = ExtResource("6_metal")
+
+[node name="PoliceTruck_Bed" type="CSGBox3D" parent="PoliceTruck_Cab"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 4)
+use_collision = true
+size = Vector3(3, 2, 5)
+material = ExtResource("6_metal")
+
+[node name="TerroristTruck_Cab" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, -35)
+use_collision = true
+size = Vector3(3, 4, 3)
+material = ExtResource("6_metal")
+
+[node name="TerroristTruck_Bed" type="CSGBox3D" parent="TerroristTruck_Cab"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, -4)
+use_collision = true
+size = Vector3(3, 2, 5)
 material = ExtResource("6_metal")
