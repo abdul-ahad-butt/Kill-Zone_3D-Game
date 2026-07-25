@@ -7,6 +7,20 @@ extends Node3D
 var player_scene = preload("res://player.tscn")
 
 func _ready():
+	if MatchManager.match_size == MatchManager.MatchSize.SOLO:
+		if has_node("BombSiteC"): get_node("BombSiteC").is_active = false
+		if has_node("BombSiteD"): get_node("BombSiteD").is_active = false
+		if has_node("BombSiteC"): get_node("BombSiteC").hide()
+		if has_node("BombSiteD"): get_node("BombSiteD").hide()
+		print("Match Size: SOLO. Active Sites: A, B")
+	else:
+		print("Match Size: 5v5. Active Sites: A, B, C, D")
+		
+	# Assign site names based on node names
+	for child in get_children():
+		if child.is_in_group("BombSite"):
+			child.site_name = child.name.replace("BombSite", "")
+
 	if MatchManager.is_offline_solo:
 		_spawn_solo_player()
 		return

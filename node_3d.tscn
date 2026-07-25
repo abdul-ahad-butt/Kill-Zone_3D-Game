@@ -44,6 +44,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.5, -20)
 [node name="BombSiteB" parent="." instance=ExtResource("1_bsite")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1.5, -20)
 
+[node name="BombSiteC" parent="." instance=ExtResource("1_bsite")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1.5, 20)
+
+[node name="BombSiteD" parent="." instance=ExtResource("1_bsite")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 1.5, 20)
+
 [node name="SpawnPolice" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 30)
 

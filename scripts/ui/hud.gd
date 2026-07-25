@@ -5,6 +5,10 @@ extends CanvasLayer
 @onready var banner_label = $Banner
 @onready var bomb_timer_label = $VBoxContainer/BombTimer
 
+@onready var top_info_container = $TopInfo
+@onready var match_timer_label = $TopInfo/MatchTimer
+@onready var match_info_label = $TopInfo/MatchInfo
+
 var _round_tween: Tween
 var _bomb_tween: Tween
 var _banner_tween: Tween
@@ -15,9 +19,14 @@ var _settings_btn: Button = null
 func _ready() -> void:
 	MatchManager.round_timer_updated.connect(_on_round_timer_updated)
 	MatchManager.bomb_timer_updated.connect(_on_bomb_timer_updated)
+	MatchManager.total_timer_updated.connect(_on_total_timer_updated)
 	MatchManager.score_updated.connect(_on_score_updated)
 	MatchManager.round_state_changed.connect(_on_state_changed)
 	MatchManager.round_ended.connect(_on_round_ended)
+	
+	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
+	var active_sites = "A, B" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "A, B, C, D"
+	match_info_label.text = "Mode: %s | Active Sites: %s" % [m_size_str, active_sites]
 
 	banner_label.hide()
 	bomb_timer_label.hide()
@@ -60,13 +69,18 @@ func _on_round_timer_updated(time_left: int) -> void:
 	var m := time_left / 60
 	var s := time_left % 60
 	round_timer_label.text = "%02d:%02d" % [m, s]
-
+	
 	if time_left <= 10 and time_left > 0:
 		round_timer_label.modulate = Color.RED
 		_pulse_label(round_timer_label, "_round_tween")
 	else:
 		round_timer_label.modulate = Color.WHITE
 		round_timer_label.scale = Vector2.ONE
+
+func _on_total_timer_updated(time_left: int) -> void:
+	var m := time_left / 60
+	var s := time_left % 60
+	match_timer_label.text = "Match Ends: %02d:%02d" % [m, s]
 
 func _on_bomb_timer_updated(time_left: int) -> void:
 	round_timer_label.hide()

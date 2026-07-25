@@ -22,6 +22,11 @@ var has_bomb: bool = false
 @onready var weapon_model = $Camera3D/WeaponModel
 @onready var weapon_timer = $WeaponTimer
 
+var is_planting: bool = false
+var is_defusing: bool = false
+var current_plant_time: float = 0.0
+var current_defuse_time: float = 0.0
+
 # Recoil system
 var recoil_target: Vector3 = Vector3.ZERO
 var recoil_current: Vector3 = Vector3.ZERO
@@ -105,24 +110,47 @@ func _physics_process(delta):
 	# Bomb interactions
 	var bomb_progress = 0.0
 	var is_interacting = false
-	var bomb_node = get_tree().root.get_node_or_null("Node3D/Bomb") # Example global path or you'd search it
-	if not bomb_node:
-		bomb_node = get_node_or_null("Bomb") # As child
 	
+	var active_site = null
+	for site in get_tree().get_nodes_in_group("BombSite"):
+		if site.is_active and site.is_player_inside and site.planting_player == self:
+			active_site = site
+			break
+			
 	if Input.is_action_pressed("use"):
-		if bomb_node and bomb_node.has_method("start_planting"):
-			# In a real setup, we'd ensure player is inside a BombSite
+		if active_site:
 			if team == Team.TeamId.TERRORIST and has_bomb and not MatchManager.is_bomb_planted:
-				if not bomb_node.is_planting: bomb_node.start_planting(self)
-				is_interacting = bomb_node.is_planting
-				bomb_progress = bomb_node.current_plant_time / bomb_node.plant_time_required
+				if not is_planting: 
+					is_planting = true
+					current_plant_time = 0.0
+					print("Started planting at Site ", active_site.site_name)
+				current_plant_time += delta
+				bomb_progress = current_plant_time / 3.5
+				is_interacting = true
+				if current_plant_time >= 3.5:
+					MatchManager.plant_bomb()
+					has_bomb = false
+					is_planting = false
+					print("Bomb Planted at Site ", active_site.site_name)
 			elif team == Team.TeamId.POLICE and MatchManager.is_bomb_planted:
-				if not bomb_node.is_defusing: bomb_node.start_defusing(self)
-				is_interacting = bomb_node.is_defusing
-				bomb_progress = bomb_node.current_defuse_time / bomb_node.defuse_time_required
+				if not is_defusing:
+					is_defusing = true
+					current_defuse_time = 0.0
+					print("Started defusing at Site ", active_site.site_name)
+				current_defuse_time += delta
+				bomb_progress = current_defuse_time / 5.0
+				is_interacting = true
+				if current_defuse_time >= 5.0:
+					MatchManager.defuse_bomb()
+					is_defusing = false
+					print("Bomb Defused at Site ", active_site.site_name)
 	else:
-		if bomb_node and (bomb_node.is_planting or bomb_node.is_defusing) and bomb_node.interacting_player == self:
-			bomb_node.cancel_interaction()
+		if is_planting or is_defusing:
+			is_planting = false
+			is_defusing = false
+			current_plant_time = 0.0
+			current_defuse_time = 0.0
+			print("Bomb interaction canceled.")
 
 	if Input.is_action_pressed("fire") and can_fire and not is_reloading and current_weapon and not is_interacting:
 		if current_ammo > 0:
