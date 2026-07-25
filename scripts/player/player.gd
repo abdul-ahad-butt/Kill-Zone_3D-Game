@@ -189,6 +189,21 @@ func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
+	var speed = Vector2(velocity.x, velocity.z).length()
+	var target_spread = 2.0
+	if not is_on_floor():
+		target_spread = 40.0
+	elif speed > 1.0:
+		target_spread = 15.0
+	if _recoil_tween and _recoil_tween.is_running():
+		target_spread += 20.0
+	if Input.is_action_pressed("ads"):
+		target_spread *= 0.25
+		
+	var hud = get_node_or_null("HUD")
+	if hud:
+		hud.current_spread = lerp(hud.current_spread, target_spread, delta * 15.0)
+
 	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
 		velocity.y = JUMP_VELOCITY
 		
@@ -341,7 +356,7 @@ func request_fire(origin: Vector3, direction: Vector3):
 		var is_blood = false
 		if target.has_method("take_damage"):
 			is_blood = true
-			target.take_damage(current_weapon.damage, team, get_multiplayer_authority())
+			target.take_damage(current_weapon.damage, team, get_multiplayer_authority(), current_weapon.weapon_name)
 			rpc_id(multiplayer.get_remote_sender_id(), "client_hit_marker")
 			
 		rpc("client_spawn_impact", result.position, result.normal, is_blood)
@@ -386,28 +401,31 @@ func server_throw_grenade(cam_transform: Transform3D):
 func _on_weapon_timer_timeout():
 	can_fire = true
 
-func take_damage(amount: int, attacker_team: Team.TeamId, attacker_id: int = 1):
+func take_damage(amount: int, attacker_team: Team.TeamId, attacker_id: int = 1, weapon_name: String = "Weapon"):
 	if not multiplayer.is_server(): return
-	if NetworkManager.is_team_mode and attacker_team == team: return # Friendly fire off in team mode
-		
+	if MatchManager.current_state != MatchManager.MatchState.LIVE: return
+	if NetworkManager.is_team_mode and attacker_team == team: return
+	
 	health -= amount
 	rpc("sync_health", health)
 	
 	if health <= 0:
-		die(attacker_id)
+		die(attacker_id, weapon_name)
 
 @rpc("authority", "call_local", "reliable")
 func sync_health(new_health: int):
 	health = new_health
+	if get_node_or_null("HUD"): get_node("HUD").update_health(health)
 	if health <= 0 and not multiplayer.is_server():
 		pass # Client side death effects
 
-func die(attacker_id: int):
+func die(attacker_id: int, weapon_name: String = "Weapon"):
 	if not multiplayer.is_server(): return
-	print("Player ", name, " on team ", team, " died!")
+	if get_node_or_null("Camera3D/SettingsMenu") and get_node("Camera3D/SettingsMenu").visible:
+		get_node("Camera3D/SettingsMenu").close_menu()
 	
 	MatchManager.add_money(attacker_id, 300)
-	PlayerStats.record_kill_event(attacker_id, name.to_int(), current_weapon.weapon_name if current_weapon else "Unknown")
+	PlayerStats.record_kill_event(attacker_id, name.to_int(), weapon_name)
 	
 	var attacker_name = "Player " + str(attacker_id)
 	if PlayerStats.stats.has(attacker_id):

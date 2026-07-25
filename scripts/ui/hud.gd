@@ -8,9 +8,10 @@ extends CanvasLayer
 @onready var health_label = $PlayerStatus/HealthLabel
 @onready var ammo_label = $PlayerStatus/AmmoLabel
 @onready var interact_progress = $InteractProgress
-@onready var crosshair = $Crosshair
 @onready var hit_marker = $HitMarker
 @onready var kill_feed = $KillFeed
+
+var current_spread: float = 0.0
 
 var _round_tween: Tween
 var _bomb_tween: Tween
@@ -23,6 +24,9 @@ func _ready():
 	MatchManager.score_updated.connect(_on_score_updated)
 	MatchManager.round_state_changed.connect(_on_state_changed)
 	MatchManager.round_ended.connect(_on_round_ended)
+	PlayerStats.player_killed.connect(_on_player_killed)
+	MatchManager.bomb_planted.connect(func(): add_kill_feed("BOMB PLANTED"))
+	MatchManager.bomb_defused.connect(func(): add_kill_feed("BOMB DEFUSED"))
 	
 	banner_label.hide()
 	bomb_timer_label.hide()
@@ -35,6 +39,25 @@ func _ready():
 	
 	_apply_hud_styling()
 	_setup_mobile_ui()
+
+func _process(_delta):
+	queue_redraw()
+
+func _draw():
+	var center = get_viewport().size / 2.0
+	var spread = clamp(current_spread, 2.0, 100.0)
+	var length = 8.0
+	var thickness = 2.0
+	var color = Color(0, 1, 0, 0.8)
+	
+	# Top
+	draw_rect(Rect2(center.x - thickness/2, center.y - spread - length, thickness, length), color)
+	# Bottom
+	draw_rect(Rect2(center.x - thickness/2, center.y + spread, thickness, length), color)
+	# Left
+	draw_rect(Rect2(center.x - spread - length, center.y - thickness/2, length, thickness), color)
+	# Right
+	draw_rect(Rect2(center.x + spread, center.y - thickness/2, length, thickness), color)
 
 func _apply_hud_styling():
 	var panel_style = StyleBoxFlat.new()
@@ -95,11 +118,13 @@ func add_kill_feed(text: String):
 		tween.tween_property(lbl, "modulate:a", 0.0, 1.0)
 		tween.tween_callback(lbl.queue_free)
 
+func _on_player_killed(killer: String, victim: String, weapon: String):
+	add_kill_feed(killer + " [" + weapon + "] " + victim)
+
 func show_scope(show: bool):
 	var scope = get_node_or_null("ScopeOverlay")
 	if scope:
 		scope.visible = show
-		if crosshair: crosshair.visible = not show
 
 func _setup_mobile_ui():
 	if not DisplayServer.is_touchscreen_available() and not ProjectSettings.get_setting("input_devices/pointing/emulate_touch_from_mouse"):
