@@ -487,9 +487,11 @@ func request_fire(origin: Vector3, directions: Array):
 		
 		var end_pos = origin + dir
 		var did_hit_player = false
+		var hit_normal = Vector3.ZERO
 		var result = space_state.intersect_ray(query)
 		if result:
 			end_pos = result.position
+			hit_normal = result.normal
 			var target = result.collider
 			if target.has_method("take_damage"):
 				var did_hit = target.take_damage(current_weapon.damage, team, get_multiplayer_authority())
@@ -501,12 +503,12 @@ func request_fire(origin: Vector3, directions: Array):
 						rpc_id(get_multiplayer_authority(), "show_hitmarker")
 		
 		if MatchManager.is_offline_solo:
-			sync_tracer(origin, end_pos, did_hit_player)
+					sync_tracer(origin, end_pos, hit_normal, did_hit_player)
 		else:
-			rpc("sync_tracer", origin, end_pos, did_hit_player)
+			rpc("sync_tracer", origin, end_pos, hit_normal, did_hit_player)
 
 @rpc("any_peer", "call_local", "unreliable")
-func sync_tracer(start_pos: Vector3, end_pos: Vector3, hit_player: bool):
+func sync_tracer(start_pos: Vector3, end_pos: Vector3, hit_normal: Vector3, hit_player: bool):
 	if start_pos.distance_to(end_pos) < 0.1: return
 	
 	# TRACER
@@ -520,24 +522,43 @@ func sync_tracer(start_pos: Vector3, end_pos: Vector3, hit_player: bool):
 	mat.albedo_color = Color(1.0, 0.8, 0.2)
 	mat.emission_enabled = true
 	mat.emission = Color(1.0, 0.8, 0.2)
-	mat.emission_energy_multiplier = 4.0
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.emission_energy_multiplier = 2.0
 	mesh.surface_set_material(0, mat)
-	
 	tracer.mesh = mesh
+	
 	get_tree().root.add_child(tracer)
-	
-	tracer.global_position = start_pos.lerp(end_pos, 0.5)
-	
-	var up = Vector3.UP
-	if abs(start_pos.direction_to(end_pos).y) > 0.99: up = Vector3.RIGHT
-	tracer.look_at(end_pos, up)
-	tracer.rotate_x(PI/2)
+	tracer.global_position = (start_pos + end_pos) / 2.0
+	tracer.look_at(end_pos, Vector3.UP)
+	tracer.rotate_object_local(Vector3.RIGHT, PI/2.0)
 	
 	var tween = create_tween()
-	tween.tween_property(mat, "albedo_color:a", 0.0, 0.1)
-	tween.parallel().tween_property(mat, "emission_energy_multiplier", 0.0, 0.1)
+	tween.tween_property(tracer, "transparency", 1.0, 0.15)
 	tween.tween_callback(tracer.queue_free)
+	
+	# DECAL
+	if hit_normal != Vector3.ZERO:
+		var decal = MeshInstance3D.new()
+		var qmesh = QuadMesh.new()
+		qmesh.size = Vector2(0.25, 0.25) if hit_player else Vector2(0.12, 0.12)
+		
+		var dmat = StandardMaterial3D.new()
+		dmat.albedo_color = Color(0.6, 0.0, 0.0) if hit_player else Color(0.1, 0.1, 0.1)
+		
+		qmesh.surface_set_material(0, dmat)
+		decal.mesh = qmesh
+		get_tree().root.add_child(decal)
+		
+		decal.global_position = end_pos + hit_normal * 0.01
+		
+		if hit_normal.is_equal_approx(Vector3.UP) or hit_normal.is_equal_approx(Vector3.DOWN):
+			decal.look_at(decal.global_position + hit_normal, Vector3.RIGHT)
+		else:
+			decal.look_at(decal.global_position + hit_normal, Vector3.UP)
+			
+		var dtween = create_tween()
+		dtween.tween_interval(8.0)
+		dtween.tween_property(decal, "transparency", 1.0, 2.0)
+		dtween.tween_callback(decal.queue_free)
 	
 	# BLOOD SPLATTER
 	if hit_player:
