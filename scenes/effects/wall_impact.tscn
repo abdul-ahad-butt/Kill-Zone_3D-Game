@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://wallimp"]
+
+[ext_resource type="Script" path="res://scripts/effects/auto_destroy.gd" id="1_x"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.5, 0.5, 0.5, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+material = SubResource("StandardMaterial3D_wall")
+size = Vector3(0.04, 0.04, 0.04)
+
+[node name="WallImpact" type="CPUParticles3D"]
+emitting = false
+amount = 12
+lifetime = 0.25
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("BoxMesh_wall")
+direction = Vector3(0, 0, 1)
+spread = 60.0
+initial_velocity_min = 1.5
+initial_velocity_max = 4.0
+scale_amount_min = 0.3
+scale_amount_max = 1.2
+script = ExtResource("1_x")

@@ -103,8 +103,13 @@ func _physics_process(delta):
 			shoot_timer = randf_range(0.2, 0.6)
 			var am = get_node_or_null("/root/AudioManager")
 			if am: am.play_2d(am.gunshot_sound)
+			
+			rpc("client_muzzle_flash")
+			
 			if current_target.has_method("take_damage"):
 				current_target.take_damage(15, team, 999)
+				var hit_pos = current_target.global_position + Vector3(0, 1.0, 0)
+				rpc("client_spawn_impact", hit_pos, Vector3.UP, true)
 				
 	elif current_state == State.PATROL:
 		if nav_agent.is_navigation_finished():
@@ -145,3 +150,32 @@ func take_damage(amount: int, attacker_team: Team.TeamId, attacker_id: int = 1):
 func die(attacker_id: int):
 	PlayerStats.record_kill_event(attacker_id, 999, "Bot")
 	queue_free()
+
+@rpc("authority", "call_local", "unreliable")
+func client_spawn_impact(pos: Vector3, normal: Vector3, is_blood: bool):
+	var effect_scene
+	if is_blood:
+		effect_scene = load("res://scenes/effects/blood_impact.tscn")
+	else:
+		effect_scene = load("res://scenes/effects/wall_impact.tscn")
+		
+	if effect_scene:
+		var effect = effect_scene.instantiate()
+		get_node("/root/World").add_child(effect)
+		effect.global_position = pos
+		if normal != Vector3.UP and normal != Vector3.DOWN:
+			effect.look_at(pos + normal, Vector3.UP)
+		elif normal == Vector3.UP:
+			effect.rotation_degrees.x = -90
+		else:
+			effect.rotation_degrees.x = 90
+
+@rpc("authority", "call_local", "unreliable")
+func client_muzzle_flash():
+	var flash_scene = load("res://scenes/effects/muzzle_flash.tscn")
+	if flash_scene:
+		var f = flash_scene.instantiate()
+		add_child(f)
+		f.position = Vector3(0, 1.2, 0.5)
+		f.emitting = true
+		get_tree().create_timer(0.1).timeout.connect(f.queue_free)

@@ -300,15 +300,19 @@ func fire_weapon():
 		_recoil_tween.tween_property(current_viewmodel, "rotation:x", 0.0, 0.1).set_ease(Tween.EASE_OUT)
 		
 		# Trigger particles
-		var flash = current_viewmodel.get_node_or_null("MuzzleFlash")
-		if flash and flash is GPUParticles3D:
-			flash.restart()
-			
 		var light = current_viewmodel.get_node_or_null("MuzzleLight")
 		if light and light is OmniLight3D:
 			light.visible = true
 			var t = create_tween()
 			t.tween_property(light, "visible", false, 0.05).set_delay(0.05)
+			
+		var flash_scene = load("res://scenes/effects/muzzle_flash.tscn")
+		if flash_scene:
+			var f = flash_scene.instantiate()
+			current_viewmodel.add_child(f)
+			f.position = Vector3(0, 0, -1.0)
+			f.emitting = true
+			get_tree().create_timer(0.1).timeout.connect(f.queue_free)
 			
 	if gunshot_audio:
 		var am = get_node_or_null("/root/AudioManager")
@@ -334,9 +338,32 @@ func request_fire(origin: Vector3, direction: Vector3):
 	var result = space_state.intersect_ray(query)
 	if result:
 		var target = result.collider
+		var is_blood = false
 		if target.has_method("take_damage"):
+			is_blood = true
 			target.take_damage(current_weapon.damage, team, get_multiplayer_authority())
 			rpc_id(multiplayer.get_remote_sender_id(), "client_hit_marker")
+			
+		rpc("client_spawn_impact", result.position, result.normal, is_blood)
+
+@rpc("authority", "call_local", "unreliable")
+func client_spawn_impact(pos: Vector3, normal: Vector3, is_blood: bool):
+	var effect_scene
+	if is_blood:
+		effect_scene = load("res://scenes/effects/blood_impact.tscn")
+	else:
+		effect_scene = load("res://scenes/effects/wall_impact.tscn")
+		
+	if effect_scene:
+		var effect = effect_scene.instantiate()
+		get_node("/root/World").add_child(effect)
+		effect.global_position = pos
+		if normal != Vector3.UP and normal != Vector3.DOWN:
+			effect.look_at(pos + normal, Vector3.UP)
+		elif normal == Vector3.UP:
+			effect.rotation_degrees.x = -90
+		else:
+			effect.rotation_degrees.x = 90
 
 @rpc("authority", "call_local", "unreliable")
 func client_hit_marker():

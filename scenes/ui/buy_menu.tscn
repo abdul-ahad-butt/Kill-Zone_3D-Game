@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://buymenu"]
+[gd_scene format=3 uid="uid://buymenu"]
 
 [ext_resource type="Script" path="res://scripts/ui/buy_menu.gd" id="1_bm"]
 

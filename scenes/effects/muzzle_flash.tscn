@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3 uid="uid://muzzlef"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_flash"]
+transparency = 1
+blend_mode = 1
+albedo_color = Color(1, 0.8, 0.2, 0.8)
+emission_enabled = true
+emission = Color(1, 0.8, 0.2, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_flash"]
+material = SubResource("StandardMaterial3D_flash")
+size = Vector3(0.02, 0.02, 0.1)
+
+[node name="MuzzleFlash" type="CPUParticles3D"]
+emitting = false
+amount = 8
+lifetime = 0.05
+one_shot = true
+explosiveness = 1.0
+local_coords = true
+mesh = SubResource("BoxMesh_flash")
+direction = Vector3(0, 0, -1)
+spread = 15.0
+initial_velocity_min = 5.0
+initial_velocity_max = 10.0

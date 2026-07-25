@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3 uid="uid://bloodimp"]
+
+[ext_resource type="Script" path="res://scripts/effects/auto_destroy.gd" id="1_x"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blood"]
+albedo_color = Color(0.6, 0.0, 0.0, 1)
+roughness = 0.5
+emission_enabled = true
+emission = Color(0.4, 0.0, 0.0, 1)
+emission_energy_multiplier = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_blood"]
+material = SubResource("StandardMaterial3D_blood")
+size = Vector3(0.05, 0.05, 0.05)
+
+[node name="BloodImpact" type="CPUParticles3D"]
+emitting = false
+amount = 16
+lifetime = 0.3
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("BoxMesh_blood")
+direction = Vector3(0, 1, 0)
+spread = 45.0
+initial_velocity_min = 2.0
+initial_velocity_max = 5.0
+scale_amount_min = 0.5
+scale_amount_max = 1.5
+script = ExtResource("1_x")

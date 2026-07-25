@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://settingsmenu"]
+[gd_scene format=3 uid="uid://settingsmenu"]
 
 [ext_resource type="Script" path="res://scripts/ui/settings_menu.gd" id="1_sm"]
 
