@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-signal on_death(id: int, team: Team.TeamId, weapon_path: String)
+signal on_death(id: int, team: Team.TeamId, weapon_path: String, pos: Vector3)
 
 const SPEED = 5.0
 const JUMP_VELOCITY = 4.5
@@ -645,9 +645,11 @@ func die(attacker_id: int):
 	if PlayerStats.stats.has(p_id):
 		PlayerStats.stats[p_id]["has_armor"] = false
 		PlayerStats.stats[p_id]["has_defuse_kit"] = false
+		if current_weapon and current_weapon.weapon_name != "Pistol":
+			PlayerStats.stats[p_id]["weapon_path"] = "res://resources/weapon_data/Pistol.tres"
 		PlayerStats.sync_all_stats()
 		
-	emit_signal("on_death", p_id, team, primary_weapon.resource_path if primary_weapon else "")
+	emit_signal("on_death", p_id, team, primary_weapon.resource_path if primary_weapon else "", global_position)
 	rpc("sync_death", attacker_id)
 	
 	if MatchManager.match_size == MatchManager.MatchSize.SOLO:
