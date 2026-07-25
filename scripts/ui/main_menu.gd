@@ -1,39 +1,68 @@
 extends Control
 
-@onready var host_btn = $VBoxContainer/HostButton
-@onready var join_btn = $VBoxContainer/JoinButton
-@onready var ip_input = $VBoxContainer/IPInput
+@onready var mode_select = $ModeSelect
+@onready var solo_btn = $ModeSelect/SoloButton
+@onready var multi_btn = $ModeSelect/MultiplayerButton
+@onready var network_lbl = $ModeSelect/NetworkLabel
 
-var _graphics_ui: CanvasLayer = null
+@onready var faction_select = $FactionSelect
+@onready var police_btn = $FactionSelect/HBoxContainer/PoliceButton
+@onready var terrorist_btn = $FactionSelect/HBoxContainer/TerroristButton
+@onready var start_btn = $FactionSelect/StartButton
+@onready var back_btn = $FactionSelect/BackButton
+
+var selected_faction: Team.TeamId = Team.TeamId.NONE
 
 func _ready() -> void:
-	host_btn.pressed.connect(_on_host_pressed)
-	join_btn.pressed.connect(_on_join_pressed)
+	print("MainMenu ready")
+	
+	# Initial UI State
+	mode_select.show()
+	faction_select.hide()
+	network_lbl.hide()
+	start_btn.disabled = true
+	
+	# Connect Mode buttons
+	solo_btn.pressed.connect(_on_solo_pressed)
+	multi_btn.pressed.connect(_on_multiplayer_pressed)
+	
+	# Connect Faction buttons
+	police_btn.pressed.connect(func(): _on_faction_pressed(Team.TeamId.POLICE))
+	terrorist_btn.pressed.connect(func(): _on_faction_pressed(Team.TeamId.TERRORIST))
+	start_btn.pressed.connect(_on_start_pressed)
+	back_btn.pressed.connect(_on_back_pressed)
 
-	NetworkManager.player_connected.connect(_on_player_connected)
+func _on_solo_pressed() -> void:
+	print("Mode selected: Play Solo")
+	mode_select.hide()
+	faction_select.show()
+	selected_faction = Team.TeamId.NONE
+	start_btn.disabled = true
+	_update_faction_buttons()
 
-	# Attach the graphics settings panel to the main menu
-	_graphics_ui = load("res://scripts/ui/graphics_settings_ui.gd").new()
-	_graphics_ui.name = "GraphicsSettingsUI"
-	add_child(_graphics_ui)
+func _on_multiplayer_pressed() -> void:
+	print("Mode selected: Multiplayer")
+	network_lbl.show()
+	solo_btn.hide()
+	multi_btn.hide()
 
-func _unhandled_input(event: InputEvent) -> void:
-	# Toggle graphics panel with G key or three-finger tap on mobile
-	if event.is_action_pressed("ui_cancel"):
-		if _graphics_ui:
-			_graphics_ui.toggle_panel()
+func _on_faction_pressed(faction: Team.TeamId) -> void:
+	var f_name = "POLICE" if faction == Team.TeamId.POLICE else "TERRORIST"
+	print("Faction button pressed: ", f_name)
+	selected_faction = faction
+	start_btn.disabled = false
+	_update_faction_buttons()
 
-func _on_host_pressed() -> void:
-	NetworkManager.host_game()
-	hide()
-	# In a real game, you would transition to the lobby or main level here
+func _update_faction_buttons() -> void:
+	police_btn.add_theme_color_override("font_color", Color.GREEN if selected_faction == Team.TeamId.POLICE else Color.WHITE)
+	terrorist_btn.add_theme_color_override("font_color", Color.GREEN if selected_faction == Team.TeamId.TERRORIST else Color.WHITE)
 
-func _on_join_pressed() -> void:
-	var ip := ip_input.text
-	if ip.is_empty():
-		ip = "127.0.0.1"
-	NetworkManager.join_game(ip)
-	hide()
+func _on_back_pressed() -> void:
+	faction_select.hide()
+	mode_select.show()
 
-func _on_player_connected(id: int) -> void:
-	print("Main menu sees player connected: ", id)
+func _on_start_pressed() -> void:
+	print("Start Game pressed with faction: ", selected_faction)
+	MatchManager.is_offline_solo = true
+	MatchManager.solo_faction = selected_faction
+	get_tree().change_scene_to_file("res://node_3d.tscn")

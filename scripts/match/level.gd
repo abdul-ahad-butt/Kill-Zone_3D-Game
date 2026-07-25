@@ -7,6 +7,10 @@ extends Node3D
 var player_scene = preload("res://player.tscn")
 
 func _ready():
+	if MatchManager.is_offline_solo:
+		_spawn_solo_player()
+		return
+		
 	if not multiplayer.is_server():
 		return
 		
@@ -18,12 +22,25 @@ func _ready():
 	if not "--server" in args and not "--headless" in args:
 		_spawn_player(multiplayer.get_unique_id())
 
+func _spawn_solo_player():
+	var player = player_scene.instantiate()
+	player.name = "1"
+	player.team = MatchManager.solo_faction
+	
+	if MatchManager.solo_faction == Team.TeamId.POLICE:
+		player.global_position = spawn_police.global_position
+	else:
+		player.global_position = spawn_terrorist.global_position
+		
+	players_container.add_child(player, true)
+
 func _spawn_player(id: int):
 	var team = MatchManager.get_auto_balanced_team(id)
 	PlayerStats.register_player(id, "Player " + str(id), team)
 	
 	var player = player_scene.instantiate()
 	player.name = str(id)
+	player.team = team
 	
 	if team == Team.TeamId.POLICE:
 		player.global_position = spawn_police.global_position

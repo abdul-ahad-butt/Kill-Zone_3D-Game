@@ -31,7 +31,7 @@ theme_override_font_sizes/font_size = 48
 text = "Kill-Zone 3D"
 horizontal_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="ModeSelect" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -46,20 +46,75 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 16
 
-[node name="HostButton" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 50)
+[node name="SoloButton" type="Button" parent="ModeSelect"]
+custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "HOST GAME"
+text = "Play Solo (Practice)"
 
-[node name="IPInput" type="LineEdit" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 40)
+[node name="MultiplayerButton" type="Button" parent="ModeSelect"]
+custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
-placeholder_text = "Enter IP to join..."
+theme_override_font_sizes/font_size = 24
+text = "Multiplayer"
+
+[node name="NetworkLabel" type="Label" parent="ModeSelect"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "Networking not built yet — coming next"
+horizontal_alignment = 1
+
+[node name="FactionSelect" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -60.0
+offset_right = 200.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="FactionSelect"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Select Faction"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="FactionSelect"]
+layout_mode = 2
+theme_override_constants/separation = 20
 alignment = 1
 
-[node name="JoinButton" type="Button" parent="VBoxContainer"]
+[node name="PoliceButton" type="Button" parent="FactionSelect/HBoxContainer"]
+custom_minimum_size = Vector2(180, 80)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.5, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Join Police"
+
+[node name="TerroristButton" type="Button" parent="FactionSelect/HBoxContainer"]
+custom_minimum_size = Vector2(180, 80)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 24
+text = "Join Terrorist"
+
+[node name="StartButton" type="Button" parent="FactionSelect"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Start Game"
+
+[node name="BackButton" type="Button" parent="FactionSelect"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "JOIN GAME"
+theme_override_font_sizes/font_size = 20
+text = "Back"

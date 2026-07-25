@@ -40,7 +40,10 @@ func _ready():
 		if camera: camera.current = false
 		return
 		
-	if camera: camera.current = true
+	if camera: 
+		camera.current = true
+		print("Player spawned, camera active")
+		
 	if not OS.has_feature("mobile") and not OS.has_feature("web"):
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		
@@ -170,12 +173,15 @@ func fire_weapon():
 		var target = raycast.get_collider()
 		# We could show impact particles here
 	
-	rpc_id(1, "request_fire", camera.global_transform.origin, -camera.global_transform.basis.z * current_weapon.range)
+	if MatchManager.is_offline_solo:
+		request_fire(camera.global_transform.origin, -camera.global_transform.basis.z * current_weapon.range)
+	else:
+		rpc_id(1, "request_fire", camera.global_transform.origin, -camera.global_transform.basis.z * current_weapon.range)
 
 @rpc("any_peer", "call_local", "reliable")
 func request_fire(origin: Vector3, direction: Vector3):
-	if not multiplayer.is_server(): return
-	if multiplayer.get_remote_sender_id() != get_multiplayer_authority(): return
+	if not MatchManager.is_offline_solo and not multiplayer.is_server(): return
+	if not MatchManager.is_offline_solo and multiplayer.get_remote_sender_id() != get_multiplayer_authority(): return
 	
 	var space_state = get_world_3d().direct_space_state
 	var query = PhysicsRayQueryParameters3D.create(origin, origin + direction)
