@@ -2,24 +2,32 @@
 
 [ext_resource type="PackedScene" path="res://bomb_site.tscn" id="1_bsite"]
 [ext_resource type="Script" path="res://scripts/match/bomb_site.gd" id="2_noarx"]
+[ext_resource type="Material" path="res://resources/materials/concrete.tres" id="3_conc"]
+[ext_resource type="Material" path="res://resources/materials/brick.tres" id="4_brick"]
+[ext_resource type="Material" path="res://resources/materials/dirt.tres" id="5_dirt"]
+[ext_resource type="Material" path="res://resources/materials/metal.tres" id="6_metal"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
+sky_top_color = Color(0.38, 0.45, 0.55, 1)
+sky_horizon_color = Color(0.64, 0.65, 0.67, 1)
+ground_bottom_color = Color(0.2, 0.16, 0.13, 1)
+ground_horizon_color = Color(0.64, 0.65, 0.67, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("ProceduralSkyMaterial_1")
 
 [sub_resource type="Environment" id="Environment_sky"]
-background_mode = 1
-background_color = Color(0.4, 0.6, 0.8, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.3, 0.3, 0.3, 1)
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 3
+ambient_light_color = Color(0.5, 0.5, 0.5, 1)
+tonemap_mode = 2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(100, 1, 100)
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(100, 1, 100)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.2, 0.6, 0.2, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
-albedo_color = Color(0.5, 0.5, 0.5, 1)
 
 [node name="Node3D" type="Node3D" unique_id=1504528723]
 
@@ -37,7 +45,7 @@ shape = SubResource("BoxShape3D_floor")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=2115973019]
 mesh = SubResource("BoxMesh_floor")
-surface_material_override/0 = SubResource("StandardMaterial3D_floor")
+surface_material_override/0 = ExtResource("5_dirt")
 
 [node name="MapGeometry" type="CSGCombiner3D" parent="." unique_id=76959689]
 use_collision = true
@@ -45,50 +53,50 @@ use_collision = true
 [node name="BuildingA" type="CSGBox3D" parent="MapGeometry" unique_id=152400145]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2.5, -20)
 size = Vector3(15, 5, 15)
-material = SubResource("StandardMaterial3D_wall")
+material = ExtResource("4_brick")
 
 [node name="BuildingA_Inside" type="CSGBox3D" parent="MapGeometry/BuildingA" unique_id=452372435]
 operation = 2
 size = Vector3(13, 5, 13)
-material = SubResource("StandardMaterial3D_wall")
+material = ExtResource("3_conc")
 
 [node name="BuildingA_Door1" type="CSGBox3D" parent="MapGeometry/BuildingA" unique_id=698325471]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 7.5)
 operation = 2
 size = Vector3(3, 3, 2)
-material = SubResource("StandardMaterial3D_wall")
+material = ExtResource("3_conc")
 
 [node name="BuildingA_Door2" type="CSGBox3D" parent="MapGeometry/BuildingA" unique_id=809497795]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, -1.5, 0)
 operation = 2
 size = Vector3(2, 3, 3)
-material = SubResource("StandardMaterial3D_wall")
+material = ExtResource("3_conc")
 
 [node name="BuildingB" type="CSGBox3D" parent="MapGeometry" unique_id=1969841868]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 2.5, -20)
 size = Vector3(20, 5, 15)
-material = SubResource("StandardMaterial3D_wall")
+material = ExtResource("4_brick")
 
 [node name="BuildingB_Inside" type="CSGBox3D" parent="MapGeometry/BuildingB" unique_id=44639474]
 operation = 2
 size = Vector3(18, 5, 13)
-material = SubResource("StandardMaterial3D_wall")
+material = ExtResource("3_conc")
 
 [node name="BuildingB_Door1" type="CSGBox3D" parent="MapGeometry/BuildingB" unique_id=1250954055]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1.5, 0)
 operation = 2
 size = Vector3(2, 3, 3)
-material = SubResource("StandardMaterial3D_wall")
+material = ExtResource("3_conc")
 
 [node name="CenterWall1" type="CSGBox3D" parent="MapGeometry" unique_id=62959488]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 size = Vector3(20, 4, 2)
-material = SubResource("StandardMaterial3D_wall")
+material = ExtResource("3_conc")
 
 [node name="CenterWall2" type="CSGBox3D" parent="MapGeometry" unique_id=1647228585]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -10)
 size = Vector3(2, 4, 15)
-material = SubResource("StandardMaterial3D_wall")
+material = ExtResource("3_conc")
 
 [node name="BombSiteA" type="Area3D" parent="." unique_id=1399124466 instance=ExtResource("1_bsite")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.5, -20)
@@ -122,18 +130,22 @@ spawn_path = NodePath("../Players")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 2.1, -18)
 use_collision = true
 size = Vector3(2, 1.2, 1)
+material = ExtResource("6_metal")
 
 [node name="CoverA2" type="CSGBox3D" parent="." unique_id=105015276]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 2.1, -24)
 use_collision = true
 size = Vector3(2, 1.2, 1)
+material = ExtResource("6_metal")
 
 [node name="CoverB1" type="CSGBox3D" parent="." unique_id=1614234645]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 2.1, -15)
 use_collision = true
 size = Vector3(4, 1.2, 1)
+material = ExtResource("6_metal")
 
 [node name="CoverB2" type="CSGBox3D" parent="." unique_id=774049542]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2.1, -20)
 use_collision = true
 size = Vector3(1, 1.2, 4)
+material = ExtResource("6_metal")
