@@ -8,13 +8,6 @@
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<title>Kill-Zone 3D Game</title>
 
-	<!--
-	  COI SERVICE WORKER — must be the very first script.
-	  Injects COOP + COEP headers so window.crossOriginIsolated = true,
-	  which is required by Godot 4 / Emscripten on GitHub Pages.
-	  First visit: SW installs → page auto-reloads with headers active.
-	  All later visits: SW already active, game loads normally.
-	-->
 	<script>
 	(function () {
 		if (!window.crossOriginIsolated && 'serviceWorker' in navigator) {
@@ -163,7 +156,7 @@ const GODOT_CONFIG = {
 	ensureCrossOriginIsolationHeaders: false,
 	executable: "index",
 	experimentalVK: false,
-	fileSizes: { "index.pck": 110828, "index.wasm": 37900721 },
+	fileSizes: { "index.pck": 112780, "index.wasm": 37900721 },
 	focusCanvas: true,
 	gdextensionLibs: [],
 	godotPoolSize: 4
