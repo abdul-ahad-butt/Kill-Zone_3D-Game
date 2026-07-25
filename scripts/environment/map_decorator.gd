@@ -21,8 +21,6 @@ func _generate_grass():
 	mat.albedo_color = Color(0.25, 0.45, 0.15, 1)
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	mat.roughness = 0.8
-	mat.transmission_enabled = true
-	mat.transmission = Color(0.1, 0.3, 0.1)
 	mesh.material = mat
 	multimesh.mesh = mesh
 	
@@ -71,17 +69,37 @@ func _spawn_tactical_cover():
 	_create_sandbag(Vector3(5, 0.5, 20), sandbag_mat)
 
 func _create_crate(pos: Vector3, mat: Material):
-	var box = CSGBox3D.new()
+	var mesh = MeshInstance3D.new()
+	var box = BoxMesh.new()
 	box.size = Vector3(2, 2, 2)
-	box.position = pos
-	box.material_override = mat
-	box.use_collision = true
-	add_child(box)
+	mesh.mesh = box
+	mesh.material_override = mat
+	mesh.position = pos
+	
+	var static_body = StaticBody3D.new()
+	var col = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	shape.size = box.size
+	col.shape = shape
+	static_body.add_child(col)
+	mesh.add_child(static_body)
+	
+	add_child(mesh)
 
 func _create_sandbag(pos: Vector3, mat: Material):
-	var sb = CSGBox3D.new()
-	sb.size = Vector3(4, 1.5, 1)
-	sb.position = pos
-	sb.material_override = mat
-	sb.use_collision = true
-	add_child(sb)
+	var mesh = MeshInstance3D.new()
+	var box = BoxMesh.new()
+	box.size = Vector3(4, 1.5, 1)
+	mesh.mesh = box
+	mesh.material_override = mat
+	mesh.position = pos
+	
+	var static_body = StaticBody3D.new()
+	var col = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	shape.size = box.size
+	col.shape = shape
+	static_body.add_child(col)
+	mesh.add_child(static_body)
+	
+	add_child(mesh)

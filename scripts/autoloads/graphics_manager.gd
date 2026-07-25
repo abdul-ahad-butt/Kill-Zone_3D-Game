@@ -147,5 +147,5 @@ func _load_settings() -> void:
 
 func _detect_default_quality() -> Quality:
 	if OS.has_feature("web") or OS.has_feature("mobile"):
-		return Quality.LOW
-	return Quality.MEDIUM
+		return Quality.HIGH
+	return Quality.HIGH

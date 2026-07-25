@@ -7,11 +7,36 @@ var player_scene = preload("res://scenes/player/player.tscn")
 var bot_scene = preload("res://scenes/player/bot.tscn")
 
 func _ready():
+	_apply_hq_materials()
 	NetworkManager.player_connected.connect(_on_player_connected)
 	
 	if NetworkManager.is_offline:
 		# If it's an offline game, just spawn the local player immediately
 		_spawn_local_offline()
+
+func _apply_hq_materials():
+	# Load new materials and force triplanar mapping so they don't stretch
+	var grass = load("res://Assets/textures/mat_grass.tres")
+	if grass: grass.uv1_triplanar = true
+	var concrete = load("res://Assets/textures/mat_concrete.tres")
+	if concrete: concrete.uv1_triplanar = true
+	var brick = load("res://Assets/textures/mat_brick.tres")
+	if brick: brick.uv1_triplanar = true
+	var metal = load("res://Assets/textures/mat_metal.tres")
+	if metal: metal.uv1_triplanar = true
+	
+	# Apply to world geometry
+	var geometry = get_node_or_null("NavigationRegion3D/MapGeometry")
+	if geometry:
+		geometry.material_override = concrete
+		var ground = geometry.get_node_or_null("Ground")
+		if ground: ground.material = grass
+		var bA = geometry.get_node_or_null("BuildingA")
+		if bA: bA.material = brick
+		var bB = geometry.get_node_or_null("BuildingB")
+		if bB: bB.material = brick
+		var center = geometry.get_node_or_null("CenterStructure")
+		if center: center.material = metal
 
 func _on_player_connected(id: int):
 	# If we are hosting a real server, we'd spawn the player here.
