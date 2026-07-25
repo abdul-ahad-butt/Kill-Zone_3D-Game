@@ -18,31 +18,30 @@ func _generate_grass():
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	multimesh.instance_count = grass_count
 	
-	# Generate procedural grass blade texture
-	var img = Image.create(16, 64, false, Image.FORMAT_RGBA8)
-	for y in range(64):
-		for x in range(16):
-			var width_at_y = lerp(8.0, 0.0, float(y) / 64.0)
-			var center_dist = abs(x - 8)
-			if center_dist <= width_at_y:
-				# Add some color variation from base to tip
-				var c = lerp(Color(0.15, 0.35, 0.1), Color(0.3, 0.6, 0.15), float(y) / 64.0)
-				img.set_pixel(x, 63 - y, c)
-			else:
-				img.set_pixel(x, 63 - y, Color(0, 0, 0, 0))
-	var tex = ImageTexture.create_from_image(img)
+	# Create crossed triangles for grass (better performance and 100% WebGL compatible without alpha issues)
+	var vertices = PackedVector3Array()
+	# Triangle 1 (X-axis)
+	vertices.push_back(Vector3(-0.15, 0, 0))
+	vertices.push_back(Vector3(0.15, 0, 0))
+	vertices.push_back(Vector3(0, 0.8, 0))
 	
-	var mesh = QuadMesh.new()
-	mesh.size = Vector2(0.3, 0.8)
-	mesh.center_offset = Vector3(0, 0.4, 0)
+	# Triangle 2 (Z-axis)
+	vertices.push_back(Vector3(0, 0, -0.15))
+	vertices.push_back(Vector3(0, 0, 0.15))
+	vertices.push_back(Vector3(0, 0.8, 0))
+	
+	var arrays = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	
+	var mesh = ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	
 	var mat = StandardMaterial3D.new()
-	mat.albedo_texture = tex
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-	mat.alpha_scissor_threshold = 0.5
+	mat.albedo_color = Color(0.2, 0.5, 0.15)
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mat.roughness = 0.8
-	mesh.material = mat
+	mat.roughness = 0.9
+	mesh.surface_set_material(0, mat)
 	multimesh.mesh = mesh
 	
 	for i in range(grass_count):

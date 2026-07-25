@@ -38,7 +38,9 @@ func _apply_hq_materials():
 	# Apply to world geometry
 	var geometry = get_node_or_null("NavigationRegion3D/MapGeometry")
 	if geometry:
-		geometry.material_override = concrete
+		# Remove the global override so individual CSG objects can use their own materials
+		geometry.material_override = null
+		
 		var ground = geometry.get_node_or_null("Ground")
 		if ground: ground.material = grass
 		var bA = geometry.get_node_or_null("BuildingA")
