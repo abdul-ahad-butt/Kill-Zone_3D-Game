@@ -23,6 +23,9 @@ var bot_wants_reload: bool = false
 var can_fire: bool = true
 var is_reloading: bool = false
 var has_bomb: bool = false
+var is_crouching: bool = false
+var grenade_cooldown: bool = false
+var grenade_script = preload("res://scripts/weapons/grenade.gd")
 
 @onready var camera = $Camera3D
 @onready var raycast = $Camera3D/RayCast3D
@@ -49,7 +52,9 @@ var touch_instance: CanvasLayer
 const BOB_FREQ = 2.0
 const BOB_AMP = 0.08
 var t_bob = 0.0
-const CAMERA_BASE_Y = 0.6
+var CAMERA_BASE_Y = 0.6
+@onready var collision_shape = $CollisionShape3D
+@onready var mesh_instance = $MeshInstance3D
 
 func _enter_tree():
 	add_to_group("Players")
@@ -72,6 +77,11 @@ func _ready():
 	if camera: 
 		camera.current = true
 		print("Player spawned, camera active")
+		
+	if collision_shape and collision_shape.shape:
+		collision_shape.shape = collision_shape.shape.duplicate()
+	if mesh_instance and mesh_instance.mesh:
+		mesh_instance.mesh = mesh_instance.mesh.duplicate()
 		
 	if not OS.has_feature("mobile") and not OS.has_feature("web"):
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -125,16 +135,30 @@ func _physics_process(delta):
 	var input_dir = Vector2.ZERO
 	if not is_bot:
 		input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+		is_crouching = Input.is_key_pressed(KEY_C) or Input.is_key_pressed(KEY_CTRL)
 	else:
 		input_dir = bot_input_dir
+		is_crouching = false
+		
+	var target_height = 1.0 if is_crouching else 2.0
+	var target_cam_y = 0.2 if is_crouching else 0.6
+	
+	if collision_shape and collision_shape.shape is CapsuleShape3D:
+		collision_shape.shape.height = lerp(collision_shape.shape.height, target_height, delta * 10.0)
+	if mesh_instance and mesh_instance.mesh is CapsuleMesh:
+		mesh_instance.mesh.height = lerp(mesh_instance.mesh.height, target_height, delta * 10.0)
+	
+	CAMERA_BASE_Y = lerp(CAMERA_BASE_Y, target_cam_y, delta * 10.0)
+	
+	var current_speed = SPEED * (0.5 if is_crouching else 1.0)
 		
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
+		velocity.x = direction.x * current_speed
+		velocity.z = direction.z * current_speed
 	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-		velocity.z = move_toward(velocity.z, 0, SPEED)
+		velocity.x = move_toward(velocity.x, 0, current_speed)
+		velocity.z = move_toward(velocity.z, 0, current_speed)
 
 	move_and_slide()
 	
@@ -170,7 +194,7 @@ func _physics_process(delta):
 				bomb_progress = current_plant_time / 3.5
 				is_interacting = true
 				if current_plant_time >= 3.5:
-					MatchManager.plant_bomb()
+					MatchManager.plant_bomb(active_site.global_position)
 					has_bomb = false
 					is_planting = false
 					print("Bomb Planted at Site ", active_site.site_name)
@@ -211,7 +235,32 @@ func _physics_process(delta):
 		elif Input.is_action_just_pressed("switch_weapon_2") and secondary_weapon:
 			equip_weapon(secondary_weapon)
 		
+		if Input.is_key_pressed(KEY_G) and not grenade_cooldown:
+			grenade_cooldown = true
+			_throw_grenade()
+			get_tree().create_timer(2.0).timeout.connect(func(): grenade_cooldown = false)
+		
 	_update_hud(is_interacting, bomb_progress)
+
+func _throw_grenade():
+	if MatchManager.is_offline_solo:
+		request_throw_grenade(camera.global_transform.origin, -camera.global_transform.basis.z, velocity)
+	else:
+		rpc_id(1, "request_throw_grenade", camera.global_transform.origin, -camera.global_transform.basis.z, velocity)
+
+@rpc("any_peer", "call_local", "reliable")
+func request_throw_grenade(origin: Vector3, direction: Vector3, thrower_vel: Vector3):
+	if not MatchManager.is_offline_solo and not multiplayer.is_server(): return
+	
+	var thrower_id = get_multiplayer_authority() if MatchManager.is_offline_solo else multiplayer.get_remote_sender_id()
+	
+	var grenade = grenade_script.new()
+	grenade.thrower_id = thrower_id
+	grenade.thrower_team = team
+	grenade.position = origin + direction * 1.5
+	grenade.linear_velocity = thrower_vel + direction * 15.0
+	
+	get_tree().root.add_child(grenade, true)
 
 func equip_weapon(weapon: WeaponData):
 	current_weapon = weapon
@@ -251,9 +300,10 @@ func fire_weapon():
 	
 	var base_dir = -camera.global_transform.basis.z * current_weapon.range
 	var directions = []
+	var spread_mult = 0.5 if is_crouching else 1.0
 	for i in range(current_weapon.pellet_count):
-		var spread_x = randf_range(-current_weapon.spread, current_weapon.spread)
-		var spread_y = randf_range(-current_weapon.spread, current_weapon.spread)
+		var spread_x = randf_range(-current_weapon.spread * spread_mult, current_weapon.spread * spread_mult)
+		var spread_y = randf_range(-current_weapon.spread * spread_mult, current_weapon.spread * spread_mult)
 		var spread_dir = (base_dir + camera.global_transform.basis.x * spread_x * current_weapon.range + camera.global_transform.basis.y * spread_y * current_weapon.range)
 		directions.append(spread_dir)
 	

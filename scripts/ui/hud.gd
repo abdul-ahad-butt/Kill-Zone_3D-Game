@@ -23,10 +23,12 @@ func _ready() -> void:
 	MatchManager.score_updated.connect(_on_score_updated)
 	MatchManager.round_state_changed.connect(_on_state_changed)
 	MatchManager.round_ended.connect(_on_round_ended)
+	MatchManager.bomb_planted.connect(_on_bomb_planted)
 	
 	_setup_scoreboard()
 	_setup_killfeed()
 	_setup_hitmarker()
+	_setup_bomb_alert()
 	
 	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
 	var active_sites = "A, B" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "A, B, C, D"
@@ -254,3 +256,37 @@ func show_hitmarker():
 	_hitmarker_tween.set_parallel(true)
 	_hitmarker_tween.tween_property(hitmarker_texture, "scale", Vector2.ONE, 0.1)
 	_hitmarker_tween.chain().tween_property(hitmarker_texture, "modulate:a", 0.0, 0.2)
+
+# --- BOMB ALERT ---
+var bomb_alert_label: Label
+var _bomb_alert_tween: Tween
+
+func _setup_bomb_alert():
+	bomb_alert_label = Label.new()
+	bomb_alert_label.text = "BOMB PLANTED!"
+	bomb_alert_label.add_theme_font_size_override("font_size", 48)
+	bomb_alert_label.add_theme_color_override("font_color", Color.RED)
+	bomb_alert_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	bomb_alert_label.add_theme_constant_override("outline_size", 4)
+	bomb_alert_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bomb_alert_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
+	bomb_alert_label.set_anchors_preset(Control.PRESET_CENTER)
+	bomb_alert_label.position = Vector2(-200, -100) # Offset to center-topish
+	
+	add_child(bomb_alert_label)
+	bomb_alert_label.hide()
+
+func _on_bomb_planted():
+	bomb_alert_label.show()
+	bomb_alert_label.modulate.a = 1.0
+	if _bomb_alert_tween and _bomb_alert_tween.is_running():
+		_bomb_alert_tween.kill()
+		
+	_bomb_alert_tween = create_tween().set_loops(6)
+	_bomb_alert_tween.tween_property(bomb_alert_label, "modulate:a", 0.2, 0.25)
+	_bomb_alert_tween.tween_property(bomb_alert_label, "modulate:a", 1.0, 0.25)
+	
+	var hide_tween = create_tween()
+	hide_tween.tween_interval(3.0)
+	hide_tween.tween_callback(bomb_alert_label.hide)

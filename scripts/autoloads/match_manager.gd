@@ -159,6 +159,9 @@ func _change_state(new_state: MatchState) -> void:
 	if current_state == MatchState.ROUND_START:
 		_timer = freeze_time
 		is_bomb_planted = false
+		if active_bomb_model and is_instance_valid(active_bomb_model):
+			if active_bomb_model.get_parent():
+				active_bomb_model.get_parent().remove_child(active_bomb_model)
 		
 	elif current_state == MatchState.LIVE:
 		_timer = round_time
@@ -199,27 +202,52 @@ func sync_match_ended(winner: int):
 	emit_signal("match_ended", winner)
 	get_tree().change_scene_to_file("res://main_menu.tscn")
 	
-func plant_bomb() -> void:
+var active_bomb_model: MeshInstance3D
+
+func plant_bomb(site_pos: Vector3 = Vector3.ZERO) -> void:
 	if not is_offline_solo and not multiplayer.is_server(): return
 	if current_state != MatchState.LIVE or is_bomb_planted: return
 	
 	is_bomb_planted = true
 	_timer = bomb_time
-	rpc("sync_bomb_event", true)
+	rpc("sync_bomb_event", true, site_pos)
 
 func defuse_bomb() -> void:
 	if not multiplayer.is_server(): return
 	if current_state != MatchState.LIVE or not is_bomb_planted: return
 	
-	rpc("sync_bomb_event", false)
+	rpc("sync_bomb_event", false, Vector3.ZERO)
 	end_round(Team.TeamId.POLICE, "Bomb Defused")
 
 @rpc("authority", "call_local", "reliable")
-func sync_bomb_event(is_plant: bool):
+func sync_bomb_event(is_plant: bool, site_pos: Vector3):
 	if is_plant:
 		emit_signal("bomb_planted")
+		
+		# Spawn physical bomb
+		if not active_bomb_model:
+			active_bomb_model = MeshInstance3D.new()
+			var mesh = BoxMesh.new()
+			mesh.size = Vector3(0.4, 0.2, 0.3)
+			var mat = StandardMaterial3D.new()
+			mat.albedo_color = Color.RED
+			mat.emission_enabled = true
+			mat.emission = Color.RED
+			mat.emission_energy_multiplier = 2.0
+			mesh.surface_set_material(0, mat)
+			active_bomb_model.mesh = mesh
+			
+			# Blinking tween
+			var t = active_bomb_model.create_tween().set_loops()
+			t.tween_property(mat, "emission_energy_multiplier", 0.0, 0.5)
+			t.tween_property(mat, "emission_energy_multiplier", 2.0, 0.5)
+			
+		get_tree().root.add_child(active_bomb_model)
+		active_bomb_model.global_position = site_pos
 	else:
 		emit_signal("bomb_defused")
+		if active_bomb_model and is_instance_valid(active_bomb_model):
+			active_bomb_model.get_parent().remove_child(active_bomb_model)
 
 func end_round(winner: Team.TeamId, reason: String) -> void:
 	if not multiplayer.is_server() or current_state != MatchState.LIVE: return

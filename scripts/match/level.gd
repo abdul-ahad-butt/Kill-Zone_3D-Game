@@ -86,6 +86,7 @@ func _spawn_solo_player(p_name: String, team: Team.TeamId, is_bot: bool):
 		player.global_position = _get_random_spawn(spawn_police.global_position)
 	else:
 		player.global_position = _get_random_spawn(spawn_terrorist.global_position)
+		player.has_bomb = true
 	
 	player.on_death.connect(_on_player_died)
 	
@@ -121,6 +122,7 @@ func _spawn_specific_player(id: int, team: Team.TeamId, weapon_path: String):
 		player.global_position = _get_random_spawn(spawn_police.global_position)
 	else:
 		player.global_position = _get_random_spawn(spawn_terrorist.global_position)
+		player.has_bomb = true
 
 func _on_player_died(id: int, team: Team.TeamId, weapon_path: String):
 	if MatchManager.is_offline_solo or multiplayer.is_server():
