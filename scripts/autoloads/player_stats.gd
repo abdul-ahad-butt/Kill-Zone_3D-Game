@@ -17,6 +17,7 @@ func register_player(peer_id: int, player_name: String, team: Team.TeamId, weapo
 			"name": player_name,
 			"team": team,
 			"weapon_path": weapon_path,
+			"money": 800,
 			"kills": 0,
 			"deaths": 0
 		}
@@ -37,6 +38,7 @@ func add_kill(killer_id: int):
 	if not multiplayer.is_server(): return
 	if stats.has(killer_id):
 		stats[killer_id]["kills"] += 1
+		add_money(killer_id, 300)
 		sync_all_stats()
 
 func add_death(victim_id: int):
@@ -44,6 +46,22 @@ func add_death(victim_id: int):
 	if stats.has(victim_id):
 		stats[victim_id]["deaths"] += 1
 		sync_all_stats()
+
+func add_money(peer_id: int, amount: int):
+	if not multiplayer.is_server(): return
+	if stats.has(peer_id):
+		stats[peer_id]["money"] = clampi(stats[peer_id]["money"] + amount, 0, 16000)
+		sync_all_stats()
+
+func request_buy(peer_id: int, cost: int, weapon_path: String) -> bool:
+	if not multiplayer.is_server(): return false
+	if stats.has(peer_id):
+		if stats[peer_id]["money"] >= cost:
+			stats[peer_id]["money"] -= cost
+			stats[peer_id]["weapon_path"] = weapon_path
+			sync_all_stats()
+			return true
+	return false
 
 func record_kill_event(killer_id: int, victim_id: int, weapon_name: String):
 	if not multiplayer.is_server(): return

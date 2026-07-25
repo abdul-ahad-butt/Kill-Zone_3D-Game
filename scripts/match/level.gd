@@ -141,9 +141,19 @@ func _respawn_all_players():
 	if MatchManager.is_offline_solo:
 		_setup_offline_match()
 	else:
+		# Auto-buy for bots
+		if multiplayer.is_server():
+			for id in PlayerStats.stats.keys():
+				if id != 1: # Bot (assuming Host is 1)
+					var m = PlayerStats.stats[id].get("money", 800)
+					if m >= 2700:
+						PlayerStats.request_buy(id, 2700, "res://resources/weapon_data/Rifle.tres")
+					elif m >= 1500:
+						PlayerStats.request_buy(id, 1500, "res://resources/weapon_data/SMG.tres")
+						
 		for id in PlayerStats.stats.keys():
 			var team = PlayerStats.stats[id]["team"]
-			var wp = PlayerStats.stats[id].get("weapon_path", "res://resources/weapon_data/Rifle.tres")
+			var wp = PlayerStats.stats[id].get("weapon_path", "res://resources/weapon_data/Pistol.tres")
 			_spawn_specific_player(id, team, wp)
 
 func _on_player_died(id: int, team: Team.TeamId, weapon_path: String):

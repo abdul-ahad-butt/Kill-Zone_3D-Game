@@ -31,6 +31,7 @@ func _ready() -> void:
 	_setup_bomb_alert()
 	_setup_radar()
 	_setup_crosshair()
+	_setup_buy_menu()
 	
 	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
 	var active_sites = "A, B" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "A, B, C, D"
@@ -188,7 +189,7 @@ func _update_scoreboard():
 		lbl.add_theme_color_override("font_color", color)
 		scoreboard_list.add_child(lbl)
 
-func _process(delta):
+func _process(_delta):
 	if scoreboard_panel:
 		if Input.is_key_pressed(KEY_TAB):
 			if not scoreboard_panel.visible:
@@ -196,6 +197,15 @@ func _process(delta):
 				scoreboard_panel.show()
 		else:
 			scoreboard_panel.hide()
+			
+	_process_radar()
+	_process_crosshair()
+	_process_money()
+
+func _input(event):
+	if event.is_action_pressed("buy_menu") or (event is InputEventKey and event.keycode == KEY_B and event.pressed and not event.echo):
+		if MatchManager.current_state == MatchManager.MatchState.ROUND_START and MatchManager.match_size == MatchManager.MatchSize.FIVE_V_FIVE:
+			_toggle_buy_menu()
 
 func _setup_killfeed():
 	killfeed_box = VBoxContainer.new()
@@ -323,11 +333,12 @@ func _setup_radar():
 	await get_tree().process_frame
 	radar_viewport.world_3d = get_viewport().world_3d
 
-func _process(_delta):
+func _process_radar():
 	if is_instance_valid(radar_camera) and is_instance_valid(local_player):
 		radar_camera.global_position.x = local_player.global_position.x
 		radar_camera.global_position.z = local_player.global_position.z
 		
+func _process_crosshair():
 	if is_instance_valid(local_player) and local_player.current_weapon:
 		var spread = local_player.current_weapon.spread
 		var spread_mult = 0.5 if local_player.is_crouching else 1.0
@@ -345,6 +356,98 @@ func _process(_delta):
 		# Right
 		crosshair_lines[3].size = Vector2(12, 2)
 		crosshair_lines[3].position = Vector2(current_spread_px, -1)
+
+# --- BUY MENU & MONEY ---
+var buy_menu_panel: PanelContainer
+var money_label: Label
+
+func _setup_buy_menu():
+	# Money Label (Bottom Left)
+	money_label = Label.new()
+	money_label.text = "$800"
+	money_label.add_theme_font_size_override("font_size", 32)
+	money_label.add_theme_color_override("font_color", Color(0.2, 0.8, 0.2)) # Green
+	money_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	money_label.position = Vector2(20, -60)
+	add_child(money_label)
+	
+	# Buy Menu UI
+	buy_menu_panel = PanelContainer.new()
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.9)
+	style.set_corner_radius_all(8)
+	buy_menu_panel.add_theme_stylebox_override("panel", style)
+	buy_menu_panel.set_anchors_preset(Control.PRESET_CENTER)
+	buy_menu_panel.custom_minimum_size = Vector2(400, 300)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	buy_menu_panel.add_child(vbox)
+	
+	var header = Label.new()
+	header.text = "BUY MENU"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.add_theme_font_size_override("font_size", 24)
+	vbox.add_child(header)
+	
+	var weapons = [
+		{"name": "SMG", "cost": 1500, "path": "res://resources/weapon_data/SMG.tres"},
+		{"name": "Shotgun", "cost": 1200, "path": "res://resources/weapon_data/Shotgun.tres"},
+		{"name": "Assault Rifle", "cost": 2700, "path": "res://resources/weapon_data/Rifle.tres"},
+		{"name": "Sniper Rifle", "cost": 4750, "path": "res://resources/weapon_data/Sniper.tres"}
+	]
+	
+	for w in weapons:
+		var btn = Button.new()
+		btn.text = "%s - $%d" % [w.name, w.cost]
+		btn.add_theme_font_size_override("font_size", 20)
+		btn.pressed.connect(func(): _on_buy_requested(w.cost, w.path))
+		vbox.add_child(btn)
+		
+	var close_btn = Button.new()
+	close_btn.text = "Close"
+	close_btn.pressed.connect(_toggle_buy_menu)
+	vbox.add_child(close_btn)
+	
+	add_child(buy_menu_panel)
+	buy_menu_panel.hide()
+
+func _toggle_buy_menu():
+	if buy_menu_panel.visible:
+		buy_menu_panel.hide()
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	else:
+		buy_menu_panel.show()
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _on_buy_requested(cost: int, path: String):
+	if not multiplayer.is_server() and not MatchManager.is_offline_solo:
+		rpc_id(1, "request_buy_server", multiplayer.get_unique_id(), cost, path)
+	else:
+		_process_buy(multiplayer.get_unique_id(), cost, path)
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_buy_server(peer_id: int, cost: int, path: String):
+	if multiplayer.is_server():
+		_process_buy(peer_id, cost, path)
+
+func _process_buy(peer_id: int, cost: int, path: String):
+	if PlayerStats.request_buy(peer_id, cost, path):
+		print("Player ", peer_id, " bought ", path)
+		# Update player weapon immediately if they exist
+		if get_tree().root.has_node("Level/PlayersContainer/" + str(peer_id)):
+			var p = get_tree().root.get_node("Level/PlayersContainer/" + str(peer_id))
+			if ResourceLoader.exists(path):
+				p.primary_weapon = load(path)
+				p.equip_weapon(p.primary_weapon)
+
+func _process_money():
+	if not multiplayer.has_multiplayer_peer(): return
+	var id = multiplayer.get_unique_id()
+	if PlayerStats.stats.has(id):
+		var m = PlayerStats.stats[id].get("money", 800)
+		money_label.text = "$%d" % m
+
 
 # --- CROSSHAIR ---
 var crosshair_lines: Array[ColorRect] = []

@@ -254,13 +254,24 @@ func end_round(winner: Team.TeamId, reason: String) -> void:
 		
 	if winner == Team.TeamId.POLICE:
 		score_police += 1
+		_award_money(police_players, 3250)
+		_award_money(terrorist_players, 1400)
 	elif winner == Team.TeamId.TERRORIST:
 		score_terrorist += 1
+		_award_money(terrorist_players, 3250)
+		_award_money(police_players, 1400)
+	else:
+		_award_money(police_players, 1400)
+		_award_money(terrorist_players, 1400)
 		
 	rpc("sync_round_ended", winner, reason)
 	
 	_timer = round_end_delay
 	_change_state(MatchState.ROUND_END)
+
+func _award_money(players: Array, amount: int):
+	for id in players:
+		PlayerStats.add_money(id, amount)
 
 func check_elimination(alive_police: int, alive_terrorists: int) -> void:
 	if not multiplayer.is_server() or current_state != MatchState.LIVE: return

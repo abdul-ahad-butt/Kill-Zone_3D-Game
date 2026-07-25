@@ -5,8 +5,10 @@
 [resource]
 script = ExtResource("1_a1b2c")
 weapon_name = "Pistol"
-damage = 25
+damage = 18
 fire_rate = 0.2
 mag_size = 12
-reload_time = 1.0
-range = 50.0
+reload_time = 1.5
+range = 75.0
+spread = 0.03
+pellet_count = 1
