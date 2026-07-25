@@ -20,6 +20,7 @@ var reserve_ammo: int = 90
 var can_fire: bool = true
 var is_reloading: bool = false
 var has_bomb: bool = false
+var is_crouching: bool = false
 
 @onready var camera = $Camera3D
 @onready var raycast = $Camera3D/RayCast3D
@@ -155,22 +156,27 @@ func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
-	if Input.is_action_just_pressed("jump") and is_on_floor():
+	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
 		velocity.y = JUMP_VELOCITY
+		
+	is_crouching = Input.is_action_pressed("crouch")
+	
+	var current_speed = SPEED * 0.5 if is_crouching else SPEED
+	camera.position.y = lerp(camera.position.y, 1.0 if is_crouching else 1.6, delta * 10.0)
 
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
+		velocity.x = direction.x * current_speed
+		velocity.z = direction.z * current_speed
 		if is_on_floor() and footstep_audio and not footstep_audio.playing:
 			var am = get_node_or_null("/root/AudioManager")
 			if am:
 				footstep_audio.stream = am.footstep_sound
 				footstep_audio.play()
 	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-		velocity.z = move_toward(velocity.z, 0, SPEED)
+		velocity.x = move_toward(velocity.x, 0, current_speed)
+		velocity.z = move_toward(velocity.z, 0, current_speed)
 
 	move_and_slide()
 
