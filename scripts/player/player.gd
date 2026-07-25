@@ -273,9 +273,13 @@ func _play_footstep():
 					current_defuse_time = 0.0
 					print("Started defusing at Site ", active_site.site_name)
 				current_defuse_time += delta
-				bomb_progress = current_defuse_time / 5.0
+				
+				var p_id = name.to_int()
+				var defuse_duration = 2.5 if PlayerStats.stats.has(p_id) and PlayerStats.stats[p_id].get("has_defuse_kit", false) else 5.0
+				
+				bomb_progress = current_defuse_time / defuse_duration
 				is_interacting = true
-				if current_defuse_time >= 5.0:
+				if current_defuse_time >= defuse_duration:
 					MatchManager.defuse_bomb()
 					is_defusing = false
 					print("Bomb Defused at Site ", active_site.site_name)
@@ -522,7 +526,12 @@ func take_damage(amount: int, attacker_team: Team.TeamId, attacker_id: int = 1) 
 	if not multiplayer.is_server(): return false
 	if attacker_team == team: return false
 		
-	health -= amount
+	var actual_damage = amount
+	var p_id = name.to_int()
+	if PlayerStats.stats.has(p_id) and PlayerStats.stats[p_id].get("has_armor", false):
+		actual_damage = amount / 2
+		
+	health -= actual_damage
 	rpc("sync_health", health)
 	
 	if health <= 0:
@@ -536,8 +545,15 @@ func sync_health(new_health: int):
 
 func die(attacker_id: int):
 	if not multiplayer.is_server(): return
-	PlayerStats.record_kill_event(attacker_id, name.to_int(), current_weapon.weapon_name if current_weapon else "Unknown")
-	emit_signal("on_death", name.to_int(), team, primary_weapon.resource_path if primary_weapon else "")
+	var p_id = name.to_int()
+	PlayerStats.record_kill_event(attacker_id, p_id, current_weapon.weapon_name if current_weapon else "Unknown")
+	
+	if PlayerStats.stats.has(p_id):
+		PlayerStats.stats[p_id]["has_armor"] = false
+		PlayerStats.stats[p_id]["has_defuse_kit"] = false
+		PlayerStats.sync_all_stats()
+		
+	emit_signal("on_death", p_id, team, primary_weapon.resource_path if primary_weapon else "")
 	rpc("sync_death")
 	
 	if MatchManager.match_size == MatchManager.MatchSize.SOLO:

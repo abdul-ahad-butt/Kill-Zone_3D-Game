@@ -397,11 +397,26 @@ func _setup_buy_menu():
 		{"name": "Sniper Rifle", "cost": 4750, "path": "res://resources/weapon_data/Sniper.tres"}
 	]
 	
+	var utility = [
+		{"name": "Kevlar Armor", "cost": 1000, "path": "item_armor"},
+		{"name": "Defuse Kit (Police Only)", "cost": 400, "path": "item_defuse_kit"}
+	]
+	
 	for w in weapons:
 		var btn = Button.new()
 		btn.text = "%s - $%d" % [w.name, w.cost]
 		btn.add_theme_font_size_override("font_size", 20)
 		btn.pressed.connect(func(): _on_buy_requested(w.cost, w.path))
+		vbox.add_child(btn)
+		
+	var separator = HSeparator.new()
+	vbox.add_child(separator)
+	
+	for u in utility:
+		var btn = Button.new()
+		btn.text = "%s - $%d" % [u.name, u.cost]
+		btn.add_theme_font_size_override("font_size", 16)
+		btn.pressed.connect(func(): _on_buy_requested(u.cost, u.path))
 		vbox.add_child(btn)
 		
 	var close_btn = Button.new()
@@ -434,12 +449,13 @@ func request_buy_server(peer_id: int, cost: int, path: String):
 func _process_buy(peer_id: int, cost: int, path: String):
 	if PlayerStats.request_buy(peer_id, cost, path):
 		print("Player ", peer_id, " bought ", path)
-		# Update player weapon immediately if they exist
-		if get_tree().root.has_node("Level/PlayersContainer/" + str(peer_id)):
-			var p = get_tree().root.get_node("Level/PlayersContainer/" + str(peer_id))
-			if ResourceLoader.exists(path):
-				p.primary_weapon = load(path)
-				p.equip_weapon(p.primary_weapon)
+		# Update player weapon immediately if they exist and it's a weapon
+		if path != "item_armor" and path != "item_defuse_kit":
+			if get_tree().root.has_node("Level/PlayersContainer/" + str(peer_id)):
+				var p = get_tree().root.get_node("Level/PlayersContainer/" + str(peer_id))
+				if ResourceLoader.exists(path):
+					p.primary_weapon = load(path)
+					p.equip_weapon(p.primary_weapon)
 
 func _process_money():
 	if not multiplayer.has_multiplayer_peer(): return

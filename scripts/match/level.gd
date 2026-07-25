@@ -181,6 +181,13 @@ func _respawn_all_players():
 					elif m >= 1500:
 						PlayerStats.request_buy(id, 1500, "res://resources/weapon_data/SMG.tres")
 						
+					m = PlayerStats.stats[id].get("money", 800)
+					if m >= 1000:
+						PlayerStats.request_buy(id, 1000, "item_armor")
+						m = PlayerStats.stats[id].get("money", 800)
+					if PlayerStats.stats[id]["team"] == Team.TeamId.POLICE and m >= 400:
+						PlayerStats.request_buy(id, 400, "item_defuse_kit")
+						
 		for id in PlayerStats.stats.keys():
 			var team = PlayerStats.stats[id]["team"]
 			var wp = PlayerStats.stats[id].get("weapon_path", "res://resources/weapon_data/Pistol.tres")

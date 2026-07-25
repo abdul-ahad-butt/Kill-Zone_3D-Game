@@ -18,6 +18,8 @@ func register_player(peer_id: int, player_name: String, team: Team.TeamId, weapo
 			"team": team,
 			"weapon_path": weapon_path,
 			"money": 800,
+			"has_armor": false,
+			"has_defuse_kit": false,
 			"kills": 0,
 			"deaths": 0
 		}
@@ -53,12 +55,21 @@ func add_money(peer_id: int, amount: int):
 		stats[peer_id]["money"] = clampi(stats[peer_id]["money"] + amount, 0, 16000)
 		sync_all_stats()
 
-func request_buy(peer_id: int, cost: int, weapon_path: String) -> bool:
+func request_buy(peer_id: int, cost: int, item_path: String) -> bool:
 	if not multiplayer.is_server(): return false
 	if stats.has(peer_id):
 		if stats[peer_id]["money"] >= cost:
+			if item_path == "item_armor":
+				if stats[peer_id].get("has_armor", false): return false
+				stats[peer_id]["has_armor"] = true
+			elif item_path == "item_defuse_kit":
+				if stats[peer_id].get("has_defuse_kit", false): return false
+				if stats[peer_id]["team"] != Team.TeamId.POLICE: return false
+				stats[peer_id]["has_defuse_kit"] = true
+			else:
+				stats[peer_id]["weapon_path"] = item_path
+				
 			stats[peer_id]["money"] -= cost
-			stats[peer_id]["weapon_path"] = weapon_path
 			sync_all_stats()
 			return true
 	return false
