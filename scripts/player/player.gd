@@ -90,7 +90,7 @@ func _ready():
 		return
 		
 	if camera: 
-		camera.current = true
+		camera.make_current()
 		print("Player spawned, camera active")
 		
 	if collision_shape and collision_shape.shape:
@@ -104,7 +104,7 @@ func _ready():
 			mat.albedo_color = Color(0.8, 0.2, 0.2) # Terrorist Red
 		mesh_instance.mesh.surface_set_material(0, mat)
 		
-	if not OS.has_feature("mobile") and not OS.has_feature("web"):
+	if not OS.has_feature("mobile"):
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		
 	hud_instance = hud_scene.instantiate()

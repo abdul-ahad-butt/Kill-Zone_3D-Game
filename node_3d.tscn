@@ -7,6 +7,7 @@
 [ext_resource type="Material" path="res://resources/materials/dirt.tres" id="5_dirt"]
 [ext_resource type="Material" path="res://resources/materials/metal.tres" id="6_metal"]
 [ext_resource type="Material" path="res://resources/materials/wood.tres" id="7_wood"]
+[ext_resource type="PackedScene" path="res://integrated_menu.tscn" id="8_imenu"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.38, 0.45, 0.55, 1)
@@ -31,6 +32,12 @@ size = Vector3(100, 1, 100)
 size = Vector3(100, 1, 100)
 
 [node name="Node3D" type="Node3D" unique_id=1504528723]
+
+[node name="OverviewCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 60, 0)
+current = true
+
+[node name="IntegratedMenu" parent="." instance=ExtResource("8_imenu")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1048578893]
 environment = SubResource("Environment_sky")

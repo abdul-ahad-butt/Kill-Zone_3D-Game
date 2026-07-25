@@ -27,7 +27,7 @@ func _ready():
 	_setup_navmesh()
 
 	if MatchManager.is_offline_solo:
-		_setup_offline_match()
+		# Do NOT spawn immediately. Wait for start_game() to be called from IntegratedMenu
 		return
 		
 	if not multiplayer.is_server():
@@ -83,6 +83,24 @@ func _setup_navmesh():
 
 func _get_random_spawn(base_pos: Vector3) -> Vector3:
 	return base_pos + Vector3(randf_range(-4.0, 4.0), 0.0, randf_range(-4.0, 4.0))
+
+func start_game(mode: MatchManager.MatchSize, faction: Team.TeamId):
+	print("Starting Game via UI... Mode: ", mode, " Faction: ", faction)
+	MatchManager.match_size = mode
+	MatchManager.solo_faction = faction
+	MatchManager.is_offline_solo = true
+	
+	if mode == MatchManager.MatchSize.SOLO:
+		if has_node("BombSiteC"): get_node("BombSiteC").is_active = false
+		if has_node("BombSiteD"): get_node("BombSiteD").is_active = false
+		if has_node("BombSiteC"): get_node("BombSiteC").hide()
+		if has_node("BombSiteD"): get_node("BombSiteD").hide()
+		
+	# MatchManager state needs to be forced since it might not be listening
+	MatchManager.current_state = MatchManager.MatchState.ROUND_START
+	MatchManager.emit_signal("round_state_changed", MatchManager.current_state)
+	
+	_setup_offline_match()
 
 func _setup_offline_match():
 	# Spawn human player
