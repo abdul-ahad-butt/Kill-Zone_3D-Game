@@ -21,6 +21,7 @@ var can_fire: bool = true
 var is_reloading: bool = false
 var has_bomb: bool = false
 var is_crouching: bool = false
+var grenades_count: int = 2
 
 @onready var camera = $Camera3D
 @onready var raycast = $Camera3D/RayCast3D
@@ -201,6 +202,12 @@ func _physics_process(delta):
 		equip_weapon(primary_weapon)
 	elif Input.is_action_just_pressed("switch_weapon_2") and secondary_weapon:
 		equip_weapon(secondary_weapon)
+		
+	if Input.is_action_just_pressed("throw_grenade") and grenades_count > 0:
+		grenades_count -= 1
+		var hud = get_node_or_null("HUD")
+		if hud and hud.has_method("update_ammo"): hud.update_ammo(current_ammo, reserve_ammo) # Or a dedicated grenade counter
+		rpc_id(1, "server_throw_grenade", camera.global_transform)
 
 func _start_reload():
 	if current_ammo == current_weapon.mag_size or reserve_ammo <= 0: return
@@ -302,6 +309,20 @@ func request_fire(origin: Vector3, direction: Vector3):
 @rpc("authority", "call_local", "unreliable")
 func client_hit_marker():
 	if get_node_or_null("HUD"): get_node("HUD").show_hit_marker()
+
+@rpc("any_peer", "call_local", "reliable")
+func server_throw_grenade(cam_transform: Transform3D):
+	if not multiplayer.is_server(): return
+	var sender = multiplayer.get_remote_sender_id()
+	if sender != get_multiplayer_authority(): return
+	
+	var g_scene = load("res://scenes/weapons/grenade.tscn")
+	var g = g_scene.instantiate()
+	get_node("/root/World").add_child(g)
+	
+	g.global_position = cam_transform.origin - cam_transform.basis.z * 1.0
+	g.linear_velocity = -cam_transform.basis.z * 18.0 + Vector3(0, 4.0, 0)
+	g.set_thrower_info(sender, team)
 
 func _on_weapon_timer_timeout():
 	can_fire = true

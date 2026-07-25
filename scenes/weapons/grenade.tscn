@@ -1,0 +1,65 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/grenade.gd" id="1_grenade"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_g"]
+bounce = 0.5
+friction = 0.8
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_g"]
+radius = 0.15
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g"]
+albedo_color = Color(0.2, 0.4, 0.2, 1)
+metallic = 0.8
+roughness = 0.4
+
+[sub_resource type="SphereMesh" id="SphereMesh_g"]
+material = SubResource("StandardMaterial3D_g")
+radius = 0.15
+height = 0.3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_p"]
+emission_enabled = true
+emission = Color(1, 0.6, 0.2, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_p"]
+material = SubResource("StandardMaterial3D_p")
+size = Vector3(0.5, 0.5, 0.5)
+
+[node name="Grenade" type="RigidBody3D" groups=["grenades"]]
+collision_layer = 8
+collision_mask = 5
+physics_material_override = SubResource("PhysicsMaterial_g")
+continuous_cd = true
+script = ExtResource("1_grenade")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_g")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_g")
+
+[node name="FuseTimer" type="Timer" parent="."]
+one_shot = true
+
+[node name="ExplosionLight" type="OmniLight3D" parent="."]
+visible = false
+light_color = Color(1, 0.6, 0.2, 1)
+light_energy = 5.0
+omni_range = 15.0
+
+[node name="ExplosionParticles" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 64
+lifetime = 0.6
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("BoxMesh_p")
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 10.0
+initial_velocity_max = 20.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
