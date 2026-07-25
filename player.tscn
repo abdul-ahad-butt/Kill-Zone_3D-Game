@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_a2b3c"]
 [ext_resource type="Resource" path="res://resources/weapon_data/Rifle.tres" id="2_d4e5f"]
 [ext_resource type="Resource" path="res://resources/weapon_data/Pistol.tres" id="3_g6h7i"]
+[ext_resource type="AudioStream" path="res://Assets/audio/gunshot.wav" id="4_audio"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m1"]
 radius = 0.5
@@ -39,3 +40,7 @@ mesh = SubResource("BoxMesh_m3")
 
 [node name="WeaponTimer" type="Timer" parent="."]
 one_shot = true
+
+[node name="FireSound" type="AudioStreamPlayer3D" parent="Camera3D/WeaponModel"]
+stream = ExtResource("4_audio")
+

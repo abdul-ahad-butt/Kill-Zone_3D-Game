@@ -26,6 +26,7 @@ var has_bomb: bool = false
 @onready var raycast = $Camera3D/RayCast3D
 @onready var weapon_model = $Camera3D/WeaponModel
 @onready var weapon_timer = $WeaponTimer
+@onready var fire_sound = $Camera3D/WeaponModel/FireSound
 
 var is_planting: bool = false
 var is_defusing: bool = false
@@ -211,6 +212,9 @@ func fire_weapon():
 	var tween = create_tween()
 	weapon_model.position.z += 0.1
 	tween.tween_property(weapon_model, "position:z", weapon_model.position.z - 0.1, 0.1)
+	
+	if fire_sound:
+		fire_sound.play()
 	
 	# Hit detection locally for instant feedback
 	if raycast.is_colliding():

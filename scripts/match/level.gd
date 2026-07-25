@@ -33,7 +33,8 @@ func _ready():
 	NetworkManager.player_disconnected.connect(_remove_player)
 	
 	# Spawn host if server is also a player (i.e. not headless)
-	var args = OS.get_cmdline_args()
+	var args = OS.get_cmdline_args() + OS.get_cmdline_user_args()
+		
 	if not "--server" in args and not "--headless" in args:
 		_spawn_player(multiplayer.get_unique_id())
 
@@ -68,12 +69,12 @@ func _spawn_solo_player(p_name: String, team: Team.TeamId, is_bot: bool):
 		# Give bots a default rifle
 		player.primary_weapon = preload("res://resources/weapon_data/Rifle.tres")
 	
+	players_container.add_child(player, true)
+	
 	if team == Team.TeamId.POLICE:
 		player.global_position = _get_random_spawn(spawn_police.global_position)
 	else:
 		player.global_position = _get_random_spawn(spawn_terrorist.global_position)
-		
-	players_container.add_child(player, true)
 	
 	if is_bot:
 		var bot_controller = Node.new()
@@ -91,12 +92,12 @@ func _spawn_player(id: int):
 	player.name = str(id)
 	player.team = team
 	
+	players_container.add_child(player, true)
+	
 	if team == Team.TeamId.POLICE:
 		player.global_position = _get_random_spawn(spawn_police.global_position)
 	else:
 		player.global_position = _get_random_spawn(spawn_terrorist.global_position)
-		
-	players_container.add_child(player, true)
 
 func _remove_player(id: int):
 	MatchManager.remove_player(id)

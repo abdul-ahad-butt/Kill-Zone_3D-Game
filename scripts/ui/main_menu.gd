@@ -120,13 +120,15 @@ func _on_faction_pressed(faction: Team.TeamId) -> void:
 	start_btn.disabled = true
 	_update_faction_buttons()
 	
+	weapon_box.show()
 	if faction == Team.TeamId.POLICE:
-		print("Menu flow: Police auto-equipped with Rifle + Pistol")
-		_on_weapon_selected(rifle_data)
-		weapon_box.hide()
+		rifle_btn.show()
+		smg_btn.hide()
 	else:
-		weapon_box.show()
-		_update_weapon_buttons()
+		rifle_btn.show()
+		smg_btn.show()
+	
+	_update_weapon_buttons()
 
 func _on_weapon_selected(weapon: Resource) -> void:
 	selected_weapon = weapon

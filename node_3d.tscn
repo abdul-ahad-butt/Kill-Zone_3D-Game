@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/match/level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://bomb_site.tscn" id="1_bsite"]
@@ -11,7 +11,10 @@ size = Vector3(100, 1, 100)
 size = Vector3(100, 1, 100)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.2, 0.2, 0.2, 1)
+albedo_color = Color(0.2, 0.6, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.5, 0.5, 0.5, 1)
 
 [sub_resource type="Environment" id="Environment_sky"]
 background_mode = 1
@@ -37,6 +40,57 @@ shape = SubResource("BoxShape3D_floor")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("StandardMaterial3D_floor")
+
+[node name="MapGeometry" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="BuildingA" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2.5, -20)
+size = Vector3(15, 5, 15)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="BuildingA_Inside" type="CSGBox3D" parent="MapGeometry/BuildingA"]
+operation = 2
+size = Vector3(13, 5, 13)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="BuildingA_Door1" type="CSGBox3D" parent="MapGeometry/BuildingA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 7.5)
+operation = 2
+size = Vector3(3, 3, 2)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="BuildingA_Door2" type="CSGBox3D" parent="MapGeometry/BuildingA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, -1.5, 0)
+operation = 2
+size = Vector3(2, 3, 3)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="BuildingB" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 2.5, -20)
+size = Vector3(20, 5, 15)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="BuildingB_Inside" type="CSGBox3D" parent="MapGeometry/BuildingB"]
+operation = 2
+size = Vector3(18, 5, 13)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="BuildingB_Door1" type="CSGBox3D" parent="MapGeometry/BuildingB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1.5, 0)
+operation = 2
+size = Vector3(2, 3, 3)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="CenterWall1" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+size = Vector3(20, 4, 2)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="CenterWall2" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -10)
+size = Vector3(2, 4, 15)
+material = SubResource("StandardMaterial3D_wall")
 
 [node name="BombSiteA" parent="." instance=ExtResource("1_bsite")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.5, -20)
