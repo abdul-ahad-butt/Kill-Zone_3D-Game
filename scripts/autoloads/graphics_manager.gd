@@ -19,10 +19,10 @@ signal quality_changed(new_quality: Quality)
 # ── Preset tables ────────────────────────────────────────────────────────────
 # Each entry: { viewport_scale, shadow_quality, msaa, use_glow, use_ssao,
 #               use_fog, texture_filter, fxaa }
-const PRESETS := {
+var PRESETS := {
 	Quality.LOW: {
 		"viewport_scale":  0.65,   # Render at 65 % resolution
-		"shadow_quality":  RenderingServer.SHADOW_QUALITY_HARD_SHADOWS,
+		"shadow_quality":  RenderingServer.SHADOW_QUALITY_HARD,
 		"msaa":            Viewport.MSAA_DISABLED,
 		"fxaa":            false,
 		"use_glow":        false,
@@ -32,7 +32,7 @@ const PRESETS := {
 	},
 	Quality.MEDIUM: {
 		"viewport_scale":  0.85,   # Render at 85 % resolution
-		"shadow_quality":  RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM_SHADOWS,
+		"shadow_quality":  RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM,
 		"msaa":            Viewport.MSAA_2X,
 		"fxaa":            true,
 		"use_glow":        false,
@@ -42,7 +42,7 @@ const PRESETS := {
 	},
 	Quality.HIGH: {
 		"viewport_scale":  1.0,    # Native resolution
-		"shadow_quality":  RenderingServer.SHADOW_QUALITY_SOFT_HIGH_SHADOWS,
+		"shadow_quality":  RenderingServer.SHADOW_QUALITY_SOFT_HIGH,
 		"msaa":            Viewport.MSAA_4X,
 		"fxaa":            true,
 		"use_glow":        true,
@@ -87,7 +87,7 @@ func apply_quality(q: Quality) -> void:
 								Viewport.SCREEN_SPACE_AA_DISABLED)
 
 	# 2. Shadow quality (global)
-	RenderingServer.directional_shadow_quality_set(p["shadow_quality"])
+	RenderingServer.directional_soft_shadow_filter_set(p["shadow_quality"])
 
 	# 3. WorldEnvironment tweaks (glow, SSAO, fog)
 	_apply_environment(p)

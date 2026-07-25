@@ -86,13 +86,13 @@ func _setup_navmesh():
 func _get_random_spawn(base_pos: Vector3) -> Vector3:
 	return base_pos + Vector3(randf_range(-4.0, 4.0), 0.0, randf_range(-4.0, 4.0))
 
-func start_game(mode: MatchManager.MatchSize, faction: Team.TeamId):
+func start_game(mode: int, faction: Team.TeamId):
 	print("Starting Game via UI... Mode: ", mode, " Faction: ", faction)
 	MatchManager.match_size = mode
 	MatchManager.solo_faction = faction
 	MatchManager.is_offline_solo = true
 	
-	if mode == MatchManager.MatchSize.SOLO:
+	if mode == 0:
 		if has_node("BombSiteC"): get_node("BombSiteC").is_active = false
 		if has_node("BombSiteD"): get_node("BombSiteD").is_active = false
 		if has_node("BombSiteC"): get_node("BombSiteC").hide()
@@ -161,7 +161,7 @@ func request_spawn(faction: int, weapon_path: String):
 	_spawn_specific_player(sender_id, faction, weapon_path)
 
 func _spawn_specific_player(id: int, team: Team.TeamId, weapon_path: String):
-	PlayerStats.register_player(id, "Player " + str(id), team, weapon_path)
+	PlayerStats.register_player(id, "Player " + str(id), team)
 	
 	var player = player_scene.instantiate()
 	player.name = str(id)

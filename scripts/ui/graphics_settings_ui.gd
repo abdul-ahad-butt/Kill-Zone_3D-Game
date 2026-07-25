@@ -28,7 +28,7 @@ const CLR_INACTIVE := Color(0.20, 0.22, 0.28)   # Dark slate — unselected
 const CLR_HOVER    := Color(0.28, 0.30, 0.40)
 
 # ── Labels shown next to the status line ────────────────────────────────────
-const STATUS_TEXT := {
+var STATUS_TEXT := {
 	GraphicsManager.Quality.LOW:    "⚡ Low — Best for mobile & slow devices",
 	GraphicsManager.Quality.MEDIUM: "🎮 Medium — Balanced performance",
 	GraphicsManager.Quality.HIGH:   "✨ High — Best visuals, powerful GPU needed",

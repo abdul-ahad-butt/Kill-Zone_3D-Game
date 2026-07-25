@@ -4,7 +4,7 @@ extends CanvasLayer
 @onready var faction_select = $FactionSelect
 @onready var start_btn = $StartButton
 
-var selected_mode: MatchManager.MatchSize = MatchManager.MatchSize.SOLO
+var selected_mode: int = 0
 var selected_faction: Team.TeamId = Team.TeamId.NONE
 
 func _ready():
@@ -12,8 +12,8 @@ func _ready():
 	faction_select.hide()
 	start_btn.hide()
 	
-	$ModeSelect/SoloBtn.pressed.connect(func(): _on_mode_selected(MatchManager.MatchSize.SOLO))
-	$ModeSelect/TeamBtn.pressed.connect(func(): _on_mode_selected(MatchManager.MatchSize.FIVE_V_FIVE))
+	$ModeSelect/SoloBtn.pressed.connect(func(): _on_mode_selected(0))
+	$ModeSelect/TeamBtn.pressed.connect(func(): _on_mode_selected(1))
 	
 	$FactionSelect/PoliceBtn.pressed.connect(func(): _on_faction_selected(Team.TeamId.POLICE))
 	$FactionSelect/TerroristBtn.pressed.connect(func(): _on_faction_selected(Team.TeamId.TERRORIST))
@@ -42,7 +42,7 @@ func _on_money_changed(val: float):
 func _on_diff_selected(idx: int):
 	MatchManager.bot_difficulty = idx
 
-func _on_mode_selected(mode: MatchManager.MatchSize):
+func _on_mode_selected(mode: int):
 	selected_mode = mode
 	mode_select.hide()
 	faction_select.show()
