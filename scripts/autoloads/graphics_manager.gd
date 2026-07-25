@@ -87,7 +87,7 @@ func apply_quality(q: Quality) -> void:
 								Viewport.SCREEN_SPACE_AA_DISABLED)
 
 	# 2. Shadow quality (global)
-	RenderingServer.directional_soft_shadow_filter_set(p["shadow_quality"])
+	RenderingServer.directional_soft_shadow_filter_set_quality(p["shadow_quality"])
 
 	# 3. WorldEnvironment tweaks (glow, SSAO, fog)
 	_apply_environment(p)
