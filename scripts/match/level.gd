@@ -27,7 +27,9 @@ func _ready():
 	_setup_navmesh()
 
 	if MatchManager.is_offline_solo:
-		# Do NOT spawn immediately. Wait for start_game() to be called from IntegratedMenu
+		MatchManager.current_state = MatchManager.MatchState.ROUND_START
+		MatchManager.emit_signal("round_state_changed", MatchManager.current_state)
+		_setup_offline_match()
 		return
 		
 	if not multiplayer.is_server():
@@ -103,6 +105,10 @@ func start_game(mode: MatchManager.MatchSize, faction: Team.TeamId):
 	_setup_offline_match()
 
 func _setup_offline_match():
+	var overview = get_node_or_null("OverviewCamera")
+	if overview:
+		overview.current = false
+		
 	# Spawn human player
 	_spawn_solo_player("1", MatchManager.solo_faction, false)
 	

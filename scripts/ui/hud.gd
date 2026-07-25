@@ -5,84 +5,86 @@ extends CanvasLayer
 @onready var banner_label = $Banner
 @onready var bomb_timer_label = $VBoxContainer/BombTimer
 
-@onready var top_info_container = $TopInfo
-@onready var match_timer_label = $TopInfo/MatchTimer
-@onready var match_info_label = $TopInfo/MatchInfo
+@onready var health_label = $PlayerStatus/HealthLabel
+@onready var ammo_label = $PlayerStatus/AmmoLabel
+@onready var interact_progress = $InteractProgress
+@onready var crosshair = $Crosshair
 
 var _round_tween: Tween
 var _bomb_tween: Tween
 var _banner_tween: Tween
 
-@onready var death_screen = $DeathScreen
-@onready var spectating_info = $DeathScreen/SpectatingInfo
-
-var _graphics_ui: CanvasLayer = null
-var _settings_btn: Button = null
-
-func _ready() -> void:
+func _ready():
 	MatchManager.round_timer_updated.connect(_on_round_timer_updated)
 	MatchManager.bomb_timer_updated.connect(_on_bomb_timer_updated)
-	MatchManager.total_timer_updated.connect(_on_total_timer_updated)
 	MatchManager.score_updated.connect(_on_score_updated)
 	MatchManager.round_state_changed.connect(_on_state_changed)
 	MatchManager.round_ended.connect(_on_round_ended)
-	MatchManager.bomb_planted.connect(_on_bomb_planted)
 	
-	_setup_scoreboard()
-	_setup_killfeed()
-	_setup_hitmarker()
-	_setup_bomb_alert()
-	_setup_radar()
-	_setup_crosshair()
-	_setup_scope()
-	_setup_buy_menu()
-	_setup_grenade_indicator()
-	
-	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
-	var active_sites = "A, B" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "A, B, C, D"
-	match_info_label.text = "Mode: %s | Active Sites: %s" % [m_size_str, active_sites]
-
 	banner_label.hide()
 	bomb_timer_label.hide()
-	death_screen.hide()
-
+	interact_progress.hide()
+	
 	# Make sure pivot is centered for scaling
 	round_timer_label.pivot_offset = round_timer_label.size / 2.0
 	bomb_timer_label.pivot_offset = bomb_timer_label.size / 2.0
 	banner_label.pivot_offset = banner_label.size / 2.0
+	
+	_setup_mobile_ui()
 
-	# ── Graphics settings gear button (top-right corner) ───────────────────
-	_settings_btn = Button.new()
-	_settings_btn.name = "GraphicsBtn"
-	_settings_btn.text = "⚙"
-	_settings_btn.tooltip_text = "Graphics Quality"
-	_settings_btn.custom_minimum_size = Vector2(38, 38)
-	_settings_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_settings_btn.position = Vector2(-50, 8)
+func update_health(health: int):
+	if health_label: health_label.text = "HP: " + str(health)
 
-	var s := StyleBoxFlat.new()
-	s.bg_color = Color(0.09, 0.10, 0.13, 0.80)
-	s.set_corner_radius_all(6)
-	s.set_border_width_all(1)
-	s.border_color = Color(0.30, 0.32, 0.40)
-	_settings_btn.add_theme_stylebox_override("normal", s)
-	_settings_btn.add_theme_font_size_override("font_size", 18)
-	_settings_btn.pressed.connect(_on_settings_btn_pressed)
-	add_child(_settings_btn)
+func update_ammo(current: int, reserve: int):
+	if ammo_label: ammo_label.text = str(current) + " / " + (str(reserve) if reserve >= 0 else "∞")
 
-	# ── Graphics settings panel (hidden by default in-game) ────────────────
-	_graphics_ui = load("res://scripts/ui/graphics_settings_ui.gd").new()
-	_graphics_ui.name = "GraphicsSettingsUI"
-	add_child(_graphics_ui)
-	_graphics_ui.hide_panel()
+func show_interact_progress(progress: float, text: String):
+	if interact_progress:
+		interact_progress.show()
+		interact_progress.value = progress * 100
+		var lbl = interact_progress.get_node_or_null("Label")
+		if lbl: lbl.text = text
 
-func _on_settings_btn_pressed() -> void:
-	if _graphics_ui:
-		_graphics_ui.toggle_panel()
+func hide_interact_progress():
+	if interact_progress: interact_progress.hide()
 
-func _on_round_timer_updated(time_left: int) -> void:
-	var m := time_left / 60
-	var s := time_left % 60
+func _setup_mobile_ui():
+	# Always show for testing or if mobile
+	var joystick_scene = load("res://scenes/ui/virtual_joystick.tscn")
+	if joystick_scene:
+		add_child(joystick_scene.instantiate())
+		
+	var minimap_scene = load("res://scenes/ui/minimap.tscn")
+	if minimap_scene:
+		add_child(minimap_scene.instantiate())
+		
+	var jump_btn = Button.new()
+	jump_btn.text = "JUMP"
+	jump_btn.custom_minimum_size = Vector2(100, 100)
+	jump_btn.position = Vector2(get_viewport().size.x - 150, get_viewport().size.y - 300)
+	jump_btn.button_down.connect(func(): Input.action_press("jump"))
+	jump_btn.button_up.connect(func(): Input.action_release("jump"))
+	add_child(jump_btn)
+	
+	var reload_btn = Button.new()
+	reload_btn.text = "RELOAD"
+	reload_btn.custom_minimum_size = Vector2(100, 100)
+	reload_btn.position = Vector2(get_viewport().size.x - 300, get_viewport().size.y - 150)
+	reload_btn.button_down.connect(func(): Input.action_press("reload"))
+	reload_btn.button_up.connect(func(): Input.action_release("reload"))
+	add_child(reload_btn)
+	
+	var interact_btn = Button.new()
+	interact_btn.text = "PLANT/DEFUSE"
+	interact_btn.custom_minimum_size = Vector2(120, 80)
+	interact_btn.position = Vector2(get_viewport().size.x - 450, get_viewport().size.y - 150)
+	interact_btn.button_down.connect(func(): Input.action_press("interact"))
+	interact_btn.button_up.connect(func(): Input.action_release("interact"))
+	add_child(interact_btn)
+
+func _on_round_timer_updated(time_left: int):
+	var m = time_left / 60
+	var s = time_left % 60
 	round_timer_label.text = "%02d:%02d" % [m, s]
 	
 	if time_left <= 10 and time_left > 0:
@@ -92,19 +94,14 @@ func _on_round_timer_updated(time_left: int) -> void:
 		round_timer_label.modulate = Color.WHITE
 		round_timer_label.scale = Vector2.ONE
 
-func _on_total_timer_updated(time_left: int) -> void:
-	var m := time_left / 60
-	var s := time_left % 60
-	match_timer_label.text = "Match Ends: %02d:%02d" % [m, s]
-
-func _on_bomb_timer_updated(time_left: int) -> void:
+func _on_bomb_timer_updated(time_left: int):
 	round_timer_label.hide()
 	bomb_timer_label.show()
-
-	var m := time_left / 60
-	var s := time_left % 60
+	
+	var m = time_left / 60
+	var s = time_left % 60
 	bomb_timer_label.text = "💣 BOMB: %02d:%02d" % [m, s]
-
+	
 	if time_left <= 10 and time_left > 0:
 		bomb_timer_label.modulate = Color.RED
 		_pulse_label(bomb_timer_label, "_bomb_tween")
@@ -112,21 +109,21 @@ func _on_bomb_timer_updated(time_left: int) -> void:
 		bomb_timer_label.modulate = Color.ORANGE
 		bomb_timer_label.scale = Vector2.ONE
 
-func _pulse_label(label: Label, tween_name: String) -> void:
+func _pulse_label(label: Label, tween_name: String):
 	var existing_tween = get(tween_name)
 	if existing_tween and existing_tween.is_running():
 		return
-
-	var tween := create_tween()
+		
+	var tween = create_tween()
 	set(tween_name, tween)
-
+	
 	label.scale = Vector2(1.3, 1.3)
 	tween.tween_property(label, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
-func _on_score_updated(police: int, terrorist: int) -> void:
+func _on_score_updated(police: int, terrorist: int):
 	score_label.text = "POLICE %d - %d TERRORIST" % [police, terrorist]
 
-func _on_state_changed(new_state) -> void:
+func _on_state_changed(new_state):
 	if new_state == MatchManager.MatchState.ROUND_START:
 		_show_banner("ROUND STARTING...")
 		bomb_timer_label.hide()
@@ -134,553 +131,23 @@ func _on_state_changed(new_state) -> void:
 	elif new_state == MatchManager.MatchState.LIVE:
 		banner_label.hide()
 
-func _on_round_ended(winner: int, reason: String) -> void:
-	var winner_str := "POLICE" if winner == Team.TeamId.POLICE else "TERRORISTS"
-	var color := Color.BLUE if winner == Team.TeamId.POLICE else Color.RED
+func _on_round_ended(winner: int, reason: String):
+	var winner_str = "POLICE" if winner == Team.TeamId.POLICE else "TERRORISTS"
+	var color = Color.BLUE if winner == Team.TeamId.POLICE else Color.RED
 	_show_banner("%s WIN\n%s" % [winner_str, reason], color)
 
-func _show_banner(text: String, color: Color = Color.WHITE) -> void:
+func _show_banner(text: String, color: Color = Color.WHITE):
 	banner_label.text = text
 	banner_label.modulate = color
 	banner_label.show()
-
+	
 	if _banner_tween and _banner_tween.is_running():
 		_banner_tween.kill()
-
+		
 	_banner_tween = create_tween()
 	banner_label.scale = Vector2(0.5, 0.5)
 	banner_label.modulate.a = 0.0
-
+	
 	_banner_tween.set_parallel(true)
 	_banner_tween.tween_property(banner_label, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_banner_tween.tween_property(banner_label, "modulate:a", 1.0, 0.3)
-
-# --- SCOREBOARD AND KILL FEED ---
-
-var scoreboard_panel: PanelContainer
-var scoreboard_list: VBoxContainer
-var killfeed_box: VBoxContainer
-
-func _setup_scoreboard():
-	scoreboard_panel = PanelContainer.new()
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0.7)
-	scoreboard_panel.add_theme_stylebox_override("panel", style)
-	scoreboard_panel.set_anchors_preset(Control.PRESET_CENTER)
-	scoreboard_panel.custom_minimum_size = Vector2(400, 300)
-	scoreboard_panel.hide()
-	
-	scoreboard_list = VBoxContainer.new()
-	scoreboard_panel.add_child(scoreboard_list)
-	add_child(scoreboard_panel)
-	
-	PlayerStats.stats_updated.connect(_update_scoreboard)
-
-func _update_scoreboard():
-	for child in scoreboard_list.get_children():
-		child.queue_free()
-		
-	var header = Label.new()
-	header.text = "SCOREBOARD"
-	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	scoreboard_list.add_child(header)
-	
-	for peer_id in PlayerStats.stats:
-		var p = PlayerStats.stats[peer_id]
-		var team_name = "POLICE" if p.team == Team.TeamId.POLICE else "TERRORIST"
-		var color = Color.AQUA if p.team == Team.TeamId.POLICE else Color.RED
-		
-		var lbl = Label.new()
-		lbl.text = "%s [%s] - K: %d / D: %d" % [p.name, team_name, p.kills, p.deaths]
-		lbl.add_theme_color_override("font_color", color)
-		scoreboard_list.add_child(lbl)
-
-func _process(delta):
-	if local_player:
-		if not local_player.is_dead:
-			death_screen.hide()
-			_update_crosshair()
-			_process_money()
-			_update_grenade_indicator()
-			
-			if local_player.is_ads and local_player.current_weapon and local_player.current_weapon.ads_fov < 30.0:
-				if local_player.camera.fov < local_player.current_weapon.ads_fov + 10.0:
-					scope_overlay.show()
-					crosshair.hide()
-				else:
-					scope_overlay.hide()
-					crosshair.show()
-			else:
-				scope_overlay.hide()
-				crosshair.show()
-		else:
-			# If dead, these are hidden by hide_crosshair_and_scope
-			pass
-
-	if Input.is_action_pressed("show_scoreboard"):
-		if not scoreboard_panel.visible:
-			_update_scoreboard()
-			scoreboard_panel.show()
-	else:
-		scoreboard_panel.hide()
-			
-	_process_radar()
-	_process_crosshair()
-	_process_money()
-
-func _input(event):
-	if event.is_action_pressed("buy_menu") or (event is InputEventKey and event.keycode == KEY_B and event.pressed and not event.echo):
-		if MatchManager.current_state == MatchManager.MatchState.ROUND_START and MatchManager.match_size == MatchManager.MatchSize.FIVE_V_FIVE:
-			_toggle_buy_menu()
-
-func _setup_killfeed():
-	killfeed_box = VBoxContainer.new()
-	killfeed_box.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	killfeed_box.position = Vector2(-250, 60)
-	killfeed_box.custom_minimum_size = Vector2(240, 300)
-	add_child(killfeed_box)
-	
-	PlayerStats.player_killed.connect(_on_player_killed)
-	
-func _on_player_killed(killer: String, victim: String, weapon: String):
-	var lbl = Label.new()
-	lbl.text = "%s [%s] %s" % [killer, weapon, victim]
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	lbl.add_theme_font_size_override("font_size", 14)
-	
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0,0,0,0.5)
-	var pc = PanelContainer.new()
-	pc.add_theme_stylebox_override("panel", style)
-	pc.add_child(lbl)
-	
-	killfeed_box.add_child(pc)
-	
-	var t = create_tween()
-	t.tween_property(pc, "modulate:a", 0.0, 3.0).set_delay(3.0)
-	t.tween_callback(pc.queue_free)
-
-# --- HITMARKER ---
-var hitmarker_texture: TextureRect
-var _hitmarker_tween: Tween
-
-func _setup_hitmarker():
-	# Simple crosshair X by creating a custom texture or just using a label
-	hitmarker_texture = TextureRect.new()
-	var label = Label.new()
-	label.text = "X"
-	label.add_theme_font_size_override("font_size", 24)
-	label.add_theme_color_override("font_color", Color.WHITE)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	
-	hitmarker_texture.set_anchors_preset(Control.PRESET_CENTER)
-	hitmarker_texture.add_child(label)
-	# Center the label relative to the screen center
-	label.set_anchors_preset(Control.PRESET_CENTER)
-	label.position = Vector2(-8, -14) # Offset slightly to center the X
-	
-	add_child(hitmarker_texture)
-	hitmarker_texture.modulate.a = 0.0
-
-func hide_crosshair_and_scope():
-	if crosshair: crosshair.hide()
-	if scope_overlay: scope_overlay.hide()
-
-func set_spectator_text(txt: String, color: Color):
-	if death_screen:
-		spectating_info.text = txt
-		spectating_info.add_theme_color_override("font_color", color)
-		if not death_screen.visible:
-			death_screen.modulate.a = 0.0
-			death_screen.show()
-			var tween = create_tween()
-			tween.tween_property(death_screen, "modulate:a", 1.0, 0.5)
-	
-func show_hitmarker():
-	if _hitmarker_tween and _hitmarker_tween.is_running():
-		_hitmarker_tween.kill()
-		
-	hitmarker_texture.modulate.a = 1.0
-	hitmarker_texture.scale = Vector2(0.5, 0.5)
-	
-	_hitmarker_tween = create_tween()
-	_hitmarker_tween.set_parallel(true)
-	_hitmarker_tween.tween_property(hitmarker_texture, "scale", Vector2.ONE, 0.1)
-	_hitmarker_tween.chain().tween_property(hitmarker_texture, "modulate:a", 0.0, 0.2)
-
-# --- BOMB ALERT ---
-var bomb_alert_label: Label
-var _bomb_alert_tween: Tween
-
-func _setup_bomb_alert():
-	bomb_alert_label = Label.new()
-	bomb_alert_label.text = "BOMB PLANTED!"
-	bomb_alert_label.add_theme_font_size_override("font_size", 48)
-	bomb_alert_label.add_theme_color_override("font_color", Color.RED)
-	bomb_alert_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	bomb_alert_label.add_theme_constant_override("outline_size", 4)
-	bomb_alert_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bomb_alert_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	
-	bomb_alert_label.set_anchors_preset(Control.PRESET_CENTER)
-	bomb_alert_label.position = Vector2(-200, -100) # Offset to center-topish
-	
-	add_child(bomb_alert_label)
-	bomb_alert_label.hide()
-
-func _on_bomb_planted():
-	bomb_alert_label.show()
-	bomb_alert_label.modulate.a = 1.0
-	if _bomb_alert_tween and _bomb_alert_tween.is_running():
-		_bomb_alert_tween.kill()
-		
-	_bomb_alert_tween = create_tween().set_loops(6)
-	_bomb_alert_tween.tween_property(bomb_alert_label, "modulate:a", 0.2, 0.25)
-	_bomb_alert_tween.tween_property(bomb_alert_label, "modulate:a", 1.0, 0.25)
-	
-	
-	var hide_tween = create_tween()
-	hide_tween.tween_interval(3.0)
-	hide_tween.tween_callback(bomb_alert_label.hide)
-
-# --- RADAR ---
-var radar_bg_panel: PanelContainer
-var radar_container: SubViewportContainer
-var radar_viewport: SubViewport
-var radar_camera: Camera3D
-var radar_pings_container: Control
-var radar_player_icon: Polygon2D
-var radar_bomb_markers: Array = []
-var friendly_dots: Dictionary = {}
-
-func _setup_radar():
-	radar_bg_panel = PanelContainer.new()
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0.6)
-	style.set_corner_radius_all(100)
-	style.set_border_width_all(4)
-	style.border_color = Color(0.25, 0.3, 0.4, 0.9)
-	radar_bg_panel.add_theme_stylebox_override("panel", style)
-	radar_bg_panel.custom_minimum_size = Vector2(210, 210)
-	radar_bg_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	radar_bg_panel.position = Vector2(15, 15)
-
-	radar_container = SubViewportContainer.new()
-	radar_container.custom_minimum_size = Vector2(200, 200)
-	radar_container.set_anchors_preset(Control.PRESET_CENTER)
-	radar_bg_panel.add_child(radar_container)
-	
-	radar_viewport = SubViewport.new()
-	radar_viewport.size = Vector2i(200, 200)
-	radar_viewport.transparent_bg = true
-	radar_container.add_child(radar_viewport)
-	
-	radar_camera = Camera3D.new()
-	radar_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	radar_camera.size = 60.0
-	radar_camera.rotation_degrees.x = -90
-	radar_camera.position.y = 50.0
-	radar_viewport.add_child(radar_camera)
-	
-	radar_pings_container = Control.new()
-	radar_pings_container.custom_minimum_size = Vector2(200, 200)
-	radar_container.add_child(radar_pings_container)
-	
-	add_child(radar_bg_panel)
-	
-	radar_player_icon = Polygon2D.new()
-	radar_player_icon.polygon = PackedVector2Array([Vector2(0, -8), Vector2(6, 6), Vector2(0, 3), Vector2(-6, 6)])
-	radar_player_icon.color = Color.GREEN
-	radar_player_icon.position = Vector2(100, 100)
-	radar_pings_container.add_child(radar_player_icon)
-	
-	await get_tree().process_frame
-	radar_viewport.world_3d = get_viewport().world_3d
-	
-	for site in get_tree().get_nodes_in_group("BombSite"):
-		var marker = Label.new()
-		marker.text = site.site_name
-		marker.add_theme_font_size_override("font_size", 14)
-		marker.add_theme_color_override("font_color", Color.ORANGE)
-		marker.add_theme_color_override("font_outline_color", Color.BLACK)
-		marker.add_theme_constant_override("outline_size", 4)
-		radar_pings_container.add_child(marker)
-		radar_bomb_markers.append({"node": marker, "site": site})
-
-func add_radar_ping(shooter_team: int, world_pos: Vector3):
-	if not local_player or local_player.team == shooter_team: return
-	
-	var ping = ColorRect.new()
-	ping.color = Color.RED
-	ping.size = Vector2(6, 6)
-	
-	var diff = Vector2(world_pos.x - local_player.global_position.x, world_pos.z - local_player.global_position.z)
-	var scale_factor = 200.0 / 60.0
-	var offset_px = diff * scale_factor
-	
-	ping.position = Vector2(100, 100) + offset_px - (ping.size / 2.0)
-	
-	if offset_px.length() > 95.0:
-		return
-		
-	radar_pings_container.add_child(ping)
-	
-	var t = create_tween()
-	t.tween_property(ping, "modulate:a", 0.0, 2.0).set_trans(Tween.TRANS_EXPO)
-	t.tween_callback(ping.queue_free)
-
-func _process_radar():
-	if is_instance_valid(radar_camera) and is_instance_valid(local_player):
-		radar_camera.global_position.x = local_player.global_position.x
-		radar_camera.global_position.z = local_player.global_position.z
-		
-		if local_player.camera:
-			radar_player_icon.rotation = -local_player.camera.global_rotation.y
-		
-		var scale_factor = 200.0 / 60.0
-		for bm in radar_bomb_markers:
-			var site_pos = bm.site.global_position
-			var diff = Vector2(site_pos.x - local_player.global_position.x, site_pos.z - local_player.global_position.z)
-			var offset_px = diff * scale_factor
-			if offset_px.length() < 90.0:
-				bm.node.show()
-				bm.node.position = Vector2(100, 100) + offset_px - (bm.node.size / 2.0)
-			else:
-				bm.node.hide()
-				
-		var current_friendlies = []
-		for p in get_tree().get_nodes_in_group("Players"):
-			if p != local_player and not p.is_dead and p.team == local_player.team:
-				current_friendlies.append(p)
-				
-		for p in current_friendlies:
-			if not friendly_dots.has(p):
-				var dot = ColorRect.new()
-				dot.color = Color.CYAN
-				dot.size = Vector2(6, 6)
-				radar_pings_container.add_child(dot)
-				friendly_dots[p] = dot
-				
-			var dot = friendly_dots[p]
-			var p_pos = p.global_position
-			var diff = Vector2(p_pos.x - local_player.global_position.x, p_pos.z - local_player.global_position.z)
-			var offset_px = diff * scale_factor
-			if offset_px.length() < 95.0:
-				dot.show()
-				dot.position = Vector2(100, 100) + offset_px - (dot.size / 2.0)
-			else:
-				dot.hide()
-				
-		var to_erase = []
-		for p in friendly_dots.keys():
-			if not is_instance_valid(p) or p.is_dead or p.team != local_player.team:
-				friendly_dots[p].queue_free()
-				to_erase.append(p)
-		for e in to_erase:
-			friendly_dots.erase(e)
-		
-func _process_crosshair():
-	if is_instance_valid(local_player) and local_player.current_weapon:
-		var spread = local_player.current_spread
-		var spread_mult = 0.5 if local_player.is_crouching else 1.0
-		var current_spread_px = 5.0 + (spread * spread_mult * 500.0)
-		
-		# Top
-		crosshair_lines[0].size = Vector2(2, 12)
-		crosshair_lines[0].position = Vector2(-1, -current_spread_px - 12)
-		# Bottom
-		crosshair_lines[1].size = Vector2(2, 12)
-		crosshair_lines[1].position = Vector2(-1, current_spread_px)
-		# Left
-		crosshair_lines[2].size = Vector2(12, 2)
-		crosshair_lines[2].position = Vector2(-current_spread_px - 12, -1)
-		# Right
-		crosshair_lines[3].size = Vector2(12, 2)
-		crosshair_lines[3].position = Vector2(current_spread_px, -1)
-
-var scope_overlay: ColorRect
-
-func _setup_scope():
-	scope_overlay = ColorRect.new()
-	scope_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	scope_overlay.color = Color(0, 0, 0, 1)
-	
-	var scope_shader = ShaderMaterial.new()
-	scope_shader.shader = Shader.new()
-	scope_shader.shader.code = """
-	shader_type canvas_item;
-	void fragment() {
-		vec2 uv = UV * 2.0 - 1.0;
-		uv.x *= (SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x);
-		float d = length(uv);
-		
-		float line_thickness = 0.002;
-		bool is_line = abs(uv.x) < line_thickness || abs(uv.y) < line_thickness;
-		
-		if (d > 0.9) {
-			COLOR = vec4(0.0, 0.0, 0.0, 1.0);
-		} else if (d > 0.88) {
-			COLOR = vec4(0.0, 0.0, 0.0, smoothstep(0.88, 0.9, d));
-		} else if (is_line) {
-			COLOR = vec4(0.0, 0.0, 0.0, 1.0);
-		} else {
-			COLOR = vec4(0.0, 0.0, 0.0, 0.0);
-		}
-	}
-	"""
-	scope_overlay.material = scope_shader
-	scope_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	scope_overlay.hide()
-	add_child(scope_overlay)
-
-# --- GRENADE INDICATOR ---
-var grenade_indicator: Label
-
-func _setup_grenade_indicator():
-	grenade_indicator = Label.new()
-	grenade_indicator.add_theme_font_size_override("font_size", 18)
-	grenade_indicator.add_theme_color_override("font_color", Color.WHITE)
-	grenade_indicator.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	grenade_indicator.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	grenade_indicator.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	grenade_indicator.position = Vector2(-180, -50)
-	add_child(grenade_indicator)
-
-func _update_grenade_indicator():
-	if not grenade_indicator or not local_player: return
-	var p_id = local_player.name.to_int()
-	if not PlayerStats.stats.has(p_id):
-		grenade_indicator.text = ""
-		return
-	var g = PlayerStats.stats[p_id].get("grenade_count", 0)
-	var s = PlayerStats.stats[p_id].get("smoke_count", 0)
-	var parts = []
-	if g > 0: parts.append("💣 x%d [G]" % g)
-	if s > 0: parts.append("🌫 x%d [Shift+G]" % s)
-	grenade_indicator.text = "\n".join(parts)
-
-# --- BUY MENU & MONEY ---
-var buy_menu_panel: PanelContainer
-var money_label: Label
-
-func _setup_buy_menu():
-	# Money Label (Bottom Left)
-	money_label = Label.new()
-	money_label.text = "$800"
-	money_label.add_theme_font_size_override("font_size", 32)
-	money_label.add_theme_color_override("font_color", Color(0.2, 0.8, 0.2)) # Green
-	money_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	money_label.position = Vector2(20, -60)
-	add_child(money_label)
-	
-	# Buy Menu UI
-	buy_menu_panel = PanelContainer.new()
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0.9)
-	style.set_corner_radius_all(8)
-	buy_menu_panel.add_theme_stylebox_override("panel", style)
-	buy_menu_panel.set_anchors_preset(Control.PRESET_CENTER)
-	buy_menu_panel.custom_minimum_size = Vector2(400, 300)
-	
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
-	buy_menu_panel.add_child(vbox)
-	
-	var header = Label.new()
-	header.text = "BUY MENU"
-	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	header.add_theme_font_size_override("font_size", 24)
-	vbox.add_child(header)
-	
-	var weapons = [
-		{"name": "SMG", "cost": 1500, "path": "res://resources/weapon_data/SMG.tres"},
-		{"name": "Shotgun", "cost": 1200, "path": "res://resources/weapon_data/Shotgun.tres"},
-		{"name": "Assault Rifle", "cost": 2700, "path": "res://resources/weapon_data/Rifle.tres"},
-		{"name": "Sniper Rifle", "cost": 4750, "path": "res://resources/weapon_data/Sniper.tres"}
-	]
-	
-	var utility = [
-		{"name": "Kevlar Armor", "cost": 1000, "path": "item_armor"},
-		{"name": "Defuse Kit (Police Only)", "cost": 400, "path": "item_defuse_kit"},
-		{"name": "Frag Grenade ($300) [G]", "cost": 300, "path": "item_frag"},
-		{"name": "Smoke Grenade ($400) [Shift+G]", "cost": 400, "path": "item_smoke"}
-	]
-	
-	for w in weapons:
-		var btn = Button.new()
-		btn.text = "%s - $%d" % [w.name, w.cost]
-		btn.add_theme_font_size_override("font_size", 20)
-		btn.pressed.connect(func(): _on_buy_requested(w.cost, w.path))
-		vbox.add_child(btn)
-		
-	var separator = HSeparator.new()
-	vbox.add_child(separator)
-	
-	for u in utility:
-		var btn = Button.new()
-		btn.text = "%s - $%d" % [u.name, u.cost]
-		btn.add_theme_font_size_override("font_size", 16)
-		btn.pressed.connect(func(): _on_buy_requested(u.cost, u.path))
-		vbox.add_child(btn)
-		
-	var close_btn = Button.new()
-	close_btn.text = "Close"
-	close_btn.pressed.connect(_toggle_buy_menu)
-	vbox.add_child(close_btn)
-	
-	add_child(buy_menu_panel)
-	buy_menu_panel.hide()
-
-func _toggle_buy_menu():
-	if buy_menu_panel.visible:
-		buy_menu_panel.hide()
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	else:
-		buy_menu_panel.show()
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-
-func _on_buy_requested(cost: int, path: String):
-	if not multiplayer.is_server() and not MatchManager.is_offline_solo:
-		rpc_id(1, "request_buy_server", multiplayer.get_unique_id(), cost, path)
-	else:
-		_process_buy(multiplayer.get_unique_id(), cost, path)
-
-@rpc("any_peer", "call_remote", "reliable")
-func request_buy_server(peer_id: int, cost: int, path: String):
-	if multiplayer.is_server():
-		_process_buy(peer_id, cost, path)
-
-func _process_buy(peer_id: int, cost: int, path: String):
-	if PlayerStats.request_buy(peer_id, cost, path):
-		print("Player ", peer_id, " bought ", path)
-		var utility_items = ["item_armor", "item_defuse_kit", "item_frag", "item_smoke"]
-		# Update player weapon immediately if it's a weapon (not utility)
-		if not utility_items.has(path):
-			if get_tree().root.has_node("Level/PlayersContainer/" + str(peer_id)):
-				var p = get_tree().root.get_node("Level/PlayersContainer/" + str(peer_id))
-				if ResourceLoader.exists(path):
-					p.primary_weapon = load(path)
-					p.equip_weapon(p.primary_weapon)
-
-func _process_money():
-	if not multiplayer.has_multiplayer_peer(): return
-	var id = multiplayer.get_unique_id()
-	if PlayerStats.stats.has(id):
-		var m = PlayerStats.stats[id].get("money", 800)
-		money_label.text = "$%d" % m
-
-
-# --- CROSSHAIR ---
-var crosshair_lines: Array[ColorRect] = []
-
-func _setup_crosshair():
-	var center = Control.new()
-	center.set_anchors_preset(Control.PRESET_CENTER)
-	add_child(center)
-	
-	for i in range(4):
-		var line = ColorRect.new()
-		line.color = Color(0.0, 1.0, 0.0, 0.8) # Green crosshair
-		center.add_child(line)
-		crosshair_lines.append(line)

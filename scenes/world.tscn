@@ -1,0 +1,141 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/match/world.gd" id="1_world"]
+[ext_resource type="PackedScene" path="res://scenes/player/bot.tscn" id="1_bot"]
+[ext_resource type="PackedScene" path="res://scenes/ui/main_menu.tscn" id="2_menu"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_A"]
+size = Vector3(8, 2, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_B"]
+size = Vector3(8, 2, 8)
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 20, 0)
+shadow_enabled = true
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+
+[node name="MapGeometry" type="CSGCombiner3D" parent="NavigationRegion3D"]
+use_collision = true
+
+[node name="Ground" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+size = Vector3(100, 1, 100)
+
+[node name="BuildingA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 4, 0)
+size = Vector3(16, 8, 16)
+
+[node name="InteriorA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA"]
+operation = 2
+size = Vector3(15, 7, 15)
+
+[node name="DoorA1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5, 8)
+operation = 2
+size = Vector3(4, 3, 2)
+
+[node name="DoorA2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -2.5, 0)
+operation = 2
+size = Vector3(2, 3, 4)
+
+[node name="BuildingB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 4, 0)
+size = Vector3(16, 8, 16)
+
+[node name="InteriorB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB"]
+operation = 2
+size = Vector3(15, 7, 15)
+
+[node name="DoorB1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5, -8)
+operation = 2
+size = Vector3(4, 3, 2)
+
+[node name="DoorB2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -2.5, 0)
+operation = 2
+size = Vector3(2, 3, 4)
+
+[node name="CenterStructure" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+size = Vector3(10, 6, 10)
+
+[node name="RoofRamp" type="CSGPolygon3D" parent="NavigationRegion3D/MapGeometry/CenterStructure"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 5, -3, -5)
+polygon = PackedVector2Array(0, 0, 0, 6, 10, 0)
+depth = 4.0
+
+[node name="CoverWall1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 15)
+size = Vector3(6, 2, 1)
+
+[node name="CoverWall2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, -15)
+size = Vector3(6, 2, 1)
+
+[node name="Spawns" type="Node3D" parent="."]
+
+[node name="Police" type="Node3D" parent="Spawns"]
+
+[node name="Spawn1" type="Marker3D" parent="Spawns/Police"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, 40)
+
+[node name="Spawn2" type="Marker3D" parent="Spawns/Police"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, 40)
+
+[node name="Spawn3" type="Marker3D" parent="Spawns/Police"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 40)
+
+[node name="Spawn4" type="Marker3D" parent="Spawns/Police"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, 40)
+
+[node name="Spawn5" type="Marker3D" parent="Spawns/Police"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 40)
+
+[node name="Terrorist" type="Node3D" parent="Spawns"]
+
+[node name="Spawn1" type="Marker3D" parent="Spawns/Terrorist"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -40)
+
+[node name="Spawn2" type="Marker3D" parent="Spawns/Terrorist"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, -40)
+
+[node name="Spawn3" type="Marker3D" parent="Spawns/Terrorist"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -40)
+
+[node name="Spawn4" type="Marker3D" parent="Spawns/Terrorist"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, -40)
+
+[node name="Spawn5" type="Marker3D" parent="Spawns/Terrorist"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, -40)
+
+[node name="BombSites" type="Node3D" parent="."]
+
+[node name="SiteA" type="Area3D" parent="BombSites"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1, 0)
+collision_layer = 4
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BombSites/SiteA"]
+shape = SubResource("BoxShape3D_A")
+
+[node name="SiteB" type="Area3D" parent="BombSites"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1, 0)
+collision_layer = 4
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BombSites/SiteB"]
+shape = SubResource("BoxShape3D_B")
+
+[node name="SpectatorCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 45, 45)
+current = true
+fov = 75.0
+
+[node name="MainMenuUI" parent="." instance=ExtResource("2_menu")]

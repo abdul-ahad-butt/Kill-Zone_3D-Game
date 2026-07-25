@@ -7,10 +7,4 @@ class_name WeaponData
 @export var mag_size: int = 30
 @export var reload_time: float = 2.0
 @export var range: float = 100.0
-@export var spread: float = 0.0
-@export var recoil_pattern: Array[Vector2] = []
-@export var pellet_count: int = 1
 @export var model_scene: PackedScene
-
-@export var can_ads: bool = false
-@export var ads_fov: float = 40.0

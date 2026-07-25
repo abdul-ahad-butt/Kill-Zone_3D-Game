@@ -7,13 +7,17 @@ signal player_connected(peer_id: int)
 signal player_disconnected(peer_id: int)
 signal server_disconnected()
 
-var current_peer: MultiplayerPeer = null
+var current_peer: WebSocketMultiplayerPeer = null
+var is_offline: bool = false
+var is_team_mode: bool = true
+var local_player_team: int = 1 # Team.TeamId.POLICE
 
 func _ready():
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 	
+	# Parse command line arguments for headless server mode
 	var args = OS.get_cmdline_args()
 	if "--server" in args or "--headless" in args:
 		print("Starting Dedicated Server automatically...")
@@ -21,55 +25,49 @@ func _ready():
 
 func _process(_delta):
 	# WebSockets require manual polling in Godot 4
-	if current_peer and current_peer is WebSocketMultiplayerPeer:
+	if current_peer:
 		current_peer.poll()
 
+func start_offline(team_mode: bool, faction: int = 1):
+	is_offline = true
+	is_team_mode = team_mode
+	local_player_team = faction
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	print("Started Offline Game. Team mode: ", is_team_mode, " Faction: ", faction)
+	_on_peer_connected(1)
+
 func host_game():
-	var error = OK
-	if OS.has_feature("web"):
-		var peer = WebSocketMultiplayerPeer.new()
-		error = peer.create_server(PORT, "0.0.0.0")
-		current_peer = peer
-	else:
-		var peer = ENetMultiplayerPeer.new()
-		error = peer.create_server(PORT, MAX_CLIENTS)
-		current_peer = peer
+	is_offline = false
+	var peer = WebSocketMultiplayerPeer.new()
+	# Create a server listening on all network interfaces (0.0.0.0)
+	var error = peer.create_server(PORT, "0.0.0.0")
 	
 	if error != OK:
-		print("Failed to host Server: ", error)
+		print("Failed to host WebSocket Server: ", error)
 		return
 		
+	current_peer = peer
 	multiplayer.multiplayer_peer = current_peer
-	print("Hosting Server on port ", PORT)
-	
-	# Emit connected for local player (the server itself)
+	print("Hosting WebSocket Server on port ", PORT)
 	_on_peer_connected(multiplayer.get_unique_id())
-	
-	# When hosting, change the scene to node_3d automatically
-	get_tree().change_scene_to_file("res://node_3d.tscn")
 
 func join_game(ip: String):
-	var error = OK
-	if OS.has_feature("web"):
-		var url = ip
-		if not url.begins_with("ws://") and not url.begins_with("wss://"):
-			url = "ws://" + ip + ":" + str(PORT)
-		var peer = WebSocketMultiplayerPeer.new()
-		error = peer.create_client(url)
-		current_peer = peer
-		print("Joining game via WebSocket at ", url)
-	else:
-		var peer = ENetMultiplayerPeer.new()
-		error = peer.create_client(ip, PORT)
-		current_peer = peer
-		print("Joining game via ENet at ", ip, ":", PORT)
+	is_offline = false
+	# Normalize IP input
+	var url = ip
+	if not url.begins_with("ws://") and not url.begins_with("wss://"):
+		url = "ws://" + ip + ":" + str(PORT)
+		
+	var peer = WebSocketMultiplayerPeer.new()
+	var error = peer.create_client(url)
 	
 	if error != OK:
-		print("Failed to connect: ", error)
+		print("Failed to connect via WebSocket: ", error)
 		return
 		
+	current_peer = peer
 	multiplayer.multiplayer_peer = current_peer
-	get_tree().change_scene_to_file("res://node_3d.tscn")
+	print("Joining game at ", url)
 
 func _on_peer_connected(id: int):
 	print("Player connected: ", id)
@@ -82,4 +80,3 @@ func _on_peer_disconnected(id: int):
 func _on_server_disconnected():
 	print("Disconnected from server")
 	emit_signal("server_disconnected")
-	get_tree().change_scene_to_file("res://main_menu.tscn")

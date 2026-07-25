@@ -15,13 +15,12 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="GodotShooter"
-run/main_scene="res://node_3d.tscn"
+run/main_scene="res://main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
-GraphicsManager="*res://scripts/autoloads/graphics_manager.gd"
 MatchManager="*res://scripts/autoloads/match_manager.gd"
 NetworkManager="*res://scripts/autoloads/network_manager.gd"
 PlayerStats="*res://scripts/autoloads/player_stats.gd"
@@ -88,25 +87,12 @@ switch_weapon_3={
 ]
 }
 
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-
-[importer_defaults]
-
-texture={
-"compress/mode": 3,
-"compress/high_quality": false,
-"compress/lossy_quality": 0.7,
-"compress/normal_map": 0,
-"compress/channel_pack": 0,
-"mipmaps/generate": false,
-"mipmaps/limit": -1,
-"roughness/mode": 0,
-"roughness/src_normal": "",
-"process/fix_alpha_border": true,
-"process/premult_alpha": false,
-"process/size_limit": 0,
-"detect_3d/compress_to": 1
-}
+textures/vram_compression/import_etc2_astc=true

@@ -1,11 +1,14 @@
-[gd_resource type="Resource" script_class="WeaponData" format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_a1b2c"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/rifle_viewmodel.tscn" id="2_mdls"]
 
 [resource]
 script = ExtResource("1_a1b2c")
+model_scene = ExtResource("2_mdls")
 weapon_name = "Assault Rifle"
 damage = 35
+fire_rate = 0.1
+mag_size = 30
+reload_time = 2.0
 range = 150.0
-spread = 0.02
-recoil_pattern = Array[Vector2]([Vector2(0.8, 0.03804197), Vector2(0.8, 0.085372366), Vector2(0.8, 0.016657826), Vector2(0.8, -0.09026026), Vector2(0.8, -0.09851735), Vector2(0.8, -0.0026194034), Vector2(0.8, 0.057223063), Vector2(0.8, -0.0937284), Vector2(0.8, -0.050008073), Vector2(0.8, 0.088638514), Vector2(0.2, 0.6), Vector2(0.2, 0.6), Vector2(0.2, 0.6), Vector2(0.2, 0.6), Vector2(0.2, 0.6), Vector2(0.2, 0.6), Vector2(0.2, 0.6), Vector2(0.2, 0.6), Vector2(0.2, 0.6), Vector2(0.2, 0.6), Vector2(0.1, -0.7), Vector2(0.1, -0.7), Vector2(0.1, -0.7), Vector2(0.1, -0.7), Vector2(0.1, -0.7), Vector2(0.1, -0.7), Vector2(0.1, -0.7), Vector2(0.1, -0.7), Vector2(0.1, -0.7), Vector2(0.1, -0.7)])
