@@ -6,6 +6,7 @@
 [ext_resource type="Material" path="res://resources/materials/brick.tres" id="4_brick"]
 [ext_resource type="Material" path="res://resources/materials/dirt.tres" id="5_dirt"]
 [ext_resource type="Material" path="res://resources/materials/metal.tres" id="6_metal"]
+[ext_resource type="Material" path="res://resources/materials/wood.tres" id="7_wood"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.38, 0.45, 0.55, 1)
@@ -88,14 +89,49 @@ operation = 2
 size = Vector3(2, 3, 3)
 material = ExtResource("3_conc")
 
-[node name="CenterWall1" type="CSGBox3D" parent="MapGeometry" unique_id=62959488]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
-size = Vector3(20, 4, 2)
+[node name="SniperBridge" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+size = Vector3(10, 1, 40)
 material = ExtResource("3_conc")
 
-[node name="CenterWall2" type="CSGBox3D" parent="MapGeometry" unique_id=1647228585]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -10)
-size = Vector3(2, 4, 15)
+[node name="BridgeRampPolice" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 0.866025, -0.5, 0, 0.5, 0.866025, 0, 2.5, 24)
+size = Vector3(10, 1, 10)
+material = ExtResource("3_conc")
+
+[node name="BridgeRampTerrorist" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 2.5, -24)
+size = Vector3(10, 1, 10)
+material = ExtResource("3_conc")
+
+[node name="FlankLeft" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 3, 0)
+size = Vector3(10, 6, 80)
+material = ExtResource("4_brick")
+
+[node name="FlankLeft_Inside" type="CSGBox3D" parent="MapGeometry/FlankLeft"]
+operation = 2
+size = Vector3(8, 6, 82)
+material = ExtResource("3_conc")
+
+[node name="FlankRight" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 3, 0)
+size = Vector3(10, 6, 80)
+material = ExtResource("4_brick")
+
+[node name="FlankRight_Inside" type="CSGBox3D" parent="MapGeometry/FlankRight"]
+operation = 2
+size = Vector3(8, 6, 82)
+material = ExtResource("3_conc")
+
+[node name="SpawnWallPolice" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 45)
+size = Vector3(50, 8, 2)
+material = ExtResource("3_conc")
+
+[node name="SpawnWallTerrorist" type="CSGBox3D" parent="MapGeometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -45)
+size = Vector3(50, 8, 2)
 material = ExtResource("3_conc")
 
 [node name="BombSiteA" type="Area3D" parent="." unique_id=1399124466 instance=ExtResource("1_bsite")]
@@ -148,4 +184,49 @@ material = ExtResource("6_metal")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2.1, -20)
 use_collision = true
 size = Vector3(1, 1.2, 4)
+material = ExtResource("6_metal")
+
+[node name="CrateMid1" type="CSGBox3D" parent="."]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, -5, 2, 0)
+use_collision = true
+size = Vector3(2, 2, 2)
+material = ExtResource("7_wood")
+
+[node name="CrateMid2" type="CSGBox3D" parent="."]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 5, 2, 5)
+use_collision = true
+size = Vector3(2, 2, 2)
+material = ExtResource("7_wood")
+
+[node name="CrateA1" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 2, -15)
+use_collision = true
+size = Vector3(2.5, 2, 2.5)
+material = ExtResource("7_wood")
+
+[node name="CrateB1" type="CSGBox3D" parent="."]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 25, 2, -15)
+use_collision = true
+size = Vector3(2.5, 2, 2.5)
+material = ExtResource("7_wood")
+
+[node name="BarrelA1" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1.5, -22)
+use_collision = true
+radius = 0.5
+height = 1.5
+material = ExtResource("6_metal")
+
+[node name="BarrelA2" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 1.5, -23)
+use_collision = true
+radius = 0.5
+height = 1.5
+material = ExtResource("6_metal")
+
+[node name="BarrelB1" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1.5, -22)
+use_collision = true
+radius = 0.5
+height = 1.5
 material = ExtResource("6_metal")
