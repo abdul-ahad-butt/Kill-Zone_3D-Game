@@ -1,15 +1,19 @@
-[gd_resource type="Resource" script_class="WeaponData" format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_a1b2c"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_wpn"]
+[ext_resource type="PackedScene" path="res://Assets/models/weapons/sniper_viewmodel.tscn" id="2_mdl"]
 
 [resource]
-script = ExtResource("1_a1b2c")
-weapon_name = "Sniper Rifle"
+script = ExtResource("1_wpn")
+weapon_name = "Sniper"
 damage = 100
 fire_rate = 1.5
 mag_size = 5
 reload_time = 3.5
-range = 500.0
-recoil_pattern = Array[Vector2]([Vector2(3, -0.54432887), Vector2(3, -0.3086419), Vector2(3, 0.7889554), Vector2(3, 0.12637417), Vector2(3, -0.19295044), Vector2(3, -0.3251963), Vector2(3, -0.46586815), Vector2(3, 0.91989475), Vector2(3, 0.6934973), Vector2(3, -0.23397481)])
-can_ads = true
-ads_fov = 20.0
+range = 200.0
+recoil_kick = 0.5
+ads_fov = 15.0
+ads_position = Vector3(0, -0.15, -0.4)
+default_position = Vector3(0.3, -0.3, -0.6)
+model_scene = ExtResource("2_mdl")
+has_scope_overlay = true

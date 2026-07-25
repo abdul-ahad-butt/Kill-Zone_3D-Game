@@ -12,3 +12,4 @@ class_name WeaponData
 @export var ads_position: Vector3 = Vector3(0, -0.15, -0.4)
 @export var default_position: Vector3 = Vector3(0.3, -0.3, -0.6)
 @export var model_scene: PackedScene
+@export var has_scope_overlay: bool = false

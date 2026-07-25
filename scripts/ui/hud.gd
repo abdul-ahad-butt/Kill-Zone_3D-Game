@@ -9,12 +9,15 @@ extends CanvasLayer
 @onready var ammo_label = $PlayerStatus/AmmoLabel
 @onready var interact_progress = $InteractProgress
 @onready var crosshair = $Crosshair
+@onready var hit_marker = $HitMarker
+@onready var kill_feed = $KillFeed
 
 var _round_tween: Tween
 var _bomb_tween: Tween
 var _banner_tween: Tween
 
 func _ready():
+	add_to_group("hud")
 	MatchManager.round_timer_updated.connect(_on_round_timer_updated)
 	MatchManager.bomb_timer_updated.connect(_on_bomb_timer_updated)
 	MatchManager.score_updated.connect(_on_score_updated)
@@ -68,6 +71,35 @@ func show_interact_progress(progress: float, text: String):
 
 func hide_interact_progress():
 	if interact_progress: interact_progress.hide()
+
+func show_hit_marker():
+	if hit_marker:
+		hit_marker.modulate.a = 1.0
+		var tween = create_tween()
+		tween.tween_property(hit_marker, "modulate:a", 0.0, 0.3)
+
+func add_kill_feed(text: String):
+	if kill_feed:
+		var lbl = Label.new()
+		lbl.text = text
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		lbl.add_theme_font_size_override("font_size", 18)
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0,0,0,0.4)
+		style.content_margin_left = 5
+		style.content_margin_right = 5
+		lbl.add_theme_stylebox_override("normal", style)
+		kill_feed.add_child(lbl)
+		var tween = create_tween()
+		tween.tween_interval(5.0)
+		tween.tween_property(lbl, "modulate:a", 0.0, 1.0)
+		tween.tween_callback(lbl.queue_free)
+
+func show_scope(show: bool):
+	var scope = get_node_or_null("ScopeOverlay")
+	if scope:
+		scope.visible = show
+		if crosshair: crosshair.visible = not show
 
 func _setup_mobile_ui():
 	if not DisplayServer.is_touchscreen_available() and not ProjectSettings.get_setting("input_devices/pointing/emulate_touch_from_mouse"):

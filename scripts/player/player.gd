@@ -74,6 +74,81 @@ func _rotate_camera(relative: Vector2):
 	camera.rotate_x(-relative.y * 0.005)
 	camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
 
+var is_interacting = false
+var interact_timer = 0.0
+
+func _process(delta):
+	if not is_multiplayer_authority(): return
+	if MatchManager.current_state != MatchManager.MatchState.LIVE: return
+	
+	if Input.is_action_pressed("interact"):
+		_handle_interaction(delta)
+	elif is_interacting:
+		_cancel_interaction()
+
+func _handle_interaction(delta):
+	if velocity.length() > 0.1 or health <= 0:
+		_cancel_interaction()
+		return
+		
+	if team == Team.TeamId.TERRORIST and not MatchManager.is_bomb_planted:
+		var siteA = get_node_or_null("/root/World/BombSites/SiteA")
+		var siteB = get_node_or_null("/root/World/BombSites/SiteB")
+		var in_site = false
+		if siteA and global_position.distance_to(siteA.global_position) < 8.0: in_site = true
+		if siteB and global_position.distance_to(siteB.global_position) < 8.0: in_site = true
+		
+		if in_site:
+			is_interacting = true
+			interact_timer += delta
+			if get_node_or_null("HUD"): get_node("HUD").show_interact_progress(interact_timer / 3.5, "Planting Bomb...")
+			
+			if interact_timer >= 3.5:
+				_finish_plant()
+				
+	elif team == Team.TeamId.POLICE and MatchManager.is_bomb_planted:
+		var bomb = get_tree().get_first_node_in_group("bomb")
+		if bomb and global_position.distance_to(bomb.global_position) < 3.0:
+			is_interacting = true
+			interact_timer += delta
+			if get_node_or_null("HUD"): get_node("HUD").show_interact_progress(interact_timer / 5.0, "Defusing Bomb...")
+			
+			if interact_timer >= 5.0:
+				_finish_defuse()
+
+func _cancel_interaction():
+	is_interacting = false
+	interact_timer = 0.0
+	if get_node_or_null("HUD"): get_node("HUD").hide_interact_progress()
+
+func _finish_plant():
+	_cancel_interaction()
+	rpc_id(1, "server_plant_bomb", global_position)
+
+func _finish_defuse():
+	_cancel_interaction()
+	rpc_id(1, "server_defuse_bomb")
+
+@rpc("any_peer", "call_local", "reliable")
+func server_plant_bomb(pos: Vector3):
+	if not multiplayer.is_server(): return
+	var sender = multiplayer.get_remote_sender_id()
+	if sender != get_multiplayer_authority(): return
+	
+	if not MatchManager.is_bomb_planted:
+		MatchManager.plant_bomb()
+		var b_scene = load("res://bomb.tscn")
+		var b = b_scene.instantiate()
+		b.add_to_group("bomb")
+		b.global_position = pos
+		get_node("/root/World").add_child(b)
+
+@rpc("any_peer", "call_local", "reliable")
+func server_defuse_bomb():
+	if not multiplayer.is_server(): return
+	if MatchManager.is_bomb_planted:
+		MatchManager.defuse_bomb()
+
 func _physics_process(delta):
 	if not is_multiplayer_authority(): return
 
@@ -216,6 +291,11 @@ func request_fire(origin: Vector3, direction: Vector3):
 		var target = result.collider
 		if target.has_method("take_damage"):
 			target.take_damage(current_weapon.damage, team, get_multiplayer_authority())
+			rpc_id(multiplayer.get_remote_sender_id(), "client_hit_marker")
+
+@rpc("authority", "call_local", "unreliable")
+func client_hit_marker():
+	if get_node_or_null("HUD"): get_node("HUD").show_hit_marker()
 
 func _on_weapon_timer_timeout():
 	can_fire = true
@@ -242,12 +322,26 @@ func die(attacker_id: int):
 	
 	PlayerStats.record_kill_event(attacker_id, name.to_int(), current_weapon.weapon_name if current_weapon else "Unknown")
 	
+	var attacker_name = "Player " + str(attacker_id)
+	if PlayerStats.stats.has(attacker_id):
+		attacker_name = PlayerStats.stats[attacker_id]["name"]
+		
+	var victim_name = "Player " + name
+	if PlayerStats.stats.has(name.to_int()):
+		victim_name = PlayerStats.stats[name.to_int()]["name"]
+		
+	var wpn_name = current_weapon.weapon_name if current_weapon else "Unknown"
+	var kill_text = "%s eliminated %s [%s]" % [attacker_name, victim_name, wpn_name]
+	
 	if has_bomb:
 		pass # Logic to drop bomb
 	
-	rpc("sync_death")
+	rpc("sync_death", kill_text)
 	queue_free()
 
 @rpc("authority", "call_remote", "reliable")
-func sync_death():
+func sync_death(kill_text: String = ""):
+	var hud = get_tree().get_first_node_in_group("hud")
+	if hud and kill_text != "":
+		hud.add_kill_feed(kill_text)
 	queue_free()
