@@ -32,7 +32,9 @@ func _physics_process(delta):
 	
 	update_timer -= delta
 	if update_timer <= 0:
-		update_timer = 0.5 # Update logic twice a second
+		if MatchManager.bot_difficulty == 0: update_timer = 1.0
+		elif MatchManager.bot_difficulty == 2: update_timer = 0.2
+		else: update_timer = 0.5
 		_update_bot_brain()
 		
 	var enemy_visible = is_instance_valid(target_enemy) and target_enemy.health > 0 and _has_line_of_sight(target_enemy)
@@ -49,11 +51,16 @@ func _physics_process(delta):
 		# Look at target with smoothing (Reaction time / human aiming)
 		var look_dir = to_target.normalized()
 		var target_yaw = atan2(look_dir.x, look_dir.z)
-		player.rotation.y = lerp_angle(player.rotation.y, target_yaw, delta * 12.0)
+		
+		var aim_speed = 12.0
+		if MatchManager.bot_difficulty == 0: aim_speed = 5.0
+		elif MatchManager.bot_difficulty == 2: aim_speed = 30.0
+		
+		player.rotation.y = lerp_angle(player.rotation.y, target_yaw, delta * aim_speed)
 		
 		if player.camera:
 			var target_pitch = asin(look_dir.y)
-			player.camera.rotation.x = lerp_angle(player.camera.rotation.x, target_pitch, delta * 15.0)
+			player.camera.rotation.x = lerp_angle(player.camera.rotation.x, target_pitch, delta * (aim_speed * 1.25))
 			
 		if dist < 40.0:
 			player.bot_wants_fire = true

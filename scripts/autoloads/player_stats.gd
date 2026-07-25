@@ -17,7 +17,7 @@ func register_player(peer_id: int, player_name: String, team: Team.TeamId, weapo
 			"name": player_name,
 			"team": team,
 			"weapon_path": weapon_path,
-			"money": 800,
+			"money": MatchManager.starting_money,
 			"has_armor": false,
 			"has_defuse_kit": false,
 			"grenade_count": 1,

@@ -26,6 +26,8 @@ var match_size: MatchSize = MatchSize.SOLO
 var solo_faction: Team.TeamId = Team.TeamId.NONE
 var solo_primary_weapon: Resource
 
+var bot_difficulty: int = 1 # 0: Easy, 1: Normal, 2: Hard
+var starting_money: int = 800
 
 var freeze_time: float = 5.0
 var round_time: float = 120.0

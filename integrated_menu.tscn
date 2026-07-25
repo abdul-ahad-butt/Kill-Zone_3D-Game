@@ -86,10 +86,89 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -250.0
-offset_top = -150.0
+offset_top = -200.0
 offset_right = 250.0
-offset_bottom = -50.0
+offset_bottom = -100.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_font_sizes/font_size = 48
 text = "START GAME"
+
+[node name="SettingsBtn" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -160.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 70.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 24
+text = "⚙ Settings"
+
+[node name="SettingsPanel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="SettingsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Match Settings"
+horizontal_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="SettingsPanel/VBox"]
+layout_mode = 2
+text = "Round Time: 120s"
+
+[node name="TimeSlider" type="HSlider" parent="SettingsPanel/VBox"]
+layout_mode = 2
+min_value = 60.0
+max_value = 300.0
+step = 30.0
+value = 120.0
+
+[node name="MoneyLabel" type="Label" parent="SettingsPanel/VBox"]
+layout_mode = 2
+text = "Starting Money: $800"
+
+[node name="MoneySlider" type="HSlider" parent="SettingsPanel/VBox"]
+layout_mode = 2
+min_value = 800.0
+max_value = 16000.0
+step = 100.0
+value = 800.0
+
+[node name="DiffLabel" type="Label" parent="SettingsPanel/VBox"]
+layout_mode = 2
+text = "Bot Difficulty"
+
+[node name="DiffOption" type="OptionButton" parent="SettingsPanel/VBox"]
+layout_mode = 2
+item_count = 3
+selected = 1
+popup/item_0/text = "Easy"
+popup/item_0/id = 0
+popup/item_1/text = "Normal"
+popup/item_1/id = 1
+popup/item_2/text = "Hard"
+popup/item_2/id = 2
+
+[node name="CloseBtn" type="Button" parent="SettingsPanel/VBox"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Save & Close"

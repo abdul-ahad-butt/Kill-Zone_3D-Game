@@ -19,6 +19,28 @@ func _ready():
 	$FactionSelect/TerroristBtn.pressed.connect(func(): _on_faction_selected(Team.TeamId.TERRORIST))
 	
 	start_btn.pressed.connect(_on_start_pressed)
+	
+	$SettingsBtn.pressed.connect(func(): $SettingsPanel.show())
+	$SettingsPanel/VBox/CloseBtn.pressed.connect(func(): $SettingsPanel.hide())
+	
+	$SettingsPanel/VBox/TimeSlider.value_changed.connect(_on_time_changed)
+	$SettingsPanel/VBox/MoneySlider.value_changed.connect(_on_money_changed)
+	$SettingsPanel/VBox/DiffOption.item_selected.connect(_on_diff_selected)
+	
+	_on_time_changed($SettingsPanel/VBox/TimeSlider.value)
+	_on_money_changed($SettingsPanel/VBox/MoneySlider.value)
+	_on_diff_selected($SettingsPanel/VBox/DiffOption.selected)
+
+func _on_time_changed(val: float):
+	MatchManager.round_time = val
+	$SettingsPanel/VBox/TimeLabel.text = "Round Time: " + str(val) + "s"
+
+func _on_money_changed(val: float):
+	MatchManager.starting_money = int(val)
+	$SettingsPanel/VBox/MoneyLabel.text = "Starting Money: $" + str(val)
+
+func _on_diff_selected(idx: int):
+	MatchManager.bot_difficulty = idx
 
 func _on_mode_selected(mode: MatchManager.MatchSize):
 	selected_mode = mode
