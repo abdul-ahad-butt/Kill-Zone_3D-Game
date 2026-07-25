@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/ui/loadout_ui.gd" id="1_ldout"]
 [ext_resource type="Resource" path="res://resources/weapon_data/Rifle.tres" id="2_rifle"]
 [ext_resource type="Resource" path="res://resources/weapon_data/SMG.tres" id="3_smg"]
+[ext_resource type="Resource" path="res://resources/weapon_data/Sniper.tres" id="4_sniper"]
+[ext_resource type="Resource" path="res://resources/weapon_data/Shotgun.tres" id="5_shotgun"]
 
 [node name="LoadoutUI" type="Control"]
 layout_mode = 3
@@ -14,6 +16,8 @@ grow_vertical = 2
 script = ExtResource("1_ldout")
 rifle_data = ExtResource("2_rifle")
 smg_data = ExtResource("3_smg")
+sniper_data = ExtResource("4_sniper")
+shotgun_data = ExtResource("5_shotgun")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1
@@ -22,9 +26,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -250.0
+offset_left = -350.0
 offset_top = -100.0
-offset_right = 250.0
+offset_right = 350.0
 offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -48,9 +52,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
+offset_left = -280.0
 offset_top = -25.0
-offset_right = 150.0
+offset_right = 280.0
 offset_bottom = 25.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -65,3 +69,13 @@ text = "Rifle + Pistol"
 custom_minimum_size = Vector2(130, 50)
 layout_mode = 2
 text = "SMG + Pistol"
+
+[node name="SniperButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(130, 50)
+layout_mode = 2
+text = "Sniper + Pistol"
+
+[node name="ShotgunButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(130, 50)
+layout_mode = 2
+text = "Shotgun + Pistol"

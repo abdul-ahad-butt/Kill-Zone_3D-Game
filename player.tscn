@@ -42,3 +42,15 @@ avoidance_enabled = true
 stream = ExtResource("2_onrkg")
 attenuation_model = 2
 max_distance = 25.0
+
+[node name="JumpAudio" type="AudioStreamPlayer3D" parent="."]
+attenuation_model = 2
+max_distance = 25.0
+
+[node name="DamageAudio" type="AudioStreamPlayer3D" parent="."]
+attenuation_model = 2
+max_distance = 25.0
+
+[node name="ReloadAudio" type="AudioStreamPlayer3D" parent="Camera3D/WeaponModel"]
+attenuation_model = 2
+max_distance = 25.0

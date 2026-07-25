@@ -1,0 +1,89 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/mobile_controls.gd" id="1_mctrl"]
+
+[node name="MobileControls" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mctrl")
+
+[node name="JoystickBase" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 200.0
+offset_bottom = 200.0
+color = Color(0, 0, 0, 0.4)
+
+[node name="Stick" type="ColorRect" parent="JoystickBase"]
+layout_mode = 0
+offset_left = 75.0
+offset_top = 75.0
+offset_right = 125.0
+offset_bottom = 125.0
+color = Color(1, 1, 1, 0.8)
+
+[node name="FireBtn" type="TouchScreenButton" parent="."]
+position = Vector2(900, 400)
+scale = Vector2(80, 80)
+action = "fire"
+
+[node name="FireColor" type="ColorRect" parent="FireBtn"]
+offset_right = 1.0
+offset_bottom = 1.0
+color = Color(1, 0, 0, 0.5)
+
+[node name="Label" type="Label" parent="FireBtn/FireColor"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "FIRE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="JumpBtn" type="TouchScreenButton" parent="."]
+position = Vector2(800, 500)
+scale = Vector2(80, 80)
+action = "jump"
+
+[node name="JumpColor" type="ColorRect" parent="JumpBtn"]
+offset_right = 1.0
+offset_bottom = 1.0
+color = Color(0, 0, 1, 0.5)
+
+[node name="Label" type="Label" parent="JumpBtn/JumpColor"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "JUMP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReloadBtn" type="TouchScreenButton" parent="."]
+position = Vector2(700, 400)
+scale = Vector2(80, 80)
+action = "reload"
+
+[node name="ReloadColor" type="ColorRect" parent="ReloadBtn"]
+offset_right = 1.0
+offset_bottom = 1.0
+color = Color(1, 1, 0, 0.5)
+
+[node name="Label" type="Label" parent="ReloadBtn/ReloadColor"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "R"
+horizontal_alignment = 1
+vertical_alignment = 1

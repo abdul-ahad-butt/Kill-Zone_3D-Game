@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scoreboard.tscn" id="2_score"]
 [ext_resource type="PackedScene" path="res://kill_feed.tscn" id="3_killf"]
 [ext_resource type="PackedScene" path="res://loadout_ui.tscn" id="4_load"]
+[ext_resource type="PackedScene" path="res://mobile_controls.tscn" id="5_mctrl"]
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_a2b3c")
 
@@ -111,6 +112,8 @@ grow_vertical = 2
 [node name="KillFeed" parent="." instance=ExtResource("3_killf")]
 
 [node name="LoadoutUI" parent="." instance=ExtResource("4_load")]
+
+[node name="MobileControls" parent="." instance=ExtResource("5_mctrl")]
 
 [node name="DeathScreen" type="ColorRect" parent="."]
 visible = false
