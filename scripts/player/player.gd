@@ -45,6 +45,12 @@ var hud_instance: CanvasLayer
 var touch_scene = preload("res://touch_controls.tscn")
 var touch_instance: CanvasLayer
 
+# Head bobbing parameters
+const BOB_FREQ = 2.0
+const BOB_AMP = 0.08
+var t_bob = 0.0
+const CAMERA_BASE_Y = 0.6
+
 func _enter_tree():
 	add_to_group("Players")
 	set_multiplayer_authority(name.to_int())
@@ -131,6 +137,17 @@ func _physics_process(delta):
 		velocity.z = move_toward(velocity.z, 0, SPEED)
 
 	move_and_slide()
+	
+	# Headbob logic
+	if is_on_floor() and velocity.length() > 0.5:
+		t_bob += delta * velocity.length()
+		var pos = Vector3.ZERO
+		pos.y = sin(t_bob * BOB_FREQ) * BOB_AMP + CAMERA_BASE_Y
+		pos.x = cos(t_bob * BOB_FREQ / 2.0) * BOB_AMP
+		camera.position = camera.position.lerp(pos, delta * 10.0)
+	else:
+		t_bob = 0.0
+		camera.position = camera.position.lerp(Vector3(0, CAMERA_BASE_Y, 0), delta * 10.0)
 
 	# Bomb interactions
 	var bomb_progress = 0.0
@@ -232,10 +249,18 @@ func fire_weapon():
 		var target = raycast.get_collider()
 		# We could show impact particles here
 	
+	var base_dir = -camera.global_transform.basis.z * current_weapon.range
+	var directions = []
+	for i in range(current_weapon.pellet_count):
+		var spread_x = randf_range(-current_weapon.spread, current_weapon.spread)
+		var spread_y = randf_range(-current_weapon.spread, current_weapon.spread)
+		var spread_dir = (base_dir + camera.global_transform.basis.x * spread_x * current_weapon.range + camera.global_transform.basis.y * spread_y * current_weapon.range)
+		directions.append(spread_dir)
+	
 	if MatchManager.is_offline_solo:
-		request_fire(camera.global_transform.origin, -camera.global_transform.basis.z * current_weapon.range)
+		request_fire(camera.global_transform.origin, directions)
 	else:
-		rpc_id(1, "request_fire", camera.global_transform.origin, -camera.global_transform.basis.z * current_weapon.range)
+		rpc_id(1, "request_fire", camera.global_transform.origin, directions)
 		rpc("sync_shoot_effects")
 
 @rpc("any_peer", "call_remote", "unreliable")
@@ -249,19 +274,30 @@ func sync_shoot_effects():
 		fire_sound.play()
 
 @rpc("any_peer", "call_local", "reliable")
-func request_fire(origin: Vector3, direction: Vector3):
+func request_fire(origin: Vector3, directions: Array):
 	if not MatchManager.is_offline_solo and not multiplayer.is_server(): return
 	if not MatchManager.is_offline_solo and multiplayer.get_remote_sender_id() != get_multiplayer_authority(): return
 	
 	var space_state = get_world_3d().direct_space_state
-	var query = PhysicsRayQueryParameters3D.create(origin, origin + direction)
-	query.exclude = [self]
-	
-	var result = space_state.intersect_ray(query)
-	if result:
-		var target = result.collider
-		if target.has_method("take_damage"):
-			target.take_damage(current_weapon.damage, team, get_multiplayer_authority())
+	for dir in directions:
+		var query = PhysicsRayQueryParameters3D.create(origin, origin + dir)
+		query.exclude = [self]
+		
+		var result = space_state.intersect_ray(query)
+		if result:
+			var target = result.collider
+			if target.has_method("take_damage"):
+				var did_hit = target.take_damage(current_weapon.damage, team, get_multiplayer_authority())
+				if did_hit:
+					if MatchManager.is_offline_solo:
+						show_hitmarker()
+					else:
+						rpc_id(get_multiplayer_authority(), "show_hitmarker")
+
+@rpc("authority", "call_local", "unreliable")
+func show_hitmarker():
+	if hud_instance and hud_instance.has_method("show_hitmarker"):
+		hud_instance.show_hitmarker()
 
 func _on_weapon_timer_timeout():
 	can_fire = true
@@ -283,15 +319,17 @@ func _update_hud(is_interacting: bool = false, bomb_progress: float = 0.0):
 			else:
 				bomb_progress_bar.hide()
 
-func take_damage(amount: int, attacker_team: Team.TeamId, attacker_id: int = 1):
-	if not multiplayer.is_server(): return
-	if attacker_team == team: return
+func take_damage(amount: int, attacker_team: Team.TeamId, attacker_id: int = 1) -> bool:
+	if not multiplayer.is_server(): return false
+	if attacker_team == team: return false
 		
 	health -= amount
 	rpc("sync_health", health)
 	
 	if health <= 0:
 		die(attacker_id)
+		
+	return true
 
 @rpc("authority", "call_local", "reliable")
 func sync_health(new_health: int):

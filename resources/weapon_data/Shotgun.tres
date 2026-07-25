@@ -10,3 +10,5 @@ fire_rate = 0.8
 mag_size = 8
 reload_time = 2.5
 range = 15.0
+spread = 0.15
+pellet_count = 8

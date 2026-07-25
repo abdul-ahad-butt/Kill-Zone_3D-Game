@@ -26,6 +26,7 @@ func _ready() -> void:
 	
 	_setup_scoreboard()
 	_setup_killfeed()
+	_setup_hitmarker()
 	
 	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
 	var active_sites = "A, B" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "A, B, C, D"
@@ -218,3 +219,38 @@ func _on_player_killed(killer: String, victim: String, weapon: String):
 	var t = create_tween()
 	t.tween_property(pc, "modulate:a", 0.0, 3.0).set_delay(3.0)
 	t.tween_callback(pc.queue_free)
+
+# --- HITMARKER ---
+var hitmarker_texture: TextureRect
+var _hitmarker_tween: Tween
+
+func _setup_hitmarker():
+	# Simple crosshair X by creating a custom texture or just using a label
+	hitmarker_texture = TextureRect.new()
+	var label = Label.new()
+	label.text = "X"
+	label.add_theme_font_size_override("font_size", 24)
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
+	hitmarker_texture.set_anchors_preset(Control.PRESET_CENTER)
+	hitmarker_texture.add_child(label)
+	# Center the label relative to the screen center
+	label.set_anchors_preset(Control.PRESET_CENTER)
+	label.position = Vector2(-8, -14) # Offset slightly to center the X
+	
+	add_child(hitmarker_texture)
+	hitmarker_texture.modulate.a = 0.0
+	
+func show_hitmarker():
+	if _hitmarker_tween and _hitmarker_tween.is_running():
+		_hitmarker_tween.kill()
+		
+	hitmarker_texture.modulate.a = 1.0
+	hitmarker_texture.scale = Vector2(0.5, 0.5)
+	
+	_hitmarker_tween = create_tween()
+	_hitmarker_tween.set_parallel(true)
+	_hitmarker_tween.tween_property(hitmarker_texture, "scale", Vector2.ONE, 0.1)
+	_hitmarker_tween.chain().tween_property(hitmarker_texture, "modulate:a", 0.0, 0.2)
