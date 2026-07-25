@@ -16,6 +16,15 @@ extends Control
 @onready var ms_5v5_btn = $MatchSizeSelect/FiveVFiveButton
 
 var selected_faction: Team.TeamId = Team.TeamId.NONE
+var selected_weapon: Resource = null
+var weapon_box: HBoxContainer
+var rifle_btn: Button
+var smg_btn: Button
+
+var dummy_audio: AudioStreamPlayer
+
+var rifle_data = preload("res://resources/weapon_data/Rifle.tres")
+var smg_data = preload("res://resources/weapon_data/SMG.tres")
 
 func _ready() -> void:
 	print("MainMenu ready")
@@ -41,37 +50,99 @@ func _ready() -> void:
 	start_btn.pressed.connect(_on_start_pressed)
 	back_btn.pressed.connect(_on_back_pressed)
 
+	# Build Weapon Select UI dynamically
+	weapon_box = HBoxContainer.new()
+	weapon_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	weapon_box.add_theme_constant_override("separation", 20)
+	weapon_box.hide()
+	
+	rifle_btn = Button.new()
+	rifle_btn.text = "Rifle + Pistol"
+	rifle_btn.custom_minimum_size = Vector2(180, 60)
+	rifle_btn.add_theme_font_size_override("font_size", 20)
+	rifle_btn.pressed.connect(func(): _on_weapon_selected(rifle_data))
+	
+	smg_btn = Button.new()
+	smg_btn.text = "SMG + Pistol"
+	smg_btn.custom_minimum_size = Vector2(180, 60)
+	smg_btn.add_theme_font_size_override("font_size", 20)
+	smg_btn.pressed.connect(func(): _on_weapon_selected(smg_data))
+	
+	weapon_box.add_child(rifle_btn)
+	weapon_box.add_child(smg_btn)
+	
+	# Add it above the start button
+	var start_idx = start_btn.get_index()
+	faction_select.add_child(weapon_box)
+	faction_select.move_child(weapon_box, start_idx)
+
+	# Build AudioContext Fixer
+	dummy_audio = AudioStreamPlayer.new()
+	add_child(dummy_audio)
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		_unlock_audio()
+
+func _unlock_audio():
+	if dummy_audio and not dummy_audio.playing:
+		# Just play empty stream or nothing to unlock AudioContext
+		dummy_audio.play()
+
 func _on_solo_pressed() -> void:
-	print("Mode selected: Play Solo")
+	print("Menu flow: Mode selected -> Play Solo (OFFLINE)")
 	MatchManager.is_offline_solo = true
 	mode_select.hide()
 	match_size_select.show()
 
 func _on_multiplayer_pressed() -> void:
-	print("Mode selected: Multiplayer")
+	print("Menu flow: Mode selected -> Multiplayer")
 	network_lbl.show()
 	solo_btn.hide()
 	multi_btn.hide()
 
 func _on_match_size_pressed(ms: MatchManager.MatchSize) -> void:
 	MatchManager.match_size = ms
-	print("Match Size selected: ", "SOLO" if ms == MatchManager.MatchSize.SOLO else "5v5")
+	print("Menu flow: Match Size selected -> ", "SOLO (OFFLINE)" if ms == MatchManager.MatchSize.SOLO else "5v5 TEAM MATCH (OFFLINE)")
 	match_size_select.hide()
 	faction_select.show()
 	selected_faction = Team.TeamId.NONE
+	selected_weapon = null
 	start_btn.disabled = true
+	weapon_box.hide()
 	_update_faction_buttons()
 
 func _on_faction_pressed(faction: Team.TeamId) -> void:
 	var f_name = "POLICE" if faction == Team.TeamId.POLICE else "TERRORIST"
-	print("Faction button pressed: ", f_name)
+	print("Menu flow: Faction chosen -> ", f_name)
 	selected_faction = faction
-	start_btn.disabled = false
+	selected_weapon = null
+	start_btn.disabled = true
 	_update_faction_buttons()
+	
+	if faction == Team.TeamId.POLICE:
+		print("Menu flow: Police auto-equipped with Rifle + Pistol")
+		_on_weapon_selected(rifle_data)
+		weapon_box.hide()
+	else:
+		weapon_box.show()
+		_update_weapon_buttons()
+
+func _on_weapon_selected(weapon: Resource) -> void:
+	selected_weapon = weapon
+	start_btn.disabled = false
+	if selected_faction == Team.TeamId.TERRORIST:
+		var w_name = "Rifle" if weapon == rifle_data else "SMG"
+		print("Menu flow: Weapon chosen -> ", w_name)
+	_update_weapon_buttons()
 
 func _update_faction_buttons() -> void:
 	police_btn.add_theme_color_override("font_color", Color.GREEN if selected_faction == Team.TeamId.POLICE else Color.WHITE)
 	terrorist_btn.add_theme_color_override("font_color", Color.GREEN if selected_faction == Team.TeamId.TERRORIST else Color.WHITE)
+
+func _update_weapon_buttons() -> void:
+	rifle_btn.add_theme_color_override("font_color", Color.GREEN if selected_weapon == rifle_data else Color.WHITE)
+	smg_btn.add_theme_color_override("font_color", Color.GREEN if selected_weapon == smg_data else Color.WHITE)
 
 func _on_back_pressed() -> void:
 	faction_select.hide()
@@ -79,6 +150,7 @@ func _on_back_pressed() -> void:
 	mode_select.show()
 
 func _on_start_pressed() -> void:
-	print("Start Game pressed with faction: ", selected_faction)
+	print("Menu flow: Start Game pressed with Faction ", selected_faction, " and Weapon ", selected_weapon.resource_path.get_file())
 	MatchManager.solo_faction = selected_faction
+	MatchManager.solo_primary_weapon = selected_weapon
 	get_tree().change_scene_to_file("res://node_3d.tscn")

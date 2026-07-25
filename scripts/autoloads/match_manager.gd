@@ -24,6 +24,8 @@ enum MatchSize {
 var is_offline_solo: bool = false
 var match_size: MatchSize = MatchSize.SOLO
 var solo_faction: Team.TeamId = Team.TeamId.NONE
+var solo_primary_weapon: Resource
+
 
 var freeze_time: float = 5.0
 var round_time: float = 120.0

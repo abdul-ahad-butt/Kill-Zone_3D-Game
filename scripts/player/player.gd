@@ -13,6 +13,11 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 var current_weapon: WeaponData
 var current_ammo: int = 0
 
+var is_bot: bool = false
+var bot_input_dir: Vector2 = Vector2.ZERO
+var bot_wants_fire: bool = false
+var bot_wants_reload: bool = false
+
 var can_fire: bool = true
 var is_reloading: bool = false
 var has_bomb: bool = false
@@ -38,6 +43,7 @@ var touch_scene = preload("res://touch_controls.tscn")
 var touch_instance: CanvasLayer
 
 func _enter_tree():
+	add_to_group("Players")
 	set_multiplayer_authority(name.to_int())
 
 func _ready():
@@ -69,6 +75,8 @@ func _ready():
 func _input(event):
 	if not is_multiplayer_authority(): return
 	
+	if not is_multiplayer_authority() or is_bot: return
+	
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_rotate_camera(event.relative)
 	elif event is InputEventScreenDrag and OS.has_feature("mobile"):
@@ -96,7 +104,12 @@ func _physics_process(delta):
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 
-	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	var input_dir = Vector2.ZERO
+	if not is_bot:
+		input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	else:
+		input_dir = bot_input_dir
+		
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
 		velocity.x = direction.x * SPEED
@@ -152,19 +165,22 @@ func _physics_process(delta):
 			current_defuse_time = 0.0
 			print("Bomb interaction canceled.")
 
-	if Input.is_action_pressed("fire") and can_fire and not is_reloading and current_weapon and not is_interacting:
+	var wants_fire = bot_wants_fire if is_bot else Input.is_action_pressed("fire")
+	if wants_fire and can_fire and not is_reloading and current_weapon and not is_interacting:
 		if current_ammo > 0:
 			fire_weapon()
 		else:
 			reload_weapon()
 			
-	if Input.is_action_just_pressed("reload") and not is_reloading and not is_interacting:
+	var wants_reload = bot_wants_reload if is_bot else Input.is_action_just_pressed("reload")
+	if wants_reload and not is_reloading and not is_interacting:
 		reload_weapon()
 		
-	if Input.is_action_just_pressed("switch_weapon_1") and primary_weapon:
-		equip_weapon(primary_weapon)
-	elif Input.is_action_just_pressed("switch_weapon_2") and secondary_weapon:
-		equip_weapon(secondary_weapon)
+	if not is_bot:
+		if Input.is_action_just_pressed("switch_weapon_1") and primary_weapon:
+			equip_weapon(primary_weapon)
+		elif Input.is_action_just_pressed("switch_weapon_2") and secondary_weapon:
+			equip_weapon(secondary_weapon)
 		
 	_update_hud(is_interacting, bomb_progress)
 
