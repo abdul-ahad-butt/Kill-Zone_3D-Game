@@ -114,7 +114,7 @@ func _process(delta):
 	if not is_multiplayer_authority(): return
 	if MatchManager.current_state != MatchManager.MatchState.LIVE: return
 	
-	if Input.is_action_pressed("interact"):
+	if Input.is_action_pressed("use"):
 		_handle_interaction(delta)
 	elif is_interacting:
 		_cancel_interaction()

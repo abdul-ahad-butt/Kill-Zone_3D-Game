@@ -162,8 +162,8 @@ func _setup_mobile_ui():
 	interact_btn.custom_minimum_size = Vector2(120, 80)
 	interact_btn.position = Vector2(get_viewport().size.x - 380, get_viewport().size.y - 100)
 	interact_btn.add_theme_stylebox_override("normal", btn_style)
-	interact_btn.button_down.connect(func(): Input.action_press("interact"))
-	interact_btn.button_up.connect(func(): Input.action_release("interact"))
+	interact_btn.button_down.connect(func(): Input.action_press("use"))
+	interact_btn.button_up.connect(func(): Input.action_release("use"))
 	add_child(interact_btn)
 
 func _on_round_timer_updated(time_left: int):
