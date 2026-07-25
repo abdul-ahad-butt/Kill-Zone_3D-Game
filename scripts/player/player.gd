@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+signal on_death(id: int, team: Team.TeamId, weapon_path: String)
+
 const SPEED = 5.0
 const JUMP_VELOCITY = 4.5
 
@@ -298,6 +300,7 @@ func sync_health(new_health: int):
 func die(attacker_id: int):
 	if not multiplayer.is_server(): return
 	PlayerStats.record_kill_event(attacker_id, name.to_int(), current_weapon.weapon_name if current_weapon else "Unknown")
+	emit_signal("on_death", name.to_int(), team, primary_weapon.resource_path if primary_weapon else "")
 	rpc("sync_death")
 	queue_free()
 

@@ -20,6 +20,8 @@ var selected_weapon: Resource = null
 var weapon_box: HBoxContainer
 var rifle_btn: Button
 var smg_btn: Button
+var sniper_btn: Button
+var shotgun_btn: Button
 
 var network_box: VBoxContainer
 var host_btn: Button
@@ -33,6 +35,8 @@ var dummy_audio: AudioStreamPlayer
 
 var rifle_data = preload("res://resources/weapon_data/Rifle.tres")
 var smg_data = preload("res://resources/weapon_data/SMG.tres")
+var sniper_data = preload("res://resources/weapon_data/Sniper.tres")
+var shotgun_data = preload("res://resources/weapon_data/Shotgun.tres")
 
 func _ready() -> void:
 	print("MainMenu ready")
@@ -78,6 +82,21 @@ func _ready() -> void:
 	
 	weapon_box.add_child(rifle_btn)
 	weapon_box.add_child(smg_btn)
+	
+	sniper_btn = Button.new()
+	sniper_btn.text = "Sniper + Pistol"
+	sniper_btn.custom_minimum_size = Vector2(180, 60)
+	sniper_btn.add_theme_font_size_override("font_size", 20)
+	sniper_btn.pressed.connect(func(): _on_weapon_selected(sniper_data))
+	
+	shotgun_btn = Button.new()
+	shotgun_btn.text = "Shotgun + Pistol"
+	shotgun_btn.custom_minimum_size = Vector2(180, 60)
+	shotgun_btn.add_theme_font_size_override("font_size", 20)
+	shotgun_btn.pressed.connect(func(): _on_weapon_selected(shotgun_data))
+	
+	weapon_box.add_child(sniper_btn)
+	weapon_box.add_child(shotgun_btn)
 	
 	# Build Network UI dynamically
 	network_box = VBoxContainer.new()
@@ -181,10 +200,14 @@ func _on_faction_pressed(faction: Team.TeamId) -> void:
 	weapon_box.show()
 	if faction == Team.TeamId.POLICE:
 		rifle_btn.show()
+		sniper_btn.show()
 		smg_btn.hide()
+		shotgun_btn.hide()
 	else:
 		rifle_btn.show()
 		smg_btn.show()
+		shotgun_btn.show()
+		sniper_btn.hide()
 	
 	_update_weapon_buttons()
 
@@ -203,6 +226,8 @@ func _update_faction_buttons() -> void:
 func _update_weapon_buttons() -> void:
 	rifle_btn.add_theme_color_override("font_color", Color.GREEN if selected_weapon == rifle_data else Color.WHITE)
 	smg_btn.add_theme_color_override("font_color", Color.GREEN if selected_weapon == smg_data else Color.WHITE)
+	sniper_btn.add_theme_color_override("font_color", Color.GREEN if selected_weapon == sniper_data else Color.WHITE)
+	shotgun_btn.add_theme_color_override("font_color", Color.GREEN if selected_weapon == shotgun_data else Color.WHITE)
 
 func _on_back_pressed() -> void:
 	faction_select.hide()

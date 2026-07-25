@@ -24,6 +24,9 @@ func _ready() -> void:
 	MatchManager.round_state_changed.connect(_on_state_changed)
 	MatchManager.round_ended.connect(_on_round_ended)
 	
+	_setup_scoreboard()
+	_setup_killfeed()
+	
 	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
 	var active_sites = "A, B" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "A, B, C, D"
 	match_info_label.text = "Mode: %s | Active Sites: %s" % [m_size_str, active_sites]
@@ -139,3 +142,79 @@ func _show_banner(text: String, color: Color = Color.WHITE) -> void:
 	_banner_tween.set_parallel(true)
 	_banner_tween.tween_property(banner_label, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_banner_tween.tween_property(banner_label, "modulate:a", 1.0, 0.3)
+
+# --- SCOREBOARD AND KILL FEED ---
+
+var scoreboard_panel: PanelContainer
+var scoreboard_list: VBoxContainer
+var killfeed_box: VBoxContainer
+
+func _setup_scoreboard():
+	scoreboard_panel = PanelContainer.new()
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.7)
+	scoreboard_panel.add_theme_stylebox_override("panel", style)
+	scoreboard_panel.set_anchors_preset(Control.PRESET_CENTER)
+	scoreboard_panel.custom_minimum_size = Vector2(400, 300)
+	scoreboard_panel.hide()
+	
+	scoreboard_list = VBoxContainer.new()
+	scoreboard_panel.add_child(scoreboard_list)
+	add_child(scoreboard_panel)
+	
+	PlayerStats.stats_updated.connect(_update_scoreboard)
+
+func _update_scoreboard():
+	for child in scoreboard_list.get_children():
+		child.queue_free()
+		
+	var header = Label.new()
+	header.text = "SCOREBOARD"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	scoreboard_list.add_child(header)
+	
+	for peer_id in PlayerStats.stats:
+		var p = PlayerStats.stats[peer_id]
+		var team_name = "POLICE" if p.team == Team.TeamId.POLICE else "TERRORIST"
+		var color = Color.AQUA if p.team == Team.TeamId.POLICE else Color.RED
+		
+		var lbl = Label.new()
+		lbl.text = "%s [%s] - K: %d / D: %d" % [p.name, team_name, p.kills, p.deaths]
+		lbl.add_theme_color_override("font_color", color)
+		scoreboard_list.add_child(lbl)
+
+func _process(delta):
+	if scoreboard_panel:
+		if Input.is_key_pressed(KEY_TAB):
+			if not scoreboard_panel.visible:
+				_update_scoreboard()
+				scoreboard_panel.show()
+		else:
+			scoreboard_panel.hide()
+
+func _setup_killfeed():
+	killfeed_box = VBoxContainer.new()
+	killfeed_box.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	killfeed_box.position = Vector2(-250, 60)
+	killfeed_box.custom_minimum_size = Vector2(240, 300)
+	add_child(killfeed_box)
+	
+	PlayerStats.player_killed.connect(_on_player_killed)
+	
+func _on_player_killed(killer: String, victim: String, weapon: String):
+	var lbl = Label.new()
+	lbl.text = "%s [%s] %s" % [killer, weapon, victim]
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	lbl.add_theme_font_size_override("font_size", 14)
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0,0,0,0.5)
+	var pc = PanelContainer.new()
+	pc.add_theme_stylebox_override("panel", style)
+	pc.add_child(lbl)
+	
+	killfeed_box.add_child(pc)
+	
+	var t = create_tween()
+	t.tween_property(pc, "modulate:a", 0.0, 3.0).set_delay(3.0)
+	t.tween_callback(pc.queue_free)

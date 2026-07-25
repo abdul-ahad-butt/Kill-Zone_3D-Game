@@ -87,6 +87,8 @@ func _spawn_solo_player(p_name: String, team: Team.TeamId, is_bot: bool):
 	else:
 		player.global_position = _get_random_spawn(spawn_terrorist.global_position)
 	
+	player.on_death.connect(_on_player_died)
+	
 	if is_bot:
 		var bot_controller = Node.new()
 		bot_controller.name = "BotController"
@@ -108,6 +110,8 @@ func _spawn_specific_player(id: int, team: Team.TeamId, weapon_path: String):
 	player.name = str(id)
 	player.team = team
 	
+	player.on_death.connect(_on_player_died)
+	
 	if ResourceLoader.exists(weapon_path):
 		player.primary_weapon = load(weapon_path)
 		
@@ -117,6 +121,19 @@ func _spawn_specific_player(id: int, team: Team.TeamId, weapon_path: String):
 		player.global_position = _get_random_spawn(spawn_police.global_position)
 	else:
 		player.global_position = _get_random_spawn(spawn_terrorist.global_position)
+
+func _on_player_died(id: int, team: Team.TeamId, weapon_path: String):
+	if MatchManager.is_offline_solo or multiplayer.is_server():
+		# Start a 3-second respawn timer
+		await get_tree().create_timer(3.0).timeout
+		
+		if MatchManager.is_offline_solo:
+			var is_bot = (id != 1)
+			_spawn_solo_player(str(id), team, is_bot)
+		else:
+			# Verify player hasn't disconnected
+			if PlayerStats.stats.has(id) or id == multiplayer.get_unique_id():
+				_spawn_specific_player(id, team, weapon_path)
 
 func _remove_player(id: int):
 	MatchManager.remove_player(id)
