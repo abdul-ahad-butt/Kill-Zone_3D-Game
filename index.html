@@ -11,10 +11,10 @@
 	<!--
 	  COI SERVICE WORKER — must be first script on the page.
 	  Registers coi-serviceworker.js which injects COOP + COEP headers
-	  on every response, making crossOriginIsolated = true.
+	  making window.crossOriginIsolated = true (required by Godot 4 / Emscripten).
 	  GitHub Pages does NOT send these headers natively.
-	  On first load: registers SW → reloads.
-	  On subsequent loads: SW is active, headers injected, game starts.
+	  First visit: registers SW → page reloads automatically.
+	  All subsequent visits: SW active, headers injected, game starts normally.
 	-->
 	<script>
 	(function () {
@@ -22,7 +22,6 @@
 			navigator.serviceWorker
 				.register('./coi-serviceworker.js')
 				.then(function (reg) {
-					// New SW installed: wait for activation then reload
 					if (reg.installing) {
 						var sw = reg.installing;
 						sw.addEventListener('statechange', function () {
@@ -31,14 +30,9 @@
 							}
 						});
 					} else if (reg.waiting) {
-						// Waiting SW (update scenario): skip waiting and reload
 						reg.waiting.postMessage({ type: 'SKIP_WAITING' });
 						window.location.reload();
-					}
-					// If reg.active — SW already active but page not isolated:
-					// This means the SW was registered on a previous session.
-					// Headers should already be injected; reload to apply.
-					else if (reg.active) {
+					} else if (reg.active) {
 						window.location.reload();
 					}
 				})
@@ -65,7 +59,7 @@
 		font-family: 'Segoe UI', Arial, sans-serif;
 	}
 
-	/* The game canvas fills the full window */
+	/* Game canvas fills the full window */
 	#canvas {
 		display: block;
 		position: fixed;
@@ -92,7 +86,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		visibility: visible; /* visible by default so user sees loading */
+		visibility: visible;
 		transition: opacity 0.4s ease;
 	}
 
@@ -101,34 +95,29 @@
 		pointer-events: none;
 	}
 
-	/* Splash / boot image */
 	#status-splash {
 		position: absolute;
 		inset: 0;
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
-		opacity: 0.25;
+		opacity: 0.2;
 	}
 
-	#status-splash.show-image--false {
-		display: none;
-	}
+	#status-splash.show-image--false { display: none; }
 
-	/* Title */
 	#status-title {
 		position: relative;
 		z-index: 1;
 		font-size: clamp(1.4rem, 5vw, 2.8rem);
 		font-weight: 700;
-		letter-spacing: 0.1em;
+		letter-spacing: 0.12em;
 		text-transform: uppercase;
 		color: #fff;
-		text-shadow: 0 0 30px rgba(230, 57, 70, 0.8);
+		text-shadow: 0 0 40px rgba(230, 57, 70, 0.9);
 		margin-bottom: 2.5rem;
 	}
 
-	/* Progress bar wrapper */
 	#progress-wrapper {
 		position: relative;
 		z-index: 1;
@@ -151,23 +140,10 @@
 		overflow: hidden;
 	}
 
-	#status-progress::-webkit-progress-bar {
-		background: rgba(255,255,255,0.08);
-		border-radius: 3px;
-	}
+	#status-progress::-webkit-progress-bar  { background: rgba(255,255,255,0.08); border-radius: 3px; }
+	#status-progress::-webkit-progress-value { background: linear-gradient(90deg,#e63946,#ff6b6b); border-radius: 3px; transition: width .15s ease; }
+	#status-progress::-moz-progress-bar     { background: linear-gradient(90deg,#e63946,#ff6b6b); border-radius: 3px; }
 
-	#status-progress::-webkit-progress-value {
-		background: linear-gradient(90deg, #e63946, #ff6b6b);
-		border-radius: 3px;
-		transition: width 0.15s ease;
-	}
-
-	#status-progress::-moz-progress-bar {
-		background: linear-gradient(90deg, #e63946, #ff6b6b);
-		border-radius: 3px;
-	}
-
-	/* Percentage text */
 	#status-label {
 		font-size: clamp(10px, 1.5vw, 13px);
 		letter-spacing: 3px;
@@ -175,7 +151,6 @@
 		color: rgba(255,255,255,0.5);
 	}
 
-	/* Error / notice box */
 	#status-notice {
 		display: none;
 		position: absolute;
@@ -195,7 +170,6 @@
 		backdrop-filter: blur(6px);
 	}
 
-	/* Animated dots for idle state */
 	@keyframes pulse {
 		0%, 80%, 100% { opacity: 0.3; }
 		40%            { opacity: 1;   }
@@ -213,7 +187,7 @@
 <canvas id="canvas">Your browser does not support the canvas element.</canvas>
 
 <noscript>
-	<p style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;font-size:1.2rem;">
+	<p style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;font-size:1.2rem;padding:2rem;text-align:center;">
 		JavaScript is required to play this game.
 	</p>
 </noscript>
@@ -230,18 +204,17 @@
 	<div id="status-notice"></div>
 </div>
 
-<!-- Godot 4 engine -->
 <script src="index.js"></script>
 <script>
 /*
- * Godot 4 Web Export — Kill-Zone 3D Game
+ * Godot 4.7.1 Web Export — Kill-Zone 3D Game
  *
- * KEY SETTINGS:
- *  - canvasResizePolicy: 2  → canvas auto-fits window
- *  - ensureCrossOriginIsolationHeaders: false
- *    → We handle isolation ourselves via coi-serviceworker.js above.
- *      Letting Godot handle it causes a silent fail on GitHub Pages because
- *      GODOT_CONFIG.serviceWorker is undefined and getMissingFeatures() throws.
+ * IMPORTANT CONFIG NOTES:
+ *  canvasResizePolicy: 2  → canvas auto-fills window (responsive)
+ *  ensureCrossOriginIsolationHeaders: false
+ *    → We handle COOP/COEP ourselves via coi-serviceworker.js above.
+ *      Setting this true causes Godot to call getMissingFeatures() and
+ *      silently fail on GitHub Pages since GODOT_CONFIG.serviceWorker is unset.
  */
 const GODOT_CONFIG = {
 	args: [],
@@ -250,7 +223,7 @@ const GODOT_CONFIG = {
 	ensureCrossOriginIsolationHeaders: false,
 	executable: "index",
 	experimentalVK: false,
-	fileSizes: { "index.pck": 76244, "index.wasm": 37900721 },
+	fileSizes: { "index.pck": 99996, "index.wasm": 37900721 },
 	focusCanvas: true,
 	gdextensionLibs: [],
 	godotPoolSize: 4
@@ -288,27 +261,24 @@ const engine = new Engine(GODOT_CONFIG);
 		console.error('[Godot]', err);
 		noticeEl.style.display = 'block';
 		noticeEl.textContent   = msg;
-		// Keep status overlay visible to show the error
 		statusEl.style.visibility = 'visible';
+		labelEl.style.display = 'none';
 	}
 
 	function hideStatus() {
 		statusEl.classList.add('hidden');
-		// Remove from DOM after fade
-		setTimeout(function () { statusEl.remove(); }, 500);
+		setTimeout(function () { if (statusEl.parentNode) statusEl.remove(); }, 500);
 	}
 
-	// Check for missing features (SharedArrayBuffer, WebGL 2, etc.)
 	var missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
-
 	if (missing.length > 0) {
-		var msg = 'Your browser is missing required features:\n' + missing.join('\n')
-		        + '\n\nTry Chrome or Firefox (desktop) and make sure hardware acceleration is enabled.';
-		showError(msg);
+		showError(
+			'Your browser is missing required features:\n' + missing.join('\n') +
+			'\n\nTry Chrome or Firefox on desktop with hardware acceleration enabled.'
+		);
 		return;
 	}
 
-	// Start the game
 	showProgress();
 	engine.startGame({
 		onProgress: function (current, total) {
