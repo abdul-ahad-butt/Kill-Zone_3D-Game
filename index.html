@@ -8,30 +8,7 @@
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<title>Kill-Zone 3D Game</title>
 
-	<script>
-	(function () {
-		if (!window.crossOriginIsolated && 'serviceWorker' in navigator) {
-			navigator.serviceWorker
-				.register('./coi-serviceworker.js')
-				.then(function (reg) {
-					if (reg.installing) {
-						var sw = reg.installing;
-						sw.addEventListener('statechange', function () {
-							if (sw.state === 'activated') { window.location.reload(); }
-						});
-					} else if (reg.waiting) {
-						reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-						window.location.reload();
-					} else if (reg.active) {
-						window.location.reload();
-					}
-				})
-				.catch(function (err) {
-					console.warn('[COI] Service worker registration failed:', err);
-				});
-		}
-	})();
-	</script>
+
 
 	<style>
 	* { margin: 0; padding: 0; box-sizing: border-box; }
