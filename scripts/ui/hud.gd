@@ -11,6 +11,12 @@ extends CanvasLayer
 @onready var hit_marker = $HitMarker
 @onready var kill_feed = $KillFeed
 
+@onready var crosshair = $Crosshair
+@onready var ch_top = $Crosshair/Top
+@onready var ch_bottom = $Crosshair/Bottom
+@onready var ch_left = $Crosshair/Left
+@onready var ch_right = $Crosshair/Right
+
 var current_spread: float = 0.0
 
 var _round_tween: Tween
@@ -41,23 +47,11 @@ func _ready():
 	_setup_mobile_ui()
 
 func _process(_delta):
-	queue_redraw()
-
-func _draw():
-	var center = get_viewport().size / 2.0
 	var spread = clamp(current_spread, 2.0, 100.0)
-	var length = 8.0
-	var thickness = 2.0
-	var color = Color(0, 1, 0, 0.8)
-	
-	# Top
-	draw_rect(Rect2(center.x - thickness/2, center.y - spread - length, thickness, length), color)
-	# Bottom
-	draw_rect(Rect2(center.x - thickness/2, center.y + spread, thickness, length), color)
-	# Left
-	draw_rect(Rect2(center.x - spread - length, center.y - thickness/2, length, thickness), color)
-	# Right
-	draw_rect(Rect2(center.x + spread, center.y - thickness/2, length, thickness), color)
+	if ch_top: ch_top.position.y = -spread - ch_top.size.y
+	if ch_bottom: ch_bottom.position.y = spread
+	if ch_left: ch_left.position.x = -spread - ch_left.size.x
+	if ch_right: ch_right.position.x = spread
 
 func _apply_hud_styling():
 	var panel_style = StyleBoxFlat.new()

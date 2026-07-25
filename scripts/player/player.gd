@@ -252,8 +252,8 @@ func _physics_process(delta):
 		
 	if Input.is_action_just_pressed("throw_grenade") and grenades_count > 0:
 		grenades_count -= 1
-		var hud = get_node_or_null("HUD")
-		if hud and hud.has_method("update_ammo"): hud.update_ammo(current_ammo, reserve_ammo) # Or a dedicated grenade counter
+		var h = get_node_or_null("HUD")
+		if h and h.has_method("update_ammo"): h.update_ammo(current_ammo, reserve_ammo) # Or a dedicated grenade counter
 		rpc_id(1, "server_throw_grenade", camera.global_transform)
 
 func _start_reload():
