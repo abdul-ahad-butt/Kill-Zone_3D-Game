@@ -7,6 +7,7 @@ var player_scene = preload("res://scenes/player/player.tscn")
 var bot_scene = preload("res://scenes/player/bot.tscn")
 
 func _ready():
+	_setup_next_gen_graphics()
 	_apply_hq_materials()
 	
 	# Bake navmesh for bots
@@ -19,8 +20,64 @@ func _ready():
 	NetworkManager.player_connected.connect(_on_player_connected)
 	
 	if NetworkManager.is_offline:
+		NetworkManager.is_team_mode = true # Default to team mode for offline so AI is strictly terrorists
 		# If it's an offline game, just spawn the local player immediately
 		_spawn_local_offline()
+
+func _setup_next_gen_graphics():
+	# Dynamic Environment Setup
+	var env = Environment.new()
+	env.background_mode = Environment.BG_SKY
+	
+	var sky_mat = ProceduralSkyMaterial.new()
+	sky_mat.sky_top_color = Color(0.2, 0.25, 0.3)
+	sky_mat.sky_horizon_color = Color(0.35, 0.4, 0.45)
+	sky_mat.ground_bottom_color = Color(0.1, 0.1, 0.15)
+	sky_mat.ground_horizon_color = Color(0.35, 0.4, 0.45)
+	var sky = Sky.new()
+	sky.sky_material = sky_mat
+	env.sky = sky
+	
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.ssao_enabled = true
+	env.sdfgi_enabled = true
+	env.sdfgi_use_occlusion = true
+	env.volumetric_fog_enabled = true
+	env.volumetric_fog_density = 0.015
+	env.volumetric_fog_albedo = Color(0.6, 0.7, 0.8)
+	
+	var we = WorldEnvironment.new()
+	we.environment = env
+	add_child(we)
+	
+	# Rain Particle System
+	var rain = GPUParticles3D.new()
+	var r_mat = ParticleProcessMaterial.new()
+	r_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	r_mat.emission_box_extents = Vector3(120, 1, 120)
+	r_mat.direction = Vector3(0.1, -1, 0)
+	r_mat.spread = 2.0
+	r_mat.initial_velocity_min = 25.0
+	r_mat.initial_velocity_max = 35.0
+	rain.process_material = r_mat
+	
+	var r_mesh = RibbonTrailMesh.new()
+	var r_smat = StandardMaterial3D.new()
+	r_smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	r_smat.albedo_color = Color(0.7, 0.8, 0.9, 0.3)
+	r_smat.emission_enabled = true
+	r_smat.emission = Color(0.6, 0.7, 0.8)
+	r_mesh.material = r_smat
+	r_mesh.size = 0.03
+	r_mesh.sections = 2
+	r_mesh.section_length = 0.6
+	
+	rain.draw_pass_1 = r_mesh
+	rain.amount = 12000
+	rain.lifetime = 1.5
+	rain.visibility_aabb = AABB(Vector3(-100, -30, -100), Vector3(200, 60, 200))
+	rain.position = Vector3(0, 30, 0)
+	add_child(rain)
 
 func _apply_hq_materials():
 	# Create a clean solid green grass material instead of blurry noise

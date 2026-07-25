@@ -75,6 +75,25 @@ func _spawn_tactical_cover():
 		sandbag_mat = StandardMaterial3D.new()
 		sandbag_mat.albedo_color = Color(0.6, 0.55, 0.4)
 		
+	_create_furniture(Vector3(-40, 0.5, 2), crate_mat)
+	_create_furniture(Vector3(-40, 0.5, -2), crate_mat)
+	_create_furniture(Vector3(40, 0.5, 2), crate_mat)
+	_create_furniture(Vector3(40, 0.5, -2), crate_mat)
+	
+	var lightA = OmniLight3D.new()
+	lightA.position = Vector3(-40, 5, 0)
+	lightA.omni_range = 15.0
+	lightA.light_energy = 2.0
+	lightA.light_color = Color(1.0, 0.9, 0.7)
+	add_child(lightA)
+	
+	var lightB = OmniLight3D.new()
+	lightB.position = Vector3(40, 5, 0)
+	lightB.omni_range = 15.0
+	lightB.light_energy = 2.0
+	lightB.light_color = Color(1.0, 0.9, 0.7)
+	add_child(lightB)
+	
 	_create_crate(Vector3(-12, 1, 10), crate_mat)
 	_create_crate(Vector3(-12, 1, 12), crate_mat)
 	_create_crate(Vector3(-12, 3, 11), crate_mat)
@@ -98,17 +117,19 @@ func _create_crate(pos: Vector3, mat: Material):
 	box.size = Vector3(2, 2, 2)
 	mesh.mesh = box
 	mesh.material_override = mat
-	mesh.position = pos
 	
-	var static_body = StaticBody3D.new()
+	var rigid = RigidBody3D.new()
+	rigid.mass = 10.0
+	rigid.position = pos
+	
 	var col = CollisionShape3D.new()
 	var shape = BoxShape3D.new()
 	shape.size = box.size
 	col.shape = shape
-	static_body.add_child(col)
-	mesh.add_child(static_body)
+	rigid.add_child(col)
+	rigid.add_child(mesh)
 	
-	add_child(mesh)
+	add_child(rigid)
 
 func _create_sandbag(pos: Vector3, mat: Material):
 	var mesh = MeshInstance3D.new()
@@ -125,5 +146,33 @@ func _create_sandbag(pos: Vector3, mat: Material):
 	col.shape = shape
 	static_body.add_child(col)
 	mesh.add_child(static_body)
+	
+	add_child(mesh)
+
+func _create_furniture(pos: Vector3, mat: Material):
+	var mesh = MeshInstance3D.new()
+	var box = BoxMesh.new()
+	box.size = Vector3(3, 0.2, 1.5)
+	mesh.mesh = box
+	mesh.material_override = mat
+	mesh.position = pos + Vector3(0, 1.0, 0)
+	
+	var sb = StaticBody3D.new()
+	var col = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	shape.size = box.size
+	col.shape = shape
+	sb.add_child(col)
+	mesh.add_child(sb)
+	
+	for x in [-1.4, 1.4]:
+		for z in [-0.6, 0.6]:
+			var leg = MeshInstance3D.new()
+			var lbox = BoxMesh.new()
+			lbox.size = Vector3(0.2, 1.0, 0.2)
+			leg.mesh = lbox
+			leg.material_override = mat
+			leg.position = Vector3(x, -0.5, z)
+			mesh.add_child(leg)
 	
 	add_child(mesh)

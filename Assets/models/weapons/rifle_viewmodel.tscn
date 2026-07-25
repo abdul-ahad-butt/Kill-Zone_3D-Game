@@ -1,7 +1,9 @@
 [gd_scene format=3]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
-albedo_color = Color(0.2, 0.2, 0.2, 1)
+albedo_color = Color(0.15, 0.15, 0.15, 1)
+metallic = 0.8
+roughness = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 material = SubResource("StandardMaterial3D_1")
@@ -30,6 +32,18 @@ albedo_color = Color(0.1, 0.1, 0.1, 1)
 material = SubResource("StandardMaterial3D_8j4nd")
 size = Vector3(0.05, 0.15, 0.08)
 
+[sub_resource type="CylinderMesh" id="CylinderMesh_barrel"]
+material = SubResource("StandardMaterial3D_1")
+top_radius = 0.02
+bottom_radius = 0.02
+height = 0.4
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_scope"]
+material = SubResource("StandardMaterial3D_1")
+top_radius = 0.03
+bottom_radius = 0.03
+height = 0.2
+
 [node name="RifleViewmodel" type="Node3D" unique_id=1214679168]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=481142659]
@@ -49,6 +63,14 @@ draw_pass_1 = SubResource("BoxMesh_2")
 [node name="Magazine" type="MeshInstance3D" parent="." unique_id=661877131]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.4, -0.4)
 mesh = SubResource("BoxMesh_f2f1h")
+
+[node name="Barrel" type="MeshInstance3D" parent="." unique_id=987123]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.3, -0.25, -0.9)
+mesh = SubResource("CylinderMesh_barrel")
+
+[node name="Scope" type="MeshInstance3D" parent="." unique_id=987124]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.3, -0.15, -0.6)
+mesh = SubResource("CylinderMesh_scope")
 
 [node name="MuzzleLight" type="OmniLight3D" parent="." unique_id=1624336195]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.25, -1)
