@@ -14,6 +14,9 @@ var current_weapon: WeaponData
 var current_viewmodel: Node3D
 var _recoil_tween: Tween
 
+var current_ammo: int = 0
+var reserve_ammo: int = 90
+
 var can_fire: bool = true
 var is_reloading: bool = false
 var has_bomb: bool = false
@@ -30,6 +33,7 @@ func _enter_tree():
 	set_multiplayer_authority(name.to_int())
 
 func _ready():
+	add_to_group("players")
 	if not is_multiplayer_authority():
 		# Disable camera for other players
 		if camera: camera.current = false
@@ -118,10 +122,18 @@ func _physics_process(delta):
 		equip_weapon(secondary_weapon)
 
 func _start_reload():
+	if current_ammo == current_weapon.mag_size or reserve_ammo <= 0: return
 	is_reloading = true
 	var am = get_node_or_null("/root/AudioManager")
 	if am: am.play_2d(am.reload_sound)
 	await get_tree().create_timer(current_weapon.reload_time).timeout
+	
+	var needed = current_weapon.mag_size - current_ammo
+	var reloaded = min(needed, reserve_ammo)
+	current_ammo += reloaded
+	reserve_ammo -= reloaded
+	if get_node_or_null("HUD"): get_node("HUD").update_ammo(current_ammo, reserve_ammo)
+	
 	is_reloading = false
 
 func equip_weapon(weapon: WeaponData):
@@ -137,8 +149,18 @@ func equip_weapon(weapon: WeaponData):
 		current_viewmodel = weapon.model_scene.instantiate()
 		camera.add_child(current_viewmodel)
 		current_viewmodel.position = weapon.default_position
+		
+	current_ammo = current_weapon.mag_size
+	if get_node_or_null("HUD"): get_node("HUD").update_ammo(current_ammo, reserve_ammo)
 
 func fire_weapon():
+	if current_ammo <= 0:
+		_start_reload()
+		return
+		
+	current_ammo -= 1
+	if get_node_or_null("HUD"): get_node("HUD").update_ammo(current_ammo, reserve_ammo)
+	
 	can_fire = false
 	weapon_timer.start(current_weapon.fire_rate)
 	

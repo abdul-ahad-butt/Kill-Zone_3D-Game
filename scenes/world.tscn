@@ -50,11 +50,11 @@ use_collision = true
 
 [node name="Ground" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=319492723]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-size = Vector3(100, 1, 100)
+size = Vector3(200, 1, 200)
 material = ExtResource("2_qfnet")
 
 [node name="BuildingA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1317948560]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 4, 0)
 size = Vector3(16, 8, 16)
 material = ExtResource("3_i7141")
 
@@ -73,7 +73,7 @@ operation = 2
 size = Vector3(2, 3, 4)
 
 [node name="BuildingB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=532743647]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 4, 0)
 size = Vector3(16, 8, 16)
 material = ExtResource("3_i7141")
 
@@ -116,41 +116,41 @@ material = ExtResource("1_71j4m")
 [node name="Police" type="Node3D" parent="Spawns" unique_id=1101393323]
 
 [node name="Spawn1" type="Marker3D" parent="Spawns/Police" unique_id=94788341]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, 80)
 
 [node name="Spawn2" type="Marker3D" parent="Spawns/Police" unique_id=137701692]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, 80)
 
 [node name="Spawn3" type="Marker3D" parent="Spawns/Police" unique_id=1621391891]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 80)
 
 [node name="Spawn4" type="Marker3D" parent="Spawns/Police" unique_id=72383995]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, 80)
 
 [node name="Spawn5" type="Marker3D" parent="Spawns/Police" unique_id=314834268]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 80)
 
 [node name="Terrorist" type="Node3D" parent="Spawns" unique_id=45806578]
 
 [node name="Spawn1" type="Marker3D" parent="Spawns/Terrorist" unique_id=1488741233]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -80)
 
 [node name="Spawn2" type="Marker3D" parent="Spawns/Terrorist" unique_id=1410861455]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, -80)
 
 [node name="Spawn3" type="Marker3D" parent="Spawns/Terrorist" unique_id=1830124096]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -80)
 
 [node name="Spawn4" type="Marker3D" parent="Spawns/Terrorist" unique_id=673964719]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, -80)
 
 [node name="Spawn5" type="Marker3D" parent="Spawns/Terrorist" unique_id=680622867]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, -80)
 
 [node name="BombSites" type="Node3D" parent="." unique_id=1919832463]
 
 [node name="SiteA" type="Area3D" parent="BombSites" unique_id=387555126]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1, 0)
 collision_layer = 4
 collision_mask = 2
 
@@ -158,7 +158,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_A")
 
 [node name="SiteB" type="Area3D" parent="BombSites" unique_id=1738366441]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
 collision_layer = 4
 collision_mask = 2
 

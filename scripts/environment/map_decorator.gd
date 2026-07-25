@@ -1,7 +1,7 @@
 extends Node3D
 
-@export var grass_count: int = 5000
-@export var map_radius: float = 40.0
+@export var grass_count: int = 15000
+@export var map_radius: float = 90.0
 
 func _ready():
 	_generate_grass()
@@ -65,8 +65,15 @@ func _spawn_tactical_cover():
 	_create_crate(Vector3(12, 1, -10), crate_mat)
 	_create_crate(Vector3(12, 1, -12), crate_mat)
 	
+	_create_crate(Vector3(30, 1, 30), crate_mat)
+	_create_crate(Vector3(32, 1, 30), crate_mat)
+	_create_crate(Vector3(-30, 1, -30), crate_mat)
+	_create_crate(Vector3(-28, 1, -30), crate_mat)
+	
 	_create_sandbag(Vector3(-5, 0.5, -20), sandbag_mat)
 	_create_sandbag(Vector3(5, 0.5, 20), sandbag_mat)
+	_create_sandbag(Vector3(-20, 0.5, 20), sandbag_mat)
+	_create_sandbag(Vector3(20, 0.5, -20), sandbag_mat)
 
 func _create_crate(pos: Vector3, mat: Material):
 	var mesh = MeshInstance3D.new()
