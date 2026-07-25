@@ -50,7 +50,6 @@
 		font-family: 'Segoe UI', Arial, sans-serif;
 	}
 
-	/* Full-viewport game canvas */
 	#canvas {
 		display: block;
 		position: fixed; top: 0; left: 0;
@@ -60,7 +59,6 @@
 	}
 	#canvas:focus { outline: none; }
 
-	/* ── Loading overlay ── */
 	#status {
 		position: fixed; inset: 0; z-index: 200;
 		background: linear-gradient(160deg, #0d0d1a 0%, #1a1a2e 55%, #16213e 100%);
@@ -158,16 +156,6 @@
 
 <script src="index.js"></script>
 <script>
-/*
- * Godot 4.7.1 Web Export — Kill-Zone 3D Game
- *
- * ensureCrossOriginIsolationHeaders: false
- *   — We handle COOP/COEP via coi-serviceworker.js above.
- *     Setting true causes Godot's getMissingFeatures() to silently fail
- *     on GitHub Pages (GODOT_CONFIG.serviceWorker is undefined).
- *
- * fileSizes must match the actual exported files exactly.
- */
 const GODOT_CONFIG = {
 	args: [],
 	canvasResizePolicy: 2,
@@ -175,7 +163,7 @@ const GODOT_CONFIG = {
 	ensureCrossOriginIsolationHeaders: false,
 	executable: "index",
 	experimentalVK: false,
-	fileSizes: { "index.pck": 106684, "index.wasm": 37900721 },
+	fileSizes: { "index.pck": 106812, "index.wasm": 37900721 },
 	focusCanvas: true,
 	gdextensionLibs: [],
 	godotPoolSize: 4
@@ -193,30 +181,23 @@ const engine = new Engine(GODOT_CONFIG);
 		progressEl.style.display = 'block';
 		labelEl.innerHTML = 'Loading... <span id="pct">0</span>%';
 	}
-
 	function updateProgress(current, total) {
 		if (current > 0 && total > 0) {
-			progressEl.value = current;
-			progressEl.max   = total;
+			progressEl.value = current; progressEl.max = total;
 			var pct = document.getElementById('pct');
 			if (pct) pct.textContent = Math.round((current / total) * 100);
 		} else {
-			progressEl.removeAttribute('value');
-			progressEl.removeAttribute('max');
+			progressEl.removeAttribute('value'); progressEl.removeAttribute('max');
 		}
 	}
-
 	function showError(err) {
-		var msg = (err instanceof Error) ? err.message
-		        : (typeof err === 'string') ? err
-		        : 'An unknown error occurred.';
+		var msg = (err instanceof Error) ? err.message : (typeof err === 'string') ? err : 'An unknown error occurred.';
 		console.error('[Godot]', err);
 		noticeEl.style.display = 'block';
-		noticeEl.textContent   = msg;
+		noticeEl.textContent = msg;
 		statusEl.style.visibility = 'visible';
 		labelEl.style.display = 'none';
 	}
-
 	function hideStatus() {
 		statusEl.classList.add('hidden');
 		setTimeout(function () { if (statusEl.parentNode) statusEl.remove(); }, 500);
@@ -224,10 +205,7 @@ const engine = new Engine(GODOT_CONFIG);
 
 	var missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
 	if (missing.length > 0) {
-		showError(
-			'Your browser is missing required features:\n' + missing.join('\n') +
-			'\n\nTry Chrome or Firefox on desktop with hardware acceleration enabled.'
-		);
+		showError('Your browser is missing required features:\n' + missing.join('\n') + '\n\nTry Chrome or Firefox on desktop with hardware acceleration enabled.');
 		return;
 	}
 
