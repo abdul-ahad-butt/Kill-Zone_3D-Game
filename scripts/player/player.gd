@@ -340,16 +340,86 @@ func request_fire(origin: Vector3, directions: Array):
 		var query = PhysicsRayQueryParameters3D.create(origin, origin + dir)
 		query.exclude = [self]
 		
+		var end_pos = origin + dir
+		var did_hit_player = false
 		var result = space_state.intersect_ray(query)
 		if result:
+			end_pos = result.position
 			var target = result.collider
 			if target.has_method("take_damage"):
 				var did_hit = target.take_damage(current_weapon.damage, team, get_multiplayer_authority())
 				if did_hit:
+					did_hit_player = true
 					if MatchManager.is_offline_solo:
 						show_hitmarker()
 					else:
 						rpc_id(get_multiplayer_authority(), "show_hitmarker")
+		
+		if MatchManager.is_offline_solo:
+			sync_tracer(origin, end_pos, did_hit_player)
+		else:
+			rpc("sync_tracer", origin, end_pos, did_hit_player)
+
+@rpc("any_peer", "call_local", "unreliable")
+func sync_tracer(start_pos: Vector3, end_pos: Vector3, hit_player: bool):
+	if start_pos.distance_to(end_pos) < 0.1: return
+	
+	# TRACER
+	var tracer = MeshInstance3D.new()
+	var mesh = CylinderMesh.new()
+	mesh.top_radius = 0.02
+	mesh.bottom_radius = 0.02
+	mesh.height = start_pos.distance_to(end_pos)
+	
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(1.0, 0.8, 0.2)
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.8, 0.2)
+	mat.emission_energy_multiplier = 4.0
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mesh.surface_set_material(0, mat)
+	
+	tracer.mesh = mesh
+	get_tree().root.add_child(tracer)
+	
+	tracer.global_position = start_pos.lerp(end_pos, 0.5)
+	
+	var up = Vector3.UP
+	if abs(start_pos.direction_to(end_pos).y) > 0.99: up = Vector3.RIGHT
+	tracer.look_at(end_pos, up)
+	tracer.rotate_x(PI/2)
+	
+	var tween = create_tween()
+	tween.tween_property(mat, "albedo_color:a", 0.0, 0.1)
+	tween.parallel().tween_property(mat, "emission_energy_multiplier", 0.0, 0.1)
+	tween.tween_callback(tracer.queue_free)
+	
+	# BLOOD SPLATTER
+	if hit_player:
+		var blood = CPUParticles3D.new()
+		blood.emitting = false
+		blood.one_shot = true
+		blood.explosiveness = 1.0
+		blood.amount = 16
+		blood.lifetime = 0.5
+		
+		var bmesh = BoxMesh.new()
+		bmesh.size = Vector3(0.08, 0.08, 0.08)
+		var bmat = StandardMaterial3D.new()
+		bmat.albedo_color = Color(0.6, 0.0, 0.0)
+		bmesh.surface_set_material(0, bmat)
+		blood.mesh = bmesh
+		
+		blood.direction = (start_pos - end_pos).normalized()
+		blood.spread = 45.0
+		blood.initial_velocity_min = 2.0
+		blood.initial_velocity_max = 5.0
+		
+		get_tree().root.add_child(blood)
+		blood.global_position = end_pos
+		blood.emitting = true
+		
+		get_tree().create_timer(1.0).timeout.connect(blood.queue_free)
 
 @rpc("authority", "call_local", "unreliable")
 func show_hitmarker():

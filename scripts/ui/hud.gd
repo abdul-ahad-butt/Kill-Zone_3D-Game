@@ -30,6 +30,7 @@ func _ready() -> void:
 	_setup_hitmarker()
 	_setup_bomb_alert()
 	_setup_radar()
+	_setup_crosshair()
 	
 	var m_size_str = "Solo" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "5v5"
 	var active_sites = "A, B" if MatchManager.match_size == MatchManager.MatchSize.SOLO else "A, B, C, D"
@@ -326,3 +327,35 @@ func _process(_delta):
 	if is_instance_valid(radar_camera) and is_instance_valid(local_player):
 		radar_camera.global_position.x = local_player.global_position.x
 		radar_camera.global_position.z = local_player.global_position.z
+		
+	if is_instance_valid(local_player) and local_player.current_weapon:
+		var spread = local_player.current_weapon.spread
+		var spread_mult = 0.5 if local_player.is_crouching else 1.0
+		var current_spread_px = 5.0 + (spread * spread_mult * 500.0)
+		
+		# Top
+		crosshair_lines[0].size = Vector2(2, 12)
+		crosshair_lines[0].position = Vector2(-1, -current_spread_px - 12)
+		# Bottom
+		crosshair_lines[1].size = Vector2(2, 12)
+		crosshair_lines[1].position = Vector2(-1, current_spread_px)
+		# Left
+		crosshair_lines[2].size = Vector2(12, 2)
+		crosshair_lines[2].position = Vector2(-current_spread_px - 12, -1)
+		# Right
+		crosshair_lines[3].size = Vector2(12, 2)
+		crosshair_lines[3].position = Vector2(current_spread_px, -1)
+
+# --- CROSSHAIR ---
+var crosshair_lines: Array[ColorRect] = []
+
+func _setup_crosshair():
+	var center = Control.new()
+	center.set_anchors_preset(Control.PRESET_CENTER)
+	add_child(center)
+	
+	for i in range(4):
+		var line = ColorRect.new()
+		line.color = Color(0.0, 1.0, 0.0, 0.8) # Green crosshair
+		center.add_child(line)
+		crosshair_lines.append(line)
