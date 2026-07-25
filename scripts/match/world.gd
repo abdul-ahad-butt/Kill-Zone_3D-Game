@@ -49,6 +49,7 @@ func _spawn_player(id: int, team: Team.TeamId):
 	var p = player_scene.instantiate()
 	p.name = str(id)
 	p.team = team
+	add_child(p)
 	
 	# Position at a random spawn based on team
 	if team == Team.TeamId.POLICE and police_spawns.size() > 0:
@@ -56,11 +57,10 @@ func _spawn_player(id: int, team: Team.TeamId):
 	elif team == Team.TeamId.TERRORIST and terrorist_spawns.size() > 0:
 		p.global_position = terrorist_spawns[randi() % terrorist_spawns.size()].global_position
 		
-	add_child(p)
 
 func _spawn_bot(id: int, team: Team.TeamId, pos: Vector3):
 	var b = bot_scene.instantiate()
 	b.name = "Bot_" + str(id)
 	b.team = team
-	b.global_position = pos
 	add_child(b)
+	b.global_position = pos
