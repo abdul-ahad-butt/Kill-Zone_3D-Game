@@ -111,6 +111,49 @@ custom_minimum_size = Vector2(0, 52)
 text = "JOIN MULTIPLAYER SERVER"
 theme_override_font_sizes/font_size = 17
 
+[node name="SettingsButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+text = "SETTINGS"
+theme_override_font_sizes/font_size = 17
+
+[node name="SettingsContainer" type="VBoxContainer" parent="VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SettingsLabel" type="Label" parent="VBoxContainer/SettingsContainer"]
+layout_mode = 2
+text = "GRAPHICS QUALITY"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+
+[node name="QualityLowBtn" type="Button" parent="VBoxContainer/SettingsContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+text = "LOW (FASTEST)"
+theme_override_font_sizes/font_size = 17
+
+[node name="QualityMedBtn" type="Button" parent="VBoxContainer/SettingsContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+text = "MEDIUM (BALANCED)"
+theme_override_font_sizes/font_size = 17
+
+[node name="QualityHighBtn" type="Button" parent="VBoxContainer/SettingsContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+text = "HIGH (BEST VISUALS)"
+theme_override_font_sizes/font_size = 17
+
+[node name="SettingsBackBtn" type="Button" parent="VBoxContainer/SettingsContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 64)
+text = "BACK TO MENU"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+
 [node name="InfoLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 text = "Web version supports Offline Mode against Bots.\nJoin requires an external dedicated server."
