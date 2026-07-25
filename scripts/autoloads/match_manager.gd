@@ -26,6 +26,10 @@ var _timer: float = 0.0
 var police_players: Array = []
 var terrorist_players: Array = []
 
+var player_money: Dictionary = {}
+
+signal money_updated(id: int, amount: int)
+
 signal round_state_changed(new_state: MatchState)
 signal round_timer_updated(time_left: int)
 signal bomb_timer_updated(time_left: int)
@@ -41,7 +45,30 @@ func start_match() -> void:
 	score_police = 0
 	score_terrorist = 0
 	current_round = 1
+	player_money.clear()
+	
+	# Initial 800 for everyone connected
+	for id in police_players + terrorist_players:
+		set_money(id, 800)
+		
 	_change_state(MatchState.ROUND_START)
+
+func set_money(id: int, amount: int) -> void:
+	if not multiplayer.is_server(): return
+	var capped = clamp(amount, 0, 16000)
+	player_money[id] = capped
+	rpc("sync_money", id, capped)
+
+func add_money(id: int, amount: int) -> void:
+	if not multiplayer.is_server(): return
+	var current = player_money.get(id, 0)
+	set_money(id, current + amount)
+
+@rpc("authority", "call_local", "reliable")
+func sync_money(id: int, amount: int):
+	player_money[id] = amount
+	if id == multiplayer.get_unique_id():
+		emit_signal("money_updated", id, amount)
 
 func _process(delta: float) -> void:
 	# Only the server runs the match timer logic
@@ -111,6 +138,7 @@ func get_auto_balanced_team(peer_id: int) -> Team.TeamId:
 func remove_player(peer_id: int):
 	police_players.erase(peer_id)
 	terrorist_players.erase(peer_id)
+	player_money.erase(peer_id)
 
 func _change_state(new_state: MatchState) -> void:
 	if not multiplayer.is_server(): return
@@ -161,18 +189,20 @@ func sync_round_ended(winner: int, reason: String):
 func sync_match_ended(winner: int):
 	emit_signal("match_ended", winner)
 
-func plant_bomb() -> void:
+func plant_bomb(planter_id: int = 1) -> void:
 	if not multiplayer.is_server(): return
 	if current_state != MatchState.LIVE or is_bomb_planted: return
 	
 	is_bomb_planted = true
 	_timer = bomb_time
+	add_money(planter_id, 300) # Reward for planting
 	rpc("sync_bomb_event", true)
 
-func defuse_bomb() -> void:
+func defuse_bomb(defuser_id: int = 1) -> void:
 	if not multiplayer.is_server(): return
 	if current_state != MatchState.LIVE or not is_bomb_planted: return
 	
+	add_money(defuser_id, 300) # Reward for defusing
 	rpc("sync_bomb_event", false)
 	end_round(Team.TeamId.POLICE, "Bomb Defused")
 
@@ -188,8 +218,12 @@ func end_round(winner: Team.TeamId, reason: String) -> void:
 		
 	if winner == Team.TeamId.POLICE:
 		score_police += 1
+		for id in police_players: add_money(id, 3250)
+		for id in terrorist_players: add_money(id, 1400)
 	elif winner == Team.TeamId.TERRORIST:
 		score_terrorist += 1
+		for id in terrorist_players: add_money(id, 3250)
+		for id in police_players: add_money(id, 1400)
 		
 	rpc("sync_round_ended", winner, reason)
 	

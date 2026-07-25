@@ -60,6 +60,13 @@ func _ready():
 	
 	footstep_audio = AudioStreamPlayer3D.new()
 	add_child(footstep_audio)
+	
+	if is_multiplayer_authority():
+		var bm_scene = load("res://scenes/ui/buy_menu.tscn")
+		if bm_scene:
+			var bm = bm_scene.instantiate()
+			bm.name = "BuyMenu"
+			camera.add_child(bm)
 
 func _input(event):
 	if not is_multiplayer_authority(): return
@@ -75,6 +82,16 @@ func _rotate_camera(relative: Vector2):
 	rotate_y(-relative.x * 0.005)
 	camera.rotate_x(-relative.y * 0.005)
 	camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
+
+func _unhandled_input(event):
+	if not is_multiplayer_authority(): return
+	if event.is_action_pressed("buy_menu"):
+		var buy_menu = get_node_or_null("Camera3D/BuyMenu")
+		if buy_menu:
+			if buy_menu.visible:
+				buy_menu.close_menu()
+			else:
+				buy_menu.open_menu()
 
 var is_interacting = false
 var interact_timer = 0.0
@@ -138,7 +155,7 @@ func server_plant_bomb(pos: Vector3):
 	if sender != get_multiplayer_authority(): return
 	
 	if not MatchManager.is_bomb_planted:
-		MatchManager.plant_bomb()
+		MatchManager.plant_bomb(sender)
 		var b_scene = load("res://bomb.tscn")
 		var b = b_scene.instantiate()
 		b.add_to_group("bomb")
@@ -149,7 +166,8 @@ func server_plant_bomb(pos: Vector3):
 func server_defuse_bomb():
 	if not multiplayer.is_server(): return
 	if MatchManager.is_bomb_planted:
-		MatchManager.defuse_bomb()
+		var sender = multiplayer.get_remote_sender_id()
+		MatchManager.defuse_bomb(sender)
 
 func _physics_process(delta):
 	if not is_multiplayer_authority(): return
@@ -347,6 +365,7 @@ func die(attacker_id: int):
 	if not multiplayer.is_server(): return
 	print("Player ", name, " on team ", team, " died!")
 	
+	MatchManager.add_money(attacker_id, 300)
 	PlayerStats.record_kill_event(attacker_id, name.to_int(), current_weapon.weapon_name if current_weapon else "Unknown")
 	
 	var attacker_name = "Player " + str(attacker_id)
