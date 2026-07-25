@@ -67,6 +67,12 @@ func _ready():
 			var bm = bm_scene.instantiate()
 			bm.name = "BuyMenu"
 			camera.add_child(bm)
+			
+		var sm_scene = load("res://scenes/ui/settings_menu.tscn")
+		if sm_scene:
+			var sm = sm_scene.instantiate()
+			sm.name = "SettingsMenu"
+			camera.add_child(sm)
 
 func _input(event):
 	if not is_multiplayer_authority(): return
@@ -92,6 +98,14 @@ func _unhandled_input(event):
 				buy_menu.close_menu()
 			else:
 				buy_menu.open_menu()
+				
+	if event.is_action_pressed("ui_cancel"):
+		var settings_menu = get_node_or_null("Camera3D/SettingsMenu")
+		if settings_menu:
+			if settings_menu.visible:
+				settings_menu.close_menu()
+			else:
+				settings_menu.open_menu()
 
 var is_interacting = false
 var interact_timer = 0.0

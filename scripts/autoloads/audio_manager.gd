@@ -6,8 +6,43 @@ var reload_sound: AudioStream
 var match_start_sound: AudioStream
 var win_sound: AudioStream
 
+const SAVE_PATH = "user://audio_settings.cfg"
+var master_volume: float = 100.0
+var is_muted: bool = false
+
 func _ready():
+	_load_settings()
 	_generate_sounds()
+
+func set_master_volume(vol: float):
+	master_volume = clamp(vol, 0.0, 100.0)
+	_apply_audio()
+	_save_settings()
+
+func set_muted(muted: bool):
+	is_muted = muted
+	_apply_audio()
+	_save_settings()
+
+func _apply_audio():
+	var bus = AudioServer.get_bus_index("Master")
+	AudioServer.set_bus_mute(bus, is_muted)
+	var db = linear_to_db(master_volume / 100.0)
+	if master_volume <= 0.0: db = -80.0
+	AudioServer.set_bus_volume_db(bus, db)
+
+func _load_settings():
+	var cfg = ConfigFile.new()
+	if cfg.load(SAVE_PATH) == OK:
+		master_volume = cfg.get_value("Audio", "master_volume", 100.0)
+		is_muted = cfg.get_value("Audio", "is_muted", false)
+	_apply_audio()
+
+func _save_settings():
+	var cfg = ConfigFile.new()
+	cfg.set_value("Audio", "master_volume", master_volume)
+	cfg.set_value("Audio", "is_muted", is_muted)
+	cfg.save(SAVE_PATH)
 
 func _generate_sounds():
 	# Generate procedural footstep (short noise burst)

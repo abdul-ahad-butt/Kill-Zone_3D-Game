@@ -10,11 +10,8 @@ extends Control
 @onready var start_game_btn = $VBoxContainer/FactionContainer/StartGameButton
 
 @onready var settings_btn = $VBoxContainer/SettingsButton
-@onready var settings_container = $VBoxContainer/SettingsContainer
-@onready var qual_low_btn = $VBoxContainer/SettingsContainer/QualityLowBtn
-@onready var qual_med_btn = $VBoxContainer/SettingsContainer/QualityMedBtn
-@onready var qual_high_btn = $VBoxContainer/SettingsContainer/QualityHighBtn
-@onready var settings_back_btn = $VBoxContainer/SettingsContainer/SettingsBackBtn
+
+var settings_menu: Control
 
 var is_team_mode: bool = false
 var selected_faction: int = 1 # 1 = Police, 2 = Terrorist
@@ -29,10 +26,9 @@ func _ready():
 	start_game_btn.pressed.connect(_on_start_game_pressed)
 	
 	settings_btn.pressed.connect(_show_settings)
-	settings_back_btn.pressed.connect(_hide_settings)
-	qual_low_btn.pressed.connect(func(): _set_quality(GraphicsManager.Quality.LOW))
-	qual_med_btn.pressed.connect(func(): _set_quality(GraphicsManager.Quality.MEDIUM))
-	qual_high_btn.pressed.connect(func(): _set_quality(GraphicsManager.Quality.HIGH))
+	
+	settings_menu = load("res://scenes/ui/settings_menu.tscn").instantiate()
+	add_child(settings_menu)
 	
 	start_game_btn.disabled = true
 	
@@ -48,31 +44,8 @@ func _show_faction_selection():
 	_update_faction_visuals()
 
 func _show_settings():
-	solo_btn.hide()
-	team_btn.hide()
-	ip_input.hide()
-	join_btn.hide()
-	settings_btn.hide()
-	settings_container.show()
-	_update_quality_visuals()
-
-func _hide_settings():
-	settings_container.hide()
-	solo_btn.show()
-	team_btn.show()
-	ip_input.show()
-	join_btn.show()
-	settings_btn.show()
-
-func _set_quality(q):
-	GraphicsManager.set_quality(q)
-	_update_quality_visuals()
-
-func _update_quality_visuals():
-	var q = GraphicsManager.get_quality()
-	qual_low_btn.add_theme_color_override("font_color", Color.GREEN if q == GraphicsManager.Quality.LOW else Color.WHITE)
-	qual_med_btn.add_theme_color_override("font_color", Color.GREEN if q == GraphicsManager.Quality.MEDIUM else Color.WHITE)
-	qual_high_btn.add_theme_color_override("font_color", Color.GREEN if q == GraphicsManager.Quality.HIGH else Color.WHITE)
+	if settings_menu:
+		settings_menu.open_menu()
 
 func _on_solo_pressed():
 	is_team_mode = false
