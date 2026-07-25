@@ -26,6 +26,10 @@ var can_fire: bool = true
 var is_reloading: bool = false
 var has_bomb: bool = false
 var is_dead: bool = false
+var spectator_target: Node3D = null
+var kill_cam_timer: float = 0.0
+var killer_target: Node3D = null
+
 var is_crouching: bool = false
 var is_walking: bool = false
 var is_ads: bool = false
@@ -142,10 +146,27 @@ func _physics_process(delta):
 	if not is_multiplayer_authority(): return
 	
 	if is_dead:
-		if is_instance_valid(spectator_target) and not spectator_target.is_dead:
-			camera.global_transform = spectator_target.camera.global_transform
+		if kill_cam_timer > 0.0:
+			kill_cam_timer -= delta
+			if is_instance_valid(killer_target):
+				var target_pos = killer_target.global_transform.origin + killer_target.global_transform.basis.z * 3.0 + Vector3.UP * 2.0
+				camera.global_transform.origin = camera.global_transform.origin.lerp(target_pos, delta * 10.0)
+				camera.look_at(killer_target.global_transform.origin + Vector3.UP * 1.5, Vector3.UP)
+				
+				if hud_instance:
+					hud_instance.set_spectator_text("Kill Cam: " + killer_target.name, Color.RED)
+			
+			if kill_cam_timer <= 0.0:
+				_find_spectator_target()
 		else:
-			_find_spectator_target()
+			if is_instance_valid(spectator_target) and not spectator_target.is_dead:
+				camera.global_transform = spectator_target.camera.global_transform
+				if hud_instance:
+					var p_name = PlayerStats.stats[spectator_target.name.to_int()]["name"] if PlayerStats.stats.has(spectator_target.name.to_int()) else spectator_target.name
+					hud_instance.set_spectator_text("Spectating: " + p_name, Color.WHITE)
+			else:
+				if hud_instance: hud_instance.set_spectator_text("Waiting for respawn...", Color.GRAY)
+				_find_spectator_target()
 		return
 	
 	if Time.get_ticks_msec() / 1000.0 - last_fire_time > 0.25:
@@ -571,16 +592,13 @@ func die(attacker_id: int):
 		PlayerStats.sync_all_stats()
 		
 	emit_signal("on_death", p_id, team, primary_weapon.resource_path if primary_weapon else "")
-	rpc("sync_death")
+	rpc("sync_death", attacker_id)
 	
 	if MatchManager.match_size == MatchManager.MatchSize.SOLO:
 		queue_free()
 
-var is_dead: bool = false
-var spectator_target: Node3D = null
-
 @rpc("authority", "call_local", "reliable")
-func sync_death():
+func sync_death(killer_id: int = -1):
 	is_dead = true
 	health = 0
 	collision_shape.disabled = true
@@ -588,7 +606,16 @@ func sync_death():
 	weapon_model.hide()
 	
 	if is_multiplayer_authority():
-		_find_spectator_target()
+		if hud_instance: hud_instance.hide_crosshair_and_scope()
+		
+		# Set up Kill Cam
+		killer_target = get_tree().root.get_node_or_null("Level/PlayersContainer/" + str(killer_id))
+		if is_instance_valid(killer_target):
+			kill_cam_timer = 3.0
+			# Initial snap slightly behind
+			camera.global_transform.origin = killer_target.global_transform.origin + killer_target.global_transform.basis.z * 3.0 + Vector3.UP * 2.0
+		else:
+			_find_spectator_target()
 		
 	if MatchManager.match_size == MatchManager.MatchSize.SOLO and not multiplayer.is_server():
 		queue_free()

@@ -13,6 +13,8 @@ var _round_tween: Tween
 var _bomb_tween: Tween
 var _banner_tween: Tween
 
+var spectator_label: Label
+
 var _graphics_ui: CanvasLayer = null
 var _settings_btn: Button = null
 
@@ -40,6 +42,14 @@ func _ready() -> void:
 
 	banner_label.hide()
 	bomb_timer_label.hide()
+	
+	spectator_label = Label.new()
+	spectator_label.add_theme_font_size_override("font_size", 24)
+	spectator_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	spectator_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	spectator_label.position.y = 80
+	add_child(spectator_label)
+	spectator_label.hide()
 
 	# Make sure pivot is centered for scaling
 	round_timer_label.pivot_offset = round_timer_label.size / 2.0
@@ -192,19 +202,24 @@ func _update_scoreboard():
 
 func _process(delta):
 	if local_player:
-		_update_crosshair()
-		_process_money()
-		
-		if local_player.is_ads and local_player.current_weapon and local_player.current_weapon.ads_fov < 30.0:
-			if local_player.camera.fov < local_player.current_weapon.ads_fov + 10.0:
-				scope_overlay.show()
-				crosshair.hide()
+		if not local_player.is_dead:
+			spectator_label.hide()
+			_update_crosshair()
+			_process_money()
+			
+			if local_player.is_ads and local_player.current_weapon and local_player.current_weapon.ads_fov < 30.0:
+				if local_player.camera.fov < local_player.current_weapon.ads_fov + 10.0:
+					scope_overlay.show()
+					crosshair.hide()
+				else:
+					scope_overlay.hide()
+					crosshair.show()
 			else:
 				scope_overlay.hide()
 				crosshair.show()
 		else:
-			scope_overlay.hide()
-			crosshair.show()
+			# If dead, these are hidden by hide_crosshair_and_scope
+			pass
 
 	if Input.is_action_pressed("show_scoreboard"):
 		if not scoreboard_panel.visible:
@@ -271,6 +286,16 @@ func _setup_hitmarker():
 	
 	add_child(hitmarker_texture)
 	hitmarker_texture.modulate.a = 0.0
+
+func hide_crosshair_and_scope():
+	if crosshair: crosshair.hide()
+	if scope_overlay: scope_overlay.hide()
+
+func set_spectator_text(txt: String, color: Color):
+	if spectator_label:
+		spectator_label.text = txt
+		spectator_label.add_theme_color_override("font_color", color)
+		spectator_label.show()
 	
 func show_hitmarker():
 	if _hitmarker_tween and _hitmarker_tween.is_running():
