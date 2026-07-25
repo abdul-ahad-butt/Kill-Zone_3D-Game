@@ -18,6 +18,7 @@ var current_ammo: int = 0
 var is_bot: bool = false
 var bot_input_dir: Vector2 = Vector2.ZERO
 var bot_wants_fire: bool = false
+var bot_wants_interact: bool = false
 var bot_wants_reload: bool = false
 
 var can_fire: bool = true
@@ -212,7 +213,8 @@ func _physics_process(delta):
 			active_site = site
 			break
 			
-	if Input.is_action_pressed("use"):
+	var wants_interact = bot_wants_interact if is_bot else Input.is_action_pressed("use")
+	if wants_interact:
 		if active_site:
 			if team == Team.TeamId.TERRORIST and has_bomb and not MatchManager.is_bomb_planted:
 				if not is_planting: 

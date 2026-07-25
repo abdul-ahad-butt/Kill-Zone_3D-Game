@@ -1,46 +1,38 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/player/player.gd" id="1_a2b3c"]
-[ext_resource type="Resource" path="res://resources/weapon_data/Rifle.tres" id="2_d4e5f"]
-[ext_resource type="Resource" path="res://resources/weapon_data/Pistol.tres" id="3_g6h7i"]
 [ext_resource type="AudioStream" path="res://Assets/audio/gunshot.wav" id="4_audio"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m1"]
-radius = 0.5
-height = 2.0
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_m2"]
-radius = 0.5
-height = 2.0
 
 [sub_resource type="BoxMesh" id="BoxMesh_m3"]
 size = Vector3(0.1, 0.1, 0.5)
 
-[node name="Player" type="CharacterBody3D"]
-script = ExtResource("1_a2b3c")
-primary_weapon = ExtResource("2_d4e5f")
-secondary_weapon = ExtResource("3_g6h7i")
+[node name="Player" type="CharacterBody3D" unique_id=845160364]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1541620344]
 shape = SubResource("CapsuleShape3D_m1")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=254757535]
 mesh = SubResource("CapsuleMesh_m2")
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1233157980]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 current = true
 
-[node name="RayCast3D" type="RayCast3D" parent="Camera3D"]
+[node name="RayCast3D" type="RayCast3D" parent="Camera3D" unique_id=762253579]
 target_position = Vector3(0, 0, -100)
 
-[node name="WeaponModel" type="MeshInstance3D" parent="Camera3D"]
+[node name="WeaponModel" type="MeshInstance3D" parent="Camera3D" unique_id=581696307]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.2, -0.4)
 mesh = SubResource("BoxMesh_m3")
 
-[node name="WeaponTimer" type="Timer" parent="."]
-one_shot = true
-
-[node name="FireSound" type="AudioStreamPlayer3D" parent="Camera3D/WeaponModel"]
+[node name="FireSound" type="AudioStreamPlayer3D" parent="Camera3D/WeaponModel" unique_id=344449377]
 stream = ExtResource("4_audio")
 
+[node name="WeaponTimer" type="Timer" parent="." unique_id=1693983554]
+one_shot = true
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=1381582018]
+avoidance_enabled = true

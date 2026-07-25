@@ -24,6 +24,8 @@ func _ready():
 		if child.is_in_group("BombSite"):
 			child.site_name = child.name.replace("BombSite", "")
 
+	_setup_navmesh()
+
 	if MatchManager.is_offline_solo:
 		_setup_offline_match()
 		return
@@ -50,6 +52,34 @@ func _ready():
 func _on_connected_to_server():
 	var weapon_path = MatchManager.solo_primary_weapon.resource_path if MatchManager.solo_primary_weapon else "res://resources/weapon_data/Rifle.tres"
 	rpc_id(1, "request_spawn", MatchManager.solo_faction, weapon_path)
+
+func _setup_navmesh():
+	var nav_region = NavigationRegion3D.new()
+	nav_region.name = "MapNavRegion"
+	var nav_mesh = NavigationMesh.new()
+	nav_mesh.agent_radius = 0.5
+	nav_mesh.agent_height = 2.0
+	nav_mesh.agent_max_climb = 0.5
+	nav_mesh.agent_max_slope = 45.0
+	nav_region.navigation_mesh = nav_mesh
+	add_child(nav_region)
+	
+	var nodes_to_reparent = []
+	var floor_node = get_node_or_null("Floor")
+	if floor_node: nodes_to_reparent.append(floor_node)
+	
+	for child in get_children():
+		if child is CSGBox3D and child != floor_node:
+			nodes_to_reparent.append(child)
+			
+	for node in nodes_to_reparent:
+		remove_child(node)
+		nav_region.add_child(node)
+		node.owner = self
+		
+	# Now bake the navmesh async
+	nav_region.bake_navigation_mesh(true)
+	print("Baking NavMesh...")
 
 func _get_random_spawn(base_pos: Vector3) -> Vector3:
 	return base_pos + Vector3(randf_range(-4.0, 4.0), 0.0, randf_range(-4.0, 4.0))
