@@ -340,7 +340,7 @@ func _process_radar():
 		
 func _process_crosshair():
 	if is_instance_valid(local_player) and local_player.current_weapon:
-		var spread = local_player.current_weapon.spread
+		var spread = local_player.current_spread
 		var spread_mult = 0.5 if local_player.is_crouching else 1.0
 		var current_spread_px = 5.0 + (spread * spread_mult * 500.0)
 		

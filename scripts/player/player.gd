@@ -41,6 +41,9 @@ var current_defuse_time: float = 0.0
 # Recoil system
 var recoil_target: Vector3 = Vector3.ZERO
 var recoil_current: Vector3 = Vector3.ZERO
+var shots_fired_in_burst: int = 0
+var last_fire_time: float = 0.0
+var current_spread: float = 0.0
 
 # HUD reference
 var hud_scene = preload("res://hud.tscn")
@@ -136,6 +139,15 @@ func _physics_process(delta):
 		else:
 			_find_spectator_target()
 		return
+	
+	if Time.get_ticks_msec() / 1000.0 - last_fire_time > 0.25:
+		shots_fired_in_burst = 0
+	
+	if current_weapon:
+		if shots_fired_in_burst <= 1:
+			current_spread = current_weapon.spread * 0.1
+		else:
+			current_spread = current_weapon.spread * min(float(shots_fired_in_burst) / 5.0, 3.0)
 	
 	# Handle Recoil Recovery
 	recoil_target = recoil_target.lerp(Vector3.ZERO, delta * 8.0)
@@ -299,8 +311,18 @@ func fire_weapon():
 	current_ammo -= 1
 	weapon_timer.start(current_weapon.fire_rate)
 	
+	shots_fired_in_burst += 1
+	last_fire_time = Time.get_ticks_msec() / 1000.0
+	
 	# Apply Recoil
-	recoil_target += Vector3(randf_range(0.5, 1.5), randf_range(-0.5, 0.5), 0)
+	var kick = Vector2(randf_range(0.5, 1.5), randf_range(-0.5, 0.5))
+	if current_weapon.recoil_pattern and current_weapon.recoil_pattern.size() > 0:
+		var idx = clampi(shots_fired_in_burst - 1, 0, current_weapon.recoil_pattern.size() - 1)
+		kick = current_weapon.recoil_pattern[idx]
+		# Add a tiny bit of random jitter to the deterministic pattern
+		kick += Vector2(randf_range(-0.1, 0.1), randf_range(-0.1, 0.1))
+		
+	recoil_target += Vector3(kick.x, kick.y, 0)
 	
 	# Weapon Animation (Kickback)
 	var tween = create_tween()
@@ -319,8 +341,8 @@ func fire_weapon():
 	var directions = []
 	var spread_mult = 0.5 if is_crouching else 1.0
 	for i in range(current_weapon.pellet_count):
-		var spread_x = randf_range(-current_weapon.spread * spread_mult, current_weapon.spread * spread_mult)
-		var spread_y = randf_range(-current_weapon.spread * spread_mult, current_weapon.spread * spread_mult)
+		var spread_x = randf_range(-current_spread * spread_mult, current_spread * spread_mult)
+		var spread_y = randf_range(-current_spread * spread_mult, current_spread * spread_mult)
 		var spread_dir = (base_dir + camera.global_transform.basis.x * spread_x * current_weapon.range + camera.global_transform.basis.y * spread_y * current_weapon.range)
 		directions.append(spread_dir)
 	

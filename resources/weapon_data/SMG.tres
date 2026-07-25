@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_a1b2c"]
 
@@ -11,4 +11,4 @@ mag_size = 40
 reload_time = 1.5
 range = 80.0
 spread = 0.06
-pellet_count = 1
+recoil_pattern = Array[Vector2]([Vector2(0.4, 0.25515652), Vector2(0.4, 0.07090904), Vector2(0.4, 0.12845302), Vector2(0.4, 0.18182363), Vector2(0.4, 0.35638595), Vector2(0.4, 0.08278203), Vector2(0.4, -0.20165405), Vector2(0.4, 0.020960616), Vector2(0.4, 0.3918823), Vector2(0.4, -0.34599906), Vector2(0.4, 0.09986525), Vector2(0.4, -0.20475581), Vector2(0.4, 0.11133234), Vector2(0.4, -0.23003721), Vector2(0.4, 0.008448478), Vector2(0.4, -0.078446336), Vector2(0.4, -0.23617679), Vector2(0.4, -0.27918383), Vector2(0.4, 0.31828254), Vector2(0.4, 0.22818476), Vector2(0.4, 0.39840513), Vector2(0.4, 0.115414225), Vector2(0.4, 0.326303), Vector2(0.4, -0.085878044), Vector2(0.4, 0.1594331), Vector2(0.4, 0.2947929), Vector2(0.4, 0.03409478), Vector2(0.4, 0.3924925), Vector2(0.4, 0.08922615), Vector2(0.4, -0.064746685), Vector2(0.4, -0.1394535), Vector2(0.4, 0.3550813), Vector2(0.4, -0.30921084), Vector2(0.4, 0.105761975), Vector2(0.4, -0.051053148), Vector2(0.4, 0.31078693), Vector2(0.4, 0.37727386), Vector2(0.4, 0.27706176), Vector2(0.4, 0.3052652), Vector2(0.4, 0.13550994)])

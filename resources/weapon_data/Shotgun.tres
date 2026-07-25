@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_a1b2c"]
 
@@ -11,4 +11,5 @@ mag_size = 8
 reload_time = 2.5
 range = 15.0
 spread = 0.15
+recoil_pattern = Array[Vector2]([Vector2(2, -0.3452195), Vector2(2, 0.3549661), Vector2(2, 0.2172379), Vector2(2, -0.12950255), Vector2(2, -0.2921146), Vector2(2, -0.28038633), Vector2(2, -0.42893854), Vector2(2, 0.304908)])
 pellet_count = 8
