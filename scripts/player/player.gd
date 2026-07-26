@@ -109,6 +109,7 @@ func _unhandled_input(event):
 
 var is_interacting = false
 var interact_timer = 0.0
+var previous_y_velocity = 0.0
 
 func _process(delta):
 	if not is_multiplayer_authority(): return
@@ -226,7 +227,17 @@ func _physics_process(delta):
 		velocity.x = move_toward(velocity.x, 0, current_speed)
 		velocity.z = move_toward(velocity.z, 0, current_speed)
 
+	var was_on_floor = is_on_floor()
 	move_and_slide()
+	
+	if not was_on_floor and is_on_floor():
+		if previous_y_velocity < -12.0:
+			var fall_damage = int((abs(previous_y_velocity) - 12.0) * 8.0)
+			if fall_damage > 0:
+				take_damage(fall_damage, team, name.to_int(), "Fall")
+				
+	if not is_on_floor():
+		previous_y_velocity = velocity.y
 
 	var is_ads = false
 	if Input.is_action_pressed("ads") and current_weapon:
@@ -335,7 +346,13 @@ func fire_weapon():
 		gunshot_audio.play()
 	
 	# Send request to server
-	rpc_id(1, "request_fire", camera.global_transform.origin, -camera.global_transform.basis.z * current_weapon.range)
+	var base_dir = -camera.global_transform.basis.z
+	var spread_factor = (hud_spread / 100.0) * 0.15 # Max spread amount
+	var random_x = randf_range(-spread_factor, spread_factor)
+	var random_y = randf_range(-spread_factor, spread_factor)
+	var spread_dir = (base_dir + camera.global_transform.basis.x * random_x + camera.global_transform.basis.y * random_y).normalized()
+	
+	rpc_id(1, "request_fire", camera.global_transform.origin, spread_dir * current_weapon.range)
 
 @rpc("any_peer", "call_local", "reliable")
 func request_fire(origin: Vector3, direction: Vector3):
