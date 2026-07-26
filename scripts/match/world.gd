@@ -41,23 +41,20 @@ func _setup_next_gen_graphics():
 	
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
 	
-	var is_web = OS.has_feature("web")
-	
-	if not is_web:
-		env.ssao_enabled = true
-		env.sdfgi_enabled = true
-		env.sdfgi_use_occlusion = true
-		env.volumetric_fog_enabled = true
-		env.volumetric_fog_density = 0.015
-		env.volumetric_fog_albedo = Color(0.6, 0.7, 0.8)
+	# Enable Volumetric Fog for the weather atmosphere
+	env.ssao_enabled = true
+	env.sdfgi_enabled = true
+	env.sdfgi_use_occlusion = true
+	env.volumetric_fog_enabled = true
+	env.volumetric_fog_density = 0.02
+	env.volumetric_fog_albedo = Color(0.6, 0.7, 0.8)
 	
 	var we = WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 	
-	if not is_web:
-		# Rain Particle System
-		var rain = GPUParticles3D.new()
+	# Rain Particle System
+	var rain = GPUParticles3D.new()
 		var r_mat = ParticleProcessMaterial.new()
 		r_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
 		r_mat.emission_box_extents = Vector3(120, 1, 120)
@@ -84,6 +81,41 @@ func _setup_next_gen_graphics():
 		rain.visibility_aabb = AABB(Vector3(-100, -30, -100), Vector3(200, 60, 200))
 		rain.position = Vector3(0, 30, 0)
 		add_child(rain)
+		
+		# Smoke/Fog low level particles
+		var smoke = GPUParticles3D.new()
+		var s_mat = ParticleProcessMaterial.new()
+		s_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+		s_mat.emission_box_extents = Vector3(100, 2, 100)
+		s_mat.gravity = Vector3(1, 0, 1)
+		smoke.process_material = s_mat
+		var s_mesh = QuadMesh.new()
+		s_mesh.size = Vector2(10, 10)
+		var s_smat = StandardMaterial3D.new()
+		s_smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		s_smat.albedo_color = Color(0.8, 0.8, 0.8, 0.1)
+		s_smat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		s_mesh.material = s_smat
+		smoke.draw_pass_1 = s_mesh
+		smoke.amount = 400
+		smoke.lifetime = 10.0
+		smoke.position = Vector3(0, 1, 0)
+		add_child(smoke)
+		
+		# Thunder Timer
+		var thunder_timer = Timer.new()
+		thunder_timer.wait_time = randf_range(10.0, 25.0)
+		thunder_timer.autostart = true
+		thunder_timer.timeout.connect(_on_thunder)
+		add_child(thunder_timer)
+		
+func _on_thunder():
+	if AudioManager.thunder_sound:
+		AudioManager.play_2d(AudioManager.thunder_sound)
+	# Reset timer
+	var timers = get_children().filter(func(c): return c is Timer)
+	if timers.size() > 0:
+		timers[0].wait_time = randf_range(15.0, 40.0)
 
 func _apply_hq_materials():
 	# Create a clean solid green grass material instead of blurry noise

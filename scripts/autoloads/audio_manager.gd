@@ -5,6 +5,7 @@ var footstep_sound: AudioStream
 var reload_sound: AudioStream
 var match_start_sound: AudioStream
 var win_sound: AudioStream
+var thunder_sound: AudioStream
 
 const SAVE_PATH = "user://audio_settings.cfg"
 var master_volume: float = 100.0
@@ -13,6 +14,7 @@ var is_muted: bool = false
 func _ready():
 	_load_settings()
 	_generate_sounds()
+	_setup_audio_effects()
 
 func set_master_volume(vol: float):
 	master_volume = clamp(vol, 0.0, 100.0)
@@ -30,6 +32,21 @@ func _apply_audio():
 	var db = linear_to_db(master_volume / 100.0)
 	if master_volume <= 0.0: db = -80.0
 	AudioServer.set_bus_volume_db(bus, db)
+
+func _setup_audio_effects():
+	var bus = AudioServer.get_bus_index("Master")
+	# Add Reverb
+	var reverb = AudioEffectReverb.new()
+	reverb.room_size = 0.3
+	reverb.damping = 0.5
+	reverb.wet = 0.1
+	AudioServer.add_bus_effect(bus, reverb)
+	
+	# Add EQ for punchier bass and clearer highs
+	var eq = AudioEffectEQ.new()
+	eq.set_band_gain(0, 3.0) # Bass boost
+	eq.set_band_gain(5, 2.0) # High boost
+	AudioServer.add_bus_effect(bus, eq)
 
 func _load_settings():
 	var cfg = ConfigFile.new()
@@ -57,9 +74,12 @@ func _generate_sounds():
 	# Generate win (happy chime)
 	win_sound = _create_chime(880.0, 1.0)
 	
+	# Generate thunder (long low frequency noise burst)
+	thunder_sound = _create_noise_burst(3.0, 1500, 3.0)
+	
 	gunshot_sound = load("res://Assets/audio/gunshot.wav")
 	if not gunshot_sound:
-		gunshot_sound = _create_noise_burst(0.2, 8000, 2.0)
+		gunshot_sound = _create_gunshot()
 
 func _create_noise_burst(duration: float, freq: float, volume: float) -> AudioStreamWAV:
 	var stream = AudioStreamWAV.new()
@@ -77,6 +97,24 @@ func _create_noise_burst(duration: float, freq: float, volume: float) -> AudioSt
 		var val = int(clamp(sample, -32768, 32767))
 		data.encode_s16(i * 2, val)
 		
+	stream.data = data
+	return stream
+
+func _create_gunshot() -> AudioStreamWAV:
+	var stream = AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = 44100
+	var length = int(44100 * 0.4)
+	var data = PackedByteArray()
+	data.resize(length * 2)
+	for i in range(length):
+		var t = float(i) / 44100.0
+		var env = exp(-t * 15.0) # Fast decay for punch
+		var noise = randf_range(-1.0, 1.0)
+		var bass = sin(t * 150.0 * TAU) * 0.5 * exp(-t * 30.0) # Low end thump
+		var sample = (noise + bass) * env * 2.5 * 32767.0
+		var val = int(clamp(sample, -32768, 32767))
+		data.encode_s16(i * 2, val)
 	stream.data = data
 	return stream
 

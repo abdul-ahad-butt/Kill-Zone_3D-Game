@@ -5,9 +5,9 @@
 extends Node
 
 # ── Quality levels ──────────────────────────────────────────────────────────
-enum Quality { LOW = 0, MEDIUM = 1, HIGH = 2 }
+enum Quality { LOW = 0, MEDIUM = 1, HIGH = 2, ULTRA = 3 }
 
-const QUALITY_NAMES := ["Low", "Medium", "High"]
+const QUALITY_NAMES := ["Low", "Medium", "High", "Ultra"]
 const SAVE_PATH    := "user://graphics_settings.cfg"
 const SECTION      := "graphics"
 const KEY_QUALITY  := "quality"
@@ -49,6 +49,16 @@ var PRESETS := {
 		"use_ssao":        true,
 		"use_fog":         true,
 		"max_fps":         0,      # Uncapped
+	},
+	Quality.ULTRA: {
+		"viewport_scale":  1.5,    # 2K/Super-sampling target
+		"shadow_quality":  RenderingServer.SHADOW_QUALITY_SOFT_HIGH,
+		"msaa":            Viewport.MSAA_8X,
+		"fxaa":            true,
+		"use_glow":        true,
+		"use_ssao":        true,
+		"use_fog":         true,
+		"max_fps":         80,     # 80 FPS limit
 	},
 }
 
@@ -151,4 +161,4 @@ func _load_settings() -> void:
 func _detect_default_quality() -> Quality:
 	if OS.has_feature("web") or OS.has_feature("mobile"):
 		return Quality.HIGH
-	return Quality.HIGH
+	return Quality.ULTRA
