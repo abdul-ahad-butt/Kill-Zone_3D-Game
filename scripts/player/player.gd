@@ -22,6 +22,7 @@ var is_reloading: bool = false
 var has_bomb: bool = false
 var is_crouching: bool = false
 var grenades_count: int = 2
+var hud_spread: float = 0.0
 
 @onready var camera = $Camera3D
 @onready var raycast = $Camera3D/RayCast3D
