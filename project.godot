@@ -27,6 +27,12 @@ MatchManager="*res://scripts/autoloads/match_manager.gd"
 NetworkManager="*res://scripts/autoloads/network_manager.gd"
 PlayerStats="*res://scripts/autoloads/player_stats.gd"
 
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
 [input]
 
 look={
@@ -112,12 +118,6 @@ buy_menu={
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
-
-[display]
-
-window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
-window/handheld/orientation=4
 
 [rendering]
 
