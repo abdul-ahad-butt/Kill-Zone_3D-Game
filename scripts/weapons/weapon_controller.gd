@@ -49,9 +49,9 @@ func fire(is_ads: bool, is_moving: bool) -> bool:
 	return true
 
 func _play_fire_effects():
-	if weapon_data.fire_sound and audio_player:
-		audio_player.stream = weapon_data.fire_sound
-		audio_player.play()
+	if weapon_data.fire_sound:
+		var am = get_node_or_null("/root/AudioManager")
+		if am: am.play_3d(weapon_data.fire_sound, global_position)
 		
 	if weapon_data.muzzle_flash_scene:
 		var flash = weapon_data.muzzle_flash_scene.instantiate()
@@ -97,9 +97,9 @@ func reload():
 		return
 		
 	is_reloading = true
-	if weapon_data.reload_sound and audio_player:
-		audio_player.stream = weapon_data.reload_sound
-		audio_player.play()
+	if weapon_data.reload_sound:
+		var am = get_node_or_null("/root/AudioManager")
+		if am: am.play_3d(weapon_data.reload_sound, global_position)
 		
 	await get_tree().create_timer(weapon_data.reload_time).timeout
 	

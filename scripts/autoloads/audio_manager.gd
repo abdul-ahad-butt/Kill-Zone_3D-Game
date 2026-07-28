@@ -6,15 +6,27 @@ var reload_sound: AudioStream
 var match_start_sound: AudioStream
 var win_sound: AudioStream
 var thunder_sound: AudioStream
+var button_sound: AudioStream
+var ambient_wind: AudioStream
 
 const SAVE_PATH = "user://audio_settings.cfg"
 var master_volume: float = 100.0
 var is_muted: bool = false
 
 func _ready():
+	_setup_buses()
 	_load_settings()
 	_generate_sounds()
 	_setup_audio_effects()
+	play_ambient()
+
+func _setup_buses():
+	for bus_name in ["SFX", "Music", "Ambient", "UI", "Voice"]:
+		if AudioServer.get_bus_index(bus_name) == -1:
+			AudioServer.add_bus()
+			var idx = AudioServer.get_bus_count() - 1
+			AudioServer.set_bus_name(idx, bus_name)
+			AudioServer.set_bus_send(idx, "Master")
 
 func set_master_volume(vol: float):
 	master_volume = clamp(vol, 0.0, 100.0)
@@ -76,6 +88,12 @@ func _generate_sounds():
 	
 	# Generate thunder (long low frequency noise burst)
 	thunder_sound = _create_noise_burst(3.0, 1500, 3.0)
+	
+	# UI button sound
+	button_sound = _create_clicks() # Using clicks for now
+	
+	# Ambient wind
+	ambient_wind = _create_noise_burst(10.0, 2000, 0.3)
 	
 	gunshot_sound = load("res://Assets/audio/gunshot.wav")
 	if not gunshot_sound:
@@ -155,9 +173,31 @@ func _create_chime(freq: float, duration: float) -> AudioStreamWAV:
 	stream.data = data
 	return stream
 
-func play_2d(stream: AudioStream):
+func play_2d(stream: AudioStream, bus: String = "UI"):
+	if not stream: return
 	var player = AudioStreamPlayer.new()
 	player.stream = stream
+	player.bus = bus
 	add_child(player)
 	player.play()
 	player.finished.connect(player.queue_free)
+
+func play_3d(stream: AudioStream, pos: Vector3, bus: String = "SFX"):
+	if not stream: return
+	var player = AudioStreamPlayer3D.new()
+	player.stream = stream
+	player.bus = bus
+	player.global_position = pos
+	add_child(player)
+	player.play()
+	player.finished.connect(player.queue_free)
+	
+func play_ambient():
+	if not ambient_wind: return
+	var p = AudioStreamPlayer.new()
+	p.stream = ambient_wind
+	p.bus = "Ambient"
+	p.volume_db = -10.0
+	add_child(p)
+	p.play()
+	p.finished.connect(p.play) # loop

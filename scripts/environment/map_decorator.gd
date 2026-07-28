@@ -18,17 +18,16 @@ func _generate_grass():
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	multimesh.instance_count = grass_count
 	
-	# Create crossed triangles for grass (better performance and 100% WebGL compatible without alpha issues)
 	var vertices = PackedVector3Array()
-	# Triangle 1 (X-axis)
-	vertices.push_back(Vector3(-0.15, 0, 0))
-	vertices.push_back(Vector3(0.15, 0, 0))
-	vertices.push_back(Vector3(0, 0.8, 0))
+	# Triangle 1 (X-axis) - much smaller blades
+	vertices.push_back(Vector3(-0.05, 0, 0))
+	vertices.push_back(Vector3(0.05, 0, 0))
+	vertices.push_back(Vector3(0, 0.25, 0))
 	
 	# Triangle 2 (Z-axis)
-	vertices.push_back(Vector3(0, 0, -0.15))
-	vertices.push_back(Vector3(0, 0, 0.15))
-	vertices.push_back(Vector3(0, 0.8, 0))
+	vertices.push_back(Vector3(0, 0, -0.05))
+	vertices.push_back(Vector3(0, 0, 0.05))
+	vertices.push_back(Vector3(0, 0.25, 0))
 	
 	var arrays = []
 	arrays.resize(Mesh.ARRAY_MAX)
@@ -37,26 +36,52 @@ func _generate_grass():
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	
-	var mat = StandardMaterial3D.new()
-	mat.albedo_color = Color(0.2, 0.5, 0.15)
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mat.roughness = 0.9
+	var shader_code = """
+shader_type spatial;
+render_mode cull_disabled;
+uniform vec4 albedo : source_color = vec4(0.25, 0.45, 0.15, 1.0);
+uniform float sway_speed = 2.0;
+uniform float sway_strength = 0.05;
+
+void vertex() {
+	if (VERTEX.y > 0.0) {
+		float time = TIME * sway_speed;
+		VERTEX.x += sin(time + NODE_POSITION_WORLD.x) * sway_strength;
+		VERTEX.z += cos(time + NODE_POSITION_WORLD.z) * sway_strength;
+	}
+}
+void fragment() {
+	ALBEDO = albedo.rgb;
+	ROUGHNESS = 0.9;
+}
+"""
+	var shader = Shader.new()
+	shader.code = shader_code
+	var mat = ShaderMaterial.new()
+	mat.shader = shader
 	mesh.surface_set_material(0, mat)
 	multimesh.mesh = mesh
 	
+	var valid_instances = 0
 	for i in range(grass_count):
 		var x = randf_range(-map_radius, map_radius)
 		var z = randf_range(-map_radius, map_radius)
 		
+		# Improved masking
 		if not is_inside_building(x, z):
+			# Also avoid road/paths roughly (x around 0)
+			if abs(x) < 4.0:
+				continue
+				
 			var pos = Vector3(x, 0, z)
 			var t = Transform3D().translated(pos)
 			t = t.rotated(Vector3.UP, randf() * TAU)
-			t = t.scaled(Vector3.ONE * randf_range(0.7, 1.3))
-			multimesh.set_instance_transform(i, t)
-		else:
-			multimesh.set_instance_transform(i, Transform3D().translated(Vector3(0, -10, 0)))
+			t = t.scaled(Vector3.ONE * randf_range(0.6, 1.2))
+			multimesh.set_instance_transform(valid_instances, t)
+			valid_instances += 1
 			
+	multimesh.visible_instance_count = valid_instances
+	
 	var mmi = MultiMeshInstance3D.new()
 	mmi.multimesh = multimesh
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

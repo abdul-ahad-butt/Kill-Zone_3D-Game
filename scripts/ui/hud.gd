@@ -138,33 +138,43 @@ func _setup_mobile_ui():
 	btn_style.corner_radius_top_right = 10
 	btn_style.corner_radius_bottom_left = 10
 	btn_style.corner_radius_bottom_right = 10
-		
-	var jump_btn = Button.new()
-	jump_btn.text = "JUMP"
-	jump_btn.custom_minimum_size = Vector2(100, 100)
-	jump_btn.position = Vector2(get_viewport().size.x - 120, get_viewport().size.y - 300)
-	jump_btn.add_theme_stylebox_override("normal", btn_style)
-	jump_btn.button_down.connect(func(): Input.action_press("jump"))
-	jump_btn.button_up.connect(func(): Input.action_release("jump"))
-	add_child(jump_btn)
 	
-	var reload_btn = Button.new()
-	reload_btn.text = "RELOAD"
-	reload_btn.custom_minimum_size = Vector2(100, 100)
-	reload_btn.position = Vector2(get_viewport().size.x - 240, get_viewport().size.y - 120)
-	reload_btn.add_theme_stylebox_override("normal", btn_style)
-	reload_btn.button_down.connect(func(): Input.action_press("reload"))
-	reload_btn.button_up.connect(func(): Input.action_release("reload"))
-	add_child(reload_btn)
+	var control_container = Control.new()
+	control_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(control_container)
 	
-	var interact_btn = Button.new()
-	interact_btn.text = "PLANT/DEFUSE"
-	interact_btn.custom_minimum_size = Vector2(120, 80)
-	interact_btn.position = Vector2(get_viewport().size.x - 380, get_viewport().size.y - 100)
-	interact_btn.add_theme_stylebox_override("normal", btn_style)
-	interact_btn.button_down.connect(func(): Input.action_press("use"))
-	interact_btn.button_up.connect(func(): Input.action_release("use"))
-	add_child(interact_btn)
+	var fire_btn = _create_action_btn("FIRE", Vector2(120, 120), Vector2(-150, -150), "fire", btn_style)
+	control_container.add_child(fire_btn)
+	
+	var ads_btn = _create_action_btn("ADS", Vector2(80, 80), Vector2(-130, -250), "ads", btn_style)
+	control_container.add_child(ads_btn)
+	
+	var jump_btn = _create_action_btn("JUMP", Vector2(80, 80), Vector2(-280, -150), "jump", btn_style)
+	control_container.add_child(jump_btn)
+	
+	var reload_btn = _create_action_btn("RELOAD", Vector2(90, 70), Vector2(-270, -250), "reload", btn_style)
+	control_container.add_child(reload_btn)
+	
+	var interact_btn = _create_action_btn("PLANT/DEFUSE", Vector2(130, 70), Vector2(-420, -150), "use", btn_style)
+	control_container.add_child(interact_btn)
+
+func _create_action_btn(text: String, size: Vector2, offset: Vector2, action: String, style: StyleBox) -> Button:
+	var btn = Button.new()
+	btn.text = text
+	btn.custom_minimum_size = size
+	btn.add_theme_stylebox_override("normal", style)
+	btn.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	btn.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	btn.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	btn.position = offset
+	btn.button_down.connect(func(): Input.action_press(action))
+	btn.button_up.connect(func(): Input.action_release(action))
+	# Audio feedback on mobile buttons
+	btn.button_down.connect(func(): 
+		var am = get_node_or_null("/root/AudioManager")
+		if am and am.button_sound: am.play_2d(am.button_sound)
+	)
+	return btn
 
 func _on_round_timer_updated(time_left: int):
 	var m = time_left / 60

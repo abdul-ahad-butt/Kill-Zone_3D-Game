@@ -27,11 +27,11 @@ sky_material = SubResource("ProceduralSkyMaterial_7r4gi")
 background_mode = 2
 sky = SubResource("Sky_w7kh3")
 ambient_light_source = 3
-tonemap_mode = 3
-sdfgi_enabled = true
-ssao_enabled = true
-volumetric_fog_enabled = true
-volumetric_fog_density = 0.01
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.6, 0.7, 0.8, 1)
+fog_density = 0.003
+fog_sky_affect = 0.5
 
 [node name="World" type="Node3D" unique_id=65326711]
 script = ExtResource("1_world")
@@ -77,6 +77,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -2.5, 0)
 operation = 2
 size = Vector3(2, 3, 4)
 
+[node name="WindowA1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=111111111]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, -4)
+operation = 2
+size = Vector3(2, 2, 2)
+
+[node name="WindowA2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=111111112]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, 4)
+operation = 2
+size = Vector3(2, 2, 2)
+
 [node name="BuildingB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=532743647]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 4, 0)
 size = Vector3(16, 8, 16)
@@ -95,6 +105,16 @@ size = Vector3(4, 3, 2)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -2.5, 0)
 operation = 2
 size = Vector3(2, 3, 4)
+
+[node name="WindowB1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=222222221]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1, -4)
+operation = 2
+size = Vector3(2, 2, 2)
+
+[node name="WindowB2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=222222222]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1, 4)
+operation = 2
+size = Vector3(2, 2, 2)
 
 [node name="CenterStructure" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1539133479]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)

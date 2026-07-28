@@ -3,8 +3,8 @@ extends Node3D
 @onready var police_spawns = $Spawns/Police.get_children()
 @onready var terrorist_spawns = $Spawns/Terrorist.get_children()
 
-var player_scene = preload("res://scenes/player/player.tscn")
-var bot_scene = preload("res://scenes/player/bot.tscn")
+var player_scene = preload("res://scenes/characters/police/police_character.tscn")
+var bot_scene = preload("res://scenes/characters/terrorist/terrorist_character.tscn")
 
 func _ready():
 	_setup_next_gen_graphics()

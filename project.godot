@@ -113,6 +113,12 @@ buy_menu={
 
 pointing/emulate_touch_from_mouse=true
 
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
