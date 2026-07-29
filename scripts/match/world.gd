@@ -104,6 +104,51 @@ func _setup_next_gen_graphics():
 		smoke.lifetime = 10.0
 		smoke.position = Vector3(0, 1, 0)
 		add_child(smoke)
+	else:
+		# CPUParticles for Web
+		var rain = CPUParticles3D.new()
+		rain.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		rain.emission_box_extents = Vector3(120, 1, 120)
+		rain.direction = Vector3(0.1, -1, 0)
+		rain.spread = 2.0
+		rain.initial_velocity_min = 25.0
+		rain.initial_velocity_max = 35.0
+		rain.gravity = Vector3(0, -9.8, 0)
+		
+		var r_mesh = QuadMesh.new()
+		r_mesh.size = Vector2(0.05, 0.8)
+		var r_smat = StandardMaterial3D.new()
+		r_smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		r_smat.albedo_color = Color(0.7, 0.8, 0.9, 0.3)
+		r_smat.emission_enabled = true
+		r_smat.emission = Color(0.6, 0.7, 0.8)
+		r_smat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		r_mesh.material = r_smat
+		
+		rain.mesh = r_mesh
+		rain.amount = 8000
+		rain.lifetime = 1.5
+		rain.position = Vector3(0, 30, 0)
+		add_child(rain)
+		
+		var smoke = CPUParticles3D.new()
+		smoke.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		smoke.emission_box_extents = Vector3(100, 2, 100)
+		smoke.gravity = Vector3(1, 0, 1)
+		
+		var s_mesh = QuadMesh.new()
+		s_mesh.size = Vector2(10, 10)
+		var s_smat = StandardMaterial3D.new()
+		s_smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		s_smat.albedo_color = Color(0.8, 0.8, 0.8, 0.1)
+		s_smat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		s_mesh.material = s_smat
+		
+		smoke.mesh = s_mesh
+		smoke.amount = 300
+		smoke.lifetime = 10.0
+		smoke.position = Vector3(0, 1, 0)
+		add_child(smoke)
 	
 	# Thunder Timer
 	var thunder_timer = Timer.new()
@@ -121,10 +166,8 @@ func _on_thunder():
 		timers[0].wait_time = randf_range(15.0, 40.0)
 
 func _apply_hq_materials():
-	# Create a clean solid green grass material instead of blurry noise
-	var grass = StandardMaterial3D.new()
-	grass.albedo_color = Color(0.15, 0.35, 0.1)
-	grass.roughness = 0.9
+	var grass = load("res://Assets/textures/mat_grass.tres")
+	if grass: grass.uv1_triplanar = true
 	
 	var concrete = load("res://Assets/textures/mat_concrete.tres")
 	if concrete: concrete.uv1_triplanar = true

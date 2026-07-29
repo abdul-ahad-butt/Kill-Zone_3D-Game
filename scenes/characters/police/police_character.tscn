@@ -1,7 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://police_char_uid"]
 
 [ext_resource type="Script" path="res://scripts/characters/player_controller.gd" id="1_script"]
-[ext_resource type="PackedScene" path="res://Assets/models/weapons/pistol_viewmodel.tscn" id="2_pistol"]
+[ext_resource type="PackedScene" uid="uid://pistol_viewmodel" path="res://Assets/models/weapons/pistol_viewmodel.tscn" id="2_pistol"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_controller.gd" id="3_wc"]
+[ext_resource type="Resource" uid="uid://pistol_data" path="res://Assets/ScriptableObjects/Weapons/pistol_data.tres" id="4_pdata"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_police"]
 albedo_color = Color(0, 0.2, 0.8, 1)
@@ -28,3 +30,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="PistolViewmodel" parent="Camera3D" instance=ExtResource("2_pistol")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.2, -0.4)
+
+[node name="WeaponController" type="Node3D" parent="Camera3D" node_paths=PackedStringArray("character")]
+script = ExtResource("3_wc")
+character = NodePath("../..")
+weapon_data = ExtResource("4_pdata")
+
+[node name="RayCast3D" type="RayCast3D" parent="Camera3D/WeaponController"]
+target_position = Vector3(0, 0, -100)
+collision_mask = 3
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Camera3D/WeaponController"]
+max_db = 1.0

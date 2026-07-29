@@ -53,10 +53,19 @@ func _play_fire_effects():
 		var am = get_node_or_null("/root/AudioManager")
 		if am: am.play_3d(weapon_data.fire_sound, global_position)
 		
+	var builtin_flash = get_node_or_null("../PistolViewmodel/MuzzleFlash")
+	if builtin_flash and builtin_flash is CPUParticles3D:
+		builtin_flash.restart()
+		builtin_flash.emitting = true
+		
+	var builtin_light = get_node_or_null("../PistolViewmodel/MuzzleLight")
+	if builtin_light:
+		builtin_light.visible = true
+		get_tree().create_timer(0.05).timeout.connect(func(): builtin_light.visible = false)
+		
 	if weapon_data.muzzle_flash_scene:
 		var flash = weapon_data.muzzle_flash_scene.instantiate()
 		add_child(flash)
-		# Should self-destroy or emit once
 
 func _apply_recoil_and_spread(is_ads: bool, is_moving: bool):
 	var spread = weapon_data.spread_base

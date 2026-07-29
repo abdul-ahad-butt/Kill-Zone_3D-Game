@@ -12,8 +12,7 @@ var is_crouching: bool = false
 var is_sprinting: bool = false
 
 @onready var camera = $Camera3D
-# Assume weapon controller is added as a child or handled in a separate script attached to the player
-# @onready var weapon_controller = $WeaponController
+@onready var weapon_controller = $Camera3D/WeaponController
 
 func _enter_tree():
 	set_multiplayer_authority(name.to_int())
@@ -73,5 +72,14 @@ func _physics_process(delta):
 	else:
 		velocity.x = move_toward(velocity.x, 0, current_speed)
 		velocity.z = move_toward(velocity.z, 0, current_speed)
+
+	if Input.is_action_pressed("fire"):
+		if weapon_controller:
+			var is_moving = velocity.length_squared() > 0.1
+			weapon_controller.fire(false, is_moving)
+			
+	if Input.is_action_just_pressed("reload"):
+		if weapon_controller:
+			weapon_controller.reload()
 
 	move_and_slide()

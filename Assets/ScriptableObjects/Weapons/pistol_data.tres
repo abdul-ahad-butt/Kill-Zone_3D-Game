@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://pistol_data"]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_script"]
+[ext_resource type="AudioStream" uid="uid://gunshot_audio" path="res://Assets/audio/gunshot.wav" id="2_audio"]
+
+[resource]
+script = ExtResource("1_script")
+weapon_name = "Pistol"
+damage = 30.0
+fire_rate = 8.0
+magazine_size = 12
+reserve_ammo = 90
+reload_time = 1.5
+recoil_pattern = Array[Vector2]([])
+spread_base = 2.0
+spread_moving = 5.0
+spread_ads = 0.5
+range = 100.0
+fire_sound = ExtResource("2_audio")
+ads_fov = 50.0
+ads_position = Vector3(0, -0.15, -0.4)
+default_position = Vector3(0.3, -0.3, -0.6)
