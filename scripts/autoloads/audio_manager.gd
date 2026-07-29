@@ -54,11 +54,6 @@ func _setup_audio_effects():
 	reverb.wet = 0.1
 	AudioServer.add_bus_effect(bus, reverb)
 	
-	# Add EQ for punchier bass and clearer highs
-	var eq = AudioEffectEQ6.new()
-	eq.set_band_gain(0, 3.0) # Bass boost
-	eq.set_band_gain(5, 2.0) # High boost
-	AudioServer.add_bus_effect(bus, eq)
 
 func _load_settings():
 	var cfg = ConfigFile.new()
