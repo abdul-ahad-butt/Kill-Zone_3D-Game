@@ -8,6 +8,8 @@
 [ext_resource type="Material" path="res://resources/materials/metal.tres" id="4_4mrxx"]
 [ext_resource type="Script" path="res://scripts/environment/map_decorator.gd" id="5_decorator"]
 
+[sub_resource type="NavigationMesh" id="NavigationMesh_nav1"]
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_A"]
 size = Vector3(8, 2, 8)
 
@@ -45,6 +47,7 @@ directional_shadow_fade_start = 1.0
 directional_shadow_max_distance = 200.0
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=778866495]
+navigation_mesh = SubResource("NavigationMesh_nav1")
 
 [node name="MapDecorator" type="Node3D" parent="NavigationRegion3D"]
 script = ExtResource("5_decorator")
