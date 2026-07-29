@@ -8,6 +8,17 @@ enum Faction {
 }
 
 @export var faction: Faction = Faction.NONE
+
+var team: int = 0:
+	set(value):
+		team = value
+		# Map Team.TeamId to Faction
+		if value == 1: # POLICE
+			faction = Faction.POLICE
+		elif value == 2: # TERRORIST
+			faction = Faction.TERRORIST
+		else:
+			faction = Faction.NONE
 @export var max_health: int = 100
 var current_health: int = 100
 
