@@ -1,6 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://police_char_uid"]
 
 [ext_resource type="Script" path="res://scripts/characters/player_controller.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://Assets/models/weapons/pistol_viewmodel.tscn" id="2_pistol"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_police"]
 albedo_color = Color(0, 0.2, 0.8, 1)
@@ -24,3 +25,6 @@ shape = SubResource("CapsuleShape3D_police")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="PistolViewmodel" parent="Camera3D" instance=ExtResource("2_pistol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.2, -0.4)

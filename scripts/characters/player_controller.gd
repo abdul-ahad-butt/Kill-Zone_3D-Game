@@ -54,7 +54,7 @@ func _physics_process(delta):
 		velocity.y = JUMP_VELOCITY
 		
 	is_crouching = Input.is_action_pressed("crouch")
-	is_sprinting = Input.is_action_pressed("sprint") and not is_crouching
+	is_sprinting = Input.is_key_pressed(KEY_SHIFT) and not is_crouching
 	
 	var current_speed = SPEED
 	if is_crouching:
