@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://pistol_data"]
 
 [ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_script"]
-[ext_resource type="AudioStream" uid="uid://gunshot_audio" path="res://Assets/audio/gunshot.wav" id="2_audio"]
+[ext_resource type="AudioStream" uid="uid://fiws24miu3v1" path="res://Assets/audio/gunshot.wav" id="2_audio"]
 
 [resource]
 script = ExtResource("1_script")
