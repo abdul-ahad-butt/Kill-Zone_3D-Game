@@ -42,12 +42,13 @@ func _setup_next_gen_graphics():
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
 	
 	# Enable Volumetric Fog for the weather atmosphere
-	env.ssao_enabled = true
-	env.sdfgi_enabled = true
-	env.sdfgi_use_occlusion = true
-	env.volumetric_fog_enabled = true
-	env.volumetric_fog_density = 0.02
-	env.volumetric_fog_albedo = Color(0.6, 0.7, 0.8)
+	if not OS.has_feature("web"):
+		env.ssao_enabled = true
+		env.sdfgi_enabled = true
+		env.sdfgi_use_occlusion = true
+		env.volumetric_fog_enabled = true
+		env.volumetric_fog_density = 0.02
+		env.volumetric_fog_albedo = Color(0.6, 0.7, 0.8)
 	
 	var we = WorldEnvironment.new()
 	we.environment = env
@@ -64,16 +65,24 @@ func _setup_next_gen_graphics():
 	r_mat.initial_velocity_max = 35.0
 	rain.process_material = r_mat
 	
-	var r_mesh = RibbonTrailMesh.new()
+	var r_mesh
+	if OS.has_feature("web"):
+		r_mesh = QuadMesh.new()
+		r_mesh.size = Vector2(0.05, 0.8)
+	else:
+		r_mesh = RibbonTrailMesh.new()
+		r_mesh.size = 0.03
+		r_mesh.sections = 2
+		r_mesh.section_length = 0.6
+	
 	var r_smat = StandardMaterial3D.new()
 	r_smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	r_smat.albedo_color = Color(0.7, 0.8, 0.9, 0.3)
 	r_smat.emission_enabled = true
 	r_smat.emission = Color(0.6, 0.7, 0.8)
+	if OS.has_feature("web"):
+		r_smat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	r_mesh.material = r_smat
-	r_mesh.size = 0.03
-	r_mesh.sections = 2
-	r_mesh.section_length = 0.6
 	
 	rain.draw_pass_1 = r_mesh
 	rain.amount = 12000
