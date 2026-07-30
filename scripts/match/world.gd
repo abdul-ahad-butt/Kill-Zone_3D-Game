@@ -130,25 +130,6 @@ func _setup_next_gen_graphics():
 		rain.lifetime = 1.5
 		rain.position = Vector3(0, 30, 0)
 		add_child(rain)
-		
-		var smoke = CPUParticles3D.new()
-		smoke.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-		smoke.emission_box_extents = Vector3(100, 2, 100)
-		smoke.gravity = Vector3(1, 0, 1)
-		
-		var s_mesh = QuadMesh.new()
-		s_mesh.size = Vector2(10, 10)
-		var s_smat = StandardMaterial3D.new()
-		s_smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		s_smat.albedo_color = Color(0.8, 0.8, 0.8, 0.1)
-		s_smat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
-		s_mesh.material = s_smat
-		
-		smoke.mesh = s_mesh
-		smoke.amount = 300
-		smoke.lifetime = 10.0
-		smoke.position = Vector3(0, 1, 0)
-		add_child(smoke)
 	
 	# Thunder Timer
 	var thunder_timer = Timer.new()

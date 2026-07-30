@@ -182,8 +182,8 @@ func play_3d(stream: AudioStream, pos: Vector3, bus: String = "SFX"):
 	var player = AudioStreamPlayer3D.new()
 	player.stream = stream
 	player.bus = bus
-	player.global_position = pos
 	add_child(player)
+	player.global_position = pos
 	player.play()
 	player.finished.connect(player.queue_free)
 	
