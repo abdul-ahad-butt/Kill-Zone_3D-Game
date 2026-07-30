@@ -1,4 +1,6 @@
-[gd_scene load_steps=18 format=3 uid="uid://world_uid"]
+import os
+
+tscn = """[gd_scene load_steps=18 format=3 uid="uid://world_uid"]
 
 [ext_resource type="Script" path="res://scripts/match/world.gd" id="1_world"]
 [ext_resource type="PackedScene" path="res://scenes/ui/main_menu.tscn" id="2_menu"]
@@ -171,3 +173,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -85)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -82)
 
 [node name="MainMenu" parent="." instance=ExtResource("2_menu")]
+"""
+
+with open("scenes/world.tscn", "w") as f:
+    f.write(tscn)

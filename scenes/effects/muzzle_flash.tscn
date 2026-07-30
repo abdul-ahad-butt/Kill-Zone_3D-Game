@@ -24,3 +24,18 @@ direction = Vector3(0, 0, -1)
 spread = 15.0
 initial_velocity_min = 5.0
 initial_velocity_max = 10.0
+
+[node name="Smoke" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 12
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.8
+local_coords = false
+direction = Vector3(0, 1, 0)
+spread = 20.0
+initial_velocity_min = 0.5
+initial_velocity_max = 1.5
+gravity = Vector3(0, 0.5, 0)
+color = Color(0.6, 0.6, 0.6, 0.3)
+

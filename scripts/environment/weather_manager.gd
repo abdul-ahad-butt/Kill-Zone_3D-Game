@@ -37,22 +37,27 @@ func _ready() -> void:
 		push_warning("WeatherManager: ProceduralSkyMaterial not found!")
 	
 	if debug_weather != -1 and debug_weather >= 0 and debug_weather < 5:
-		set_weather(debug_weather as WeatherType)
+		if multiplayer.is_server(): set_weather(debug_weather as WeatherType)
 	else:
-		_randomize_weather()
+		if multiplayer.is_server(): _randomize_weather()
 
 func _randomize_weather() -> void:
+	if not multiplayer.is_server(): return
 	var roll = randf()
 	if roll < 0.40:
-		set_weather(WeatherType.SUNNY)
+		rpc("sync_weather", WeatherType.SUNNY)
 	elif roll < 0.60:
-		set_weather(WeatherType.CLOUDY)
+		rpc("sync_weather", WeatherType.CLOUDY)
 	elif roll < 0.75:
-		set_weather(WeatherType.RAIN)
+		rpc("sync_weather", WeatherType.RAIN)
 	elif roll < 0.90:
-		set_weather(WeatherType.FOG)
+		rpc("sync_weather", WeatherType.FOG)
 	else:
-		set_weather(WeatherType.NIGHT)
+		rpc("sync_weather", WeatherType.NIGHT)
+
+@rpc("authority", "call_local", "reliable")
+func sync_weather(type: int) -> void:
+	set_weather(type as WeatherType)
 
 func set_weather(type: WeatherType) -> void:
 	current_weather = type

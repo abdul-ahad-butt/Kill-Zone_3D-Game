@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://dumpster_uid"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dumpster"]
+albedo_color = Color(0.1, 0.5, 0.2, 1)
+
+[node name="Dumpster" type="CSGCombiner3D"]
+use_collision = true
+
+[node name="Base" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+size = Vector3(2.5, 1.5, 1.5)
+material = SubResource("StandardMaterial3D_dumpster")
+
+[node name="Hollow" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+operation = 2
+size = Vector3(2.3, 1.5, 1.3)

@@ -54,10 +54,10 @@ func _update_bot_brain():
 		
 	# State Transitions
 	if enemy_visible:
-		var health_ratio = player.health / float(player.max_health)
+		var health_ratio = player.health / 100.0
 		var ammo_ratio = 1.0
-		if player.current_weapon and player.current_weapon.weapon_data:
-			ammo_ratio = float(player.current_ammo) / float(player.current_weapon.weapon_data.magazine_size)
+		if player.current_weapon:
+			ammo_ratio = float(player.current_ammo) / float(player.current_weapon.mag_size)
 			
 		if (health_ratio < 0.3 or ammo_ratio == 0.0) and current_state != State.RETREAT:
 			_enter_state(State.RETREAT)

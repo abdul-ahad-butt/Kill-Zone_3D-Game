@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/bomb_explosion.gd" id="1_expl"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fire"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.5, 0.1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_fire"]
+material = SubResource("StandardMaterial3D_fire")
+radius = 0.5
+height = 1.0
+
+[node name="BombExplosion" type="Node3D"]
+script = ExtResource("1_expl")
+
+[node name="Particles" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 100
+lifetime = 1.5
+one_shot = true
+explosiveness = 0.95
+mesh = SubResource("SphereMesh_fire")
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 10.0
+initial_velocity_max = 20.0
+gravity = Vector3(0, -5, 0)
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.6, 0.2, 1)
+light_energy = 10.0
+omni_range = 30.0

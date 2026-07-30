@@ -3,8 +3,8 @@ extends Node3D
 @onready var police_spawns = $Spawns/Police.get_children()
 @onready var terrorist_spawns = $Spawns/Terrorist.get_children()
 
-var player_scene = preload("res://scenes/characters/police/police_character.tscn")
-var bot_scene = preload("res://scenes/characters/terrorist/terrorist_character.tscn")
+var player_scene = preload("res://scenes/player/player.tscn")
+var bot_scene = preload("res://scenes/player/player.tscn")
 
 func _ready():
 	_setup_next_gen_graphics()
@@ -164,6 +164,10 @@ func _on_round_state_changed(new_state: int):
 
 func _reset_round():
 	if not multiplayer.is_server(): return
+	
+	var weather = get_node_or_null("WeatherManager")
+	if weather and weather.has_method("_randomize_weather"):
+		weather._randomize_weather()
 	
 	# Clear weapon drops and bomb
 	for drop in get_tree().get_nodes_in_group("weapon_drops"):
@@ -392,5 +396,18 @@ func _spawn_bot(id: int, team: Team.TeamId, pos: Vector3):
 	var b = bot_scene.instantiate()
 	b.name = "Bot_" + str(id)
 	b.team = team
+	b.is_bot = true
+	
+	# Add NavigationAgent3D
+	var nav = NavigationAgent3D.new()
+	nav.name = "NavigationAgent3D"
+	b.add_child(nav)
+	
+	# Add BotController
+	var brain = Node.new()
+	brain.name = "BotController"
+	brain.set_script(load("res://scripts/player/bot_controller.gd"))
+	b.add_child(brain)
+	
 	add_child(b)
 	b.global_position = pos

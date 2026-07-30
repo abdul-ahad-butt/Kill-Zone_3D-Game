@@ -11,6 +11,19 @@ var is_defusing = false
 
 var interacting_player = null
 
+func _ready():
+	MatchManager.round_ended.connect(_on_round_ended)
+
+func _on_round_ended(winner: int, reason: String):
+	if reason == "Bomb Exploded":
+		var explosion = load("res://scenes/effects/bomb_explosion.tscn")
+		if explosion:
+			var e = explosion.instantiate()
+			var world = get_node_or_null("/root/World")
+			if world: world.add_child(e)
+			e.global_position = global_position
+		queue_free()
+
 func _process(delta):
 	if is_planting and interacting_player:
 		if interacting_player.velocity.length() > 0.1:

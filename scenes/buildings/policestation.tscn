@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://PoliceStation_uid"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_PoliceStation"]
+albedo_color = Color(0.2, 0.3, 0.8, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_PoliceStation_interior"]
+albedo_color = Color(0.8, 0.8, 0.8, 1)
+
+[node name="PoliceStation" type="CSGCombiner3D"]
+use_collision = true
+
+[node name="Exterior" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.0, 0)
+size = Vector3(20, 6, 15)
+material = SubResource("StandardMaterial3D_PoliceStation")
+
+[node name="Interior" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.0, 0)
+operation = 2
+size = Vector3(19.5, 5.5, 14.5)
+material = SubResource("StandardMaterial3D_PoliceStation_interior")
+
+[node name="Door" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 7.5)
+operation = 2
+size = Vector3(1.5, 2.5, 1.0)
+material = SubResource("StandardMaterial3D_PoliceStation_interior")
+
+[node name="Window1" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0, 1.5, 7.5)
+operation = 2
+size = Vector3(2.0, 1.5, 1.0)
+material = SubResource("StandardMaterial3D_PoliceStation_interior")
+
+[node name="Window2" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.0, 1.5, 7.5)
+operation = 2
+size = Vector3(2.0, 1.5, 1.0)
+material = SubResource("StandardMaterial3D_PoliceStation_interior")

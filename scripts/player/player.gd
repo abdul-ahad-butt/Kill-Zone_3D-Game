@@ -9,6 +9,13 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 @export var health: int = 100
 @export var armor: int = 0
 @export var has_defuse_kit: bool = false
+@export var is_bot: bool = false
+
+var bot_wants_fire: bool = false
+var bot_wants_walk: bool = false
+var bot_input_dir: Vector2 = Vector2.ZERO
+var bot_wants_reload: bool = false
+var bot_wants_interact: bool = false
 
 @export var primary_weapon: WeaponData
 @export var secondary_weapon: WeaponData
@@ -40,10 +47,13 @@ func _enter_tree():
 
 func _ready():
 	add_to_group("players")
-	if not is_multiplayer_authority():
+	if not is_multiplayer_authority() and not is_bot:
 		# Disable camera for other players
 		if camera: camera.current = false
 		return
+		
+	if is_bot and camera:
+		camera.current = false
 		
 	if camera: camera.current = true
 	if not DisplayServer.is_touchscreen_available():
@@ -189,7 +199,7 @@ func server_defuse_bomb():
 		MatchManager.defuse_bomb(sender)
 
 func _physics_process(delta):
-	if not is_multiplayer_authority(): return
+	if not is_multiplayer_authority() and not is_bot: return
 
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -202,22 +212,26 @@ func _physics_process(delta):
 		target_spread = 15.0
 	if _recoil_tween and _recoil_tween.is_running():
 		target_spread += 20.0
-	if Input.is_action_pressed("ads"):
+		
+	var ads_pressed = Input.is_action_pressed("ads") if not is_bot else false
+	if ads_pressed:
 		target_spread *= 0.25
 		
 	var hud = get_node_or_null("HUD")
 	if hud:
 		hud.current_spread = lerp(hud.current_spread, target_spread, delta * 15.0)
 
-	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
+	var jump_pressed = Input.is_action_just_pressed("jump") if not is_bot else false
+	if jump_pressed and is_on_floor() and not is_crouching:
 		velocity.y = JUMP_VELOCITY
 		
-	is_crouching = Input.is_action_pressed("crouch")
+	is_crouching = Input.is_action_pressed("crouch") if not is_bot else false
 	
 	var current_speed = SPEED * 0.5 if is_crouching else SPEED
-	camera.position.y = lerp(camera.position.y, 1.0 if is_crouching else 1.6, delta * 10.0)
+	if camera: camera.position.y = lerp(camera.position.y, 1.0 if is_crouching else 1.6, delta * 10.0)
 
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	if is_bot: input_dir = bot_input_dir
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
 		velocity.x = direction.x * current_speed
@@ -244,20 +258,22 @@ func _physics_process(delta):
 		previous_y_velocity = velocity.y
 
 	var is_ads = false
-	if Input.is_action_pressed("ads") and current_weapon:
+	if ads_pressed and current_weapon:
 		is_ads = true
-		camera.fov = lerp(camera.fov, current_weapon.ads_fov, delta * 15.0)
+		if camera: camera.fov = lerp(camera.fov, current_weapon.ads_fov, delta * 15.0)
 		if current_viewmodel:
 			current_viewmodel.position = current_viewmodel.position.lerp(current_weapon.ads_position, delta * 15.0)
 	else:
-		camera.fov = lerp(camera.fov, 75.0, delta * 15.0)
+		if camera: camera.fov = lerp(camera.fov, 75.0, delta * 15.0)
 		if current_viewmodel and current_weapon:
 			current_viewmodel.position = current_viewmodel.position.lerp(current_weapon.default_position, delta * 10.0)
 			
-	if Input.is_action_just_pressed("reload") and current_weapon and not is_reloading:
+	var reload_pressed = Input.is_action_just_pressed("reload") if not is_bot else bot_wants_reload
+	if reload_pressed and current_weapon and not is_reloading:
 		_start_reload()
 
-	if Input.is_action_pressed("fire") and can_fire and not is_reloading and current_weapon:
+	var fire_pressed = Input.is_action_pressed("fire") if not is_bot else bot_wants_fire
+	if fire_pressed and can_fire and not is_reloading and current_weapon:
 		fire_weapon()
 		
 	if Input.is_action_just_pressed("switch_weapon_1") and primary_weapon:
@@ -322,6 +338,13 @@ func _start_reload():
 	is_reloading = true
 	var am = get_node_or_null("/root/AudioManager")
 	if am: am.play_2d(am.reload_sound)
+	
+	if current_viewmodel:
+		var t = create_tween()
+		var down_pos = current_weapon.default_position + Vector3(0, -0.6, 0.2)
+		t.tween_property(current_viewmodel, "position", down_pos, current_weapon.reload_time * 0.4).set_ease(Tween.EASE_IN)
+		t.tween_property(current_viewmodel, "position", current_weapon.default_position, current_weapon.reload_time * 0.4).set_delay(current_weapon.reload_time * 0.2).set_ease(Tween.EASE_OUT)
+		
 	await get_tree().create_timer(current_weapon.reload_time).timeout
 	
 	var needed = current_weapon.mag_size - current_ammo
@@ -388,7 +411,18 @@ func fire_weapon():
 			current_viewmodel.add_child(f)
 			f.position = Vector3(0, 0, -1.0)
 			f.emitting = true
-			get_tree().create_timer(0.1).timeout.connect(f.queue_free)
+			var smoke = f.get_node_or_null("Smoke")
+			if smoke: smoke.emitting = true
+			get_tree().create_timer(1.0).timeout.connect(f.queue_free)
+			
+		var shell_scene = load("res://scenes/effects/bullet_shell.tscn")
+		if shell_scene:
+			var shell = shell_scene.instantiate()
+			var world = get_node_or_null("/root/World")
+			if world:
+				world.add_child(shell)
+				shell.global_transform = current_viewmodel.global_transform
+				shell.global_position += shell.global_transform.basis.x * 0.1 + shell.global_transform.basis.y * 0.1
 			
 	if gunshot_audio:
 		var am = get_node_or_null("/root/AudioManager")

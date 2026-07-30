@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://Construction_uid"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Construction"]
+albedo_color = Color(0.7, 0.7, 0.3, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Construction_interior"]
+albedo_color = Color(0.8, 0.8, 0.8, 1)
+
+[node name="Construction" type="CSGCombiner3D"]
+use_collision = true
+
+[node name="Exterior" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.5, 0)
+size = Vector3(20, 15, 20)
+material = SubResource("StandardMaterial3D_Construction")
