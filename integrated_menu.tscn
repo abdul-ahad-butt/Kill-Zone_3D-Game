@@ -45,6 +45,12 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Team (5v5)"
 
+[node name="PvPBtn" type="Button" parent="ModeSelect"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "PvP (Multiplayer)"
+
 [node name="FactionSelect" type="VBoxContainer" parent="."]
 visible = false
 anchors_preset = 8

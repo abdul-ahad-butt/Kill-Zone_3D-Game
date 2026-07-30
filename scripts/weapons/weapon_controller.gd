@@ -11,7 +11,8 @@ var last_fire_time: float = 0.0
 var current_recoil_index: int = 0
 var time_since_last_shot: float = 0.0
 
-@onready var raycast: RayCast3D = $RayCast3D
+signal recoil_applied(recoil_vector: Vector2)
+
 @onready var audio_player: AudioStreamPlayer3D = $AudioStreamPlayer3D
 
 func _ready():
@@ -22,8 +23,6 @@ func equip(new_weapon: WeaponData):
 	weapon_data = new_weapon
 	current_ammo = weapon_data.magazine_size
 	current_reserve = weapon_data.reserve_ammo
-	if raycast:
-		raycast.target_position = Vector3(0, 0, -weapon_data.range)
 
 func _process(delta):
 	time_since_last_shot += delta
@@ -45,8 +44,16 @@ func fire(is_ads: bool, is_moving: bool) -> bool:
 	_play_fire_effects()
 	_apply_recoil_and_spread(is_ads, is_moving)
 	_perform_hitscan()
+	_emit_noise(30.0) # 30 unit radius
 	
 	return true
+	
+func _emit_noise(radius: float):
+	var all_ai = get_tree().get_nodes_in_group("ai")
+	for ai in all_ai:
+		if ai.global_position.distance_to(global_position) <= radius:
+			if ai.has_method("hear_noise"):
+				ai.hear_noise(global_position)
 
 func _play_fire_effects():
 	if weapon_data.fire_sound:
@@ -76,27 +83,47 @@ func _apply_recoil_and_spread(is_ads: bool, is_moving: bool):
 	if weapon_data.recoil_pattern.size() > 0:
 		var recoil_vec = weapon_data.recoil_pattern[current_recoil_index % weapon_data.recoil_pattern.size()]
 		current_recoil_index += 1
-		# In a real game, signal or apply this to the camera rotation
+		recoil_applied.emit(recoil_vec)
 
 func _perform_hitscan():
 	if not multiplayer.is_server(): return # Only server registers hits
 	
-	if not raycast: return
-	raycast.force_raycast_update()
+	var space_state = get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(global_position, global_position - global_transform.basis.z * weapon_data.range)
+	# Assuming hitboxes are on a specific layer, e.g., layer 2
+	# query.collision_mask = 2 | 1 # Add whatever layer needed
 	
-	if raycast.is_colliding():
-		var collider = raycast.get_collider()
-		if collider is BaseCharacter:
-			# Get damage multiplier based on hit shape (Head/Body/Limbs) if available
+	var result = space_state.intersect_ray(query)
+	
+	if result:
+		var collider = result.collider
+		var shape_id = result.shape
+		
+		# Traverse up to find BaseCharacter if the collider is an Area3D (hitbox)
+		var character_node = collider
+		while character_node and not character_node is BaseCharacter:
+			character_node = character_node.get_parent()
+			
+		if character_node is BaseCharacter:
 			var damage = weapon_data.damage
+			
+			# Multipliers based on hitbox names/groups (Assuming Area3D hitboxes have meta or specific names)
+			# For now, simulate based on shape node name if available, or just use a default logic
+			# Example: if collider is an Area3D named "HeadHitbox"
+			if collider is Area3D:
+				if "head" in collider.name.to_lower():
+					damage *= 2.5
+				elif "limb" in collider.name.to_lower() or "leg" in collider.name.to_lower() or "arm" in collider.name.to_lower():
+					damage *= 0.75
+			
 			# Falloff logic
-			var distance = global_position.distance_to(raycast.get_collision_point())
+			var distance = global_position.distance_to(result.position)
 			if weapon_data.range_falloff_curve:
 				damage *= weapon_data.range_falloff_curve.sample(distance / weapon_data.range)
 				
 			var attacker_faction = character.faction if character else BaseCharacter.Faction.NONE
 			var attacker_id = character.name.to_int() if character else 1
-			collider.take_damage(int(damage), attacker_faction, attacker_id, weapon_data.weapon_name)
+			character_node.take_damage(int(damage), attacker_faction, attacker_id, weapon_data.weapon_name)
 			
 			# Notify client for hit marker
 			# rpc_id(multiplayer.get_remote_sender_id(), "client_hit_marker")

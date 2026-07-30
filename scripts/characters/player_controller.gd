@@ -10,6 +10,11 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var is_crouching: bool = false
 var is_sprinting: bool = false
+var is_ads: bool = false
+
+var default_fov: float = 75.0
+var ads_fov: float = 50.0
+var ads_speed_multiplier: float = 0.6
 
 @onready var camera = $Camera3D
 @onready var weapon_controller = $Camera3D/WeaponController
@@ -24,7 +29,12 @@ func _ready():
 		if camera: camera.current = false
 		return
 		
-	if camera: camera.current = true
+	if weapon_controller:
+		weapon_controller.recoil_applied.connect(_on_recoil_applied)
+		
+	if camera: 
+		camera.current = true
+		default_fov = camera.fov
 	if not DisplayServer.is_touchscreen_available():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -43,6 +53,12 @@ func _rotate_camera(relative: Vector2):
 		camera.rotate_x(-relative.y * 0.005)
 		camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
 
+func _on_recoil_applied(recoil_vector: Vector2):
+	if camera:
+		camera.rotate_x(deg_to_rad(recoil_vector.y))
+		camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
+	rotate_y(deg_to_rad(recoil_vector.x))
+
 func _physics_process(delta):
 	if not is_multiplayer_authority(): return
 
@@ -58,11 +74,18 @@ func _physics_process(delta):
 	var current_speed = SPEED
 	if is_crouching:
 		current_speed = CROUCH_SPEED
-	elif is_sprinting:
+	elif is_sprinting and not is_ads:
 		current_speed = SPRINT_SPEED
+		
+	if is_ads:
+		current_speed *= ads_speed_multiplier
 		
 	if camera:
 		camera.position.y = lerp(camera.position.y, 1.0 if is_crouching else 1.6, delta * 10.0)
+		
+		# Handle ADS FOV
+		var target_fov = ads_fov if is_ads else default_fov
+		camera.fov = lerp(camera.fov, target_fov, delta * 15.0)
 
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
@@ -73,10 +96,12 @@ func _physics_process(delta):
 		velocity.x = move_toward(velocity.x, 0, current_speed)
 		velocity.z = move_toward(velocity.z, 0, current_speed)
 
+	is_ads = Input.is_action_pressed("ads")
+
 	if Input.is_action_pressed("fire"):
 		if weapon_controller:
 			var is_moving = velocity.length_squared() > 0.1
-			weapon_controller.fire(false, is_moving)
+			weapon_controller.fire(is_ads, is_moving)
 			
 	if Input.is_action_just_pressed("reload"):
 		if weapon_controller:
