@@ -108,3 +108,42 @@ func _physics_process(delta):
 			weapon_controller.reload()
 
 	move_and_slide()
+	_check_rain()
+
+var _was_under_roof: bool = false
+var _rain_particles = null
+
+func _check_rain():
+	if Engine.get_frames_drawn() % 10 != 0: return
+	
+	var space_state = get_world_3d().direct_space_state
+	var query = PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.1, global_position + Vector3.UP * 20.0)
+	var result = space_state.intersect_ray(query)
+	var is_under_roof = result.size() > 0
+	
+	if is_under_roof != _was_under_roof:
+		_was_under_roof = is_under_roof
+		_fade_rain(not is_under_roof)
+
+func _fade_rain(show: bool):
+	if not is_instance_valid(_rain_particles):
+		var world = get_tree().current_scene
+		if world:
+			for c in world.get_children():
+				if c is GPUParticles3D or c is CPUParticles3D:
+					if "amount" in c and c.amount > 1000:
+						_rain_particles = c
+						break
+	
+	if _rain_particles:
+		var target_alpha = 0.3 if show else 0.0
+		var pass_mat = null
+		if _rain_particles is GPUParticles3D:
+			pass_mat = _rain_particles.draw_pass_1.material
+		elif _rain_particles is CPUParticles3D:
+			pass_mat = _rain_particles.mesh.material
+			
+		if pass_mat and pass_mat is StandardMaterial3D:
+			var tween = create_tween()
+			tween.tween_property(pass_mat, "albedo_color:a", target_alpha, 0.5)
+

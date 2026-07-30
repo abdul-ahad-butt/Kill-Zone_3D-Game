@@ -22,6 +22,7 @@ var bomb_time: float = 40.0
 var round_end_delay: float = 5.0
 
 var _timer: float = 0.0
+var next_beep_time: float = 0.0
 
 var police_players: Array = []
 var terrorist_players: Array = []
@@ -84,6 +85,12 @@ func _process(delta: float) -> void:
 	elif current_state == MatchState.LIVE:
 		if is_bomb_planted:
 			_timer -= delta
+			
+			if _timer <= next_beep_time:
+				rpc("play_beep")
+				var beep_interval = max(0.1, (_timer / bomb_time) * 1.5)
+				next_beep_time = _timer - beep_interval
+				
 			rpc("sync_timers", -1, int(ceil(_timer)))
 			if _timer <= 0:
 				end_round(Team.TeamId.TERRORIST, "Bomb Exploded")
@@ -195,8 +202,15 @@ func plant_bomb(planter_id: int = 1) -> void:
 	
 	is_bomb_planted = true
 	_timer = bomb_time
+	next_beep_time = bomb_time
 	add_money(planter_id, 300) # Reward for planting
 	rpc("sync_bomb_event", true)
+
+@rpc("authority", "call_local", "unreliable")
+func play_beep():
+	var am = get_node_or_null("/root/AudioManager")
+	if am and am.bomb_beep_sound:
+		am.play_2d(am.bomb_beep_sound)
 
 func defuse_bomb(defuser_id: int = 1) -> void:
 	if not multiplayer.is_server(): return

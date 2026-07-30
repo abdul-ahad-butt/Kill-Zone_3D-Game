@@ -160,17 +160,133 @@ func _apply_hq_materials():
 	# Apply to world geometry
 	var geometry = get_node_or_null("NavigationRegion3D/MapGeometry")
 	if geometry:
-		# Remove the global override so individual CSG objects can use their own materials
 		geometry.material_override = null
 		
 		var ground = geometry.get_node_or_null("Ground")
-		if ground: ground.material = grass
+		if ground:
+			ground.material = grass
+			if grass is StandardMaterial3D and grass.albedo_texture == null:
+				# It's a noise texture, let's add blade-scale detail with noise scale
+				var noise = FastNoiseLite.new()
+				noise.frequency = 0.5 # High frequency for blades
+				var tex = NoiseTexture2D.new()
+				tex.noise = noise
+				tex.width = 512
+				tex.height = 512
+				tex.seamless = true
+				grass.albedo_texture = tex
+				grass.uv1_scale = Vector3(20, 20, 20)
+				grass.albedo_color = Color(0.2, 0.4, 0.1) # Darker green
+		
 		var bA = geometry.get_node_or_null("BuildingA")
-		if bA: bA.material = brick
+		if bA:
+			var posA = bA.position
+			bA.queue_free()
+			_build_modular_compound(geometry, posA, brick, metal, "BombSiteA")
+			
 		var bB = geometry.get_node_or_null("BuildingB")
-		if bB: bB.material = brick
+		if bB:
+			var posB = bB.position
+			bB.queue_free()
+			_build_modular_compound(geometry, posB, brick, metal, "BombSiteB")
+			
 		var center = geometry.get_node_or_null("CenterStructure")
 		if center: center.material = metal
+
+func _build_modular_compound(parent: Node, pos: Vector3, wall_mat: Material, floor_mat: Material, site_name: String):
+	var combiner = CSGCombiner3D.new()
+	combiner.position = pos
+	combiner.use_collision = true
+	parent.add_child(combiner)
+	
+	# Main Building Shell (Hollow Box)
+	var shell = CSGBox3D.new()
+	shell.size = Vector3(15, 8, 10)
+	shell.position = Vector3(0, 4, 0)
+	shell.material = wall_mat
+	combiner.add_child(shell)
+	
+	var hollow = CSGBox3D.new()
+	hollow.size = Vector3(14.5, 7.5, 9.5)
+	hollow.position = Vector3(0, 4, 0)
+	hollow.operation = CSGShape3D.OPERATION_SUBTRACTION
+	combiner.add_child(hollow)
+	
+	# Second floor slab
+	var floor2 = CSGBox3D.new()
+	floor2.size = Vector3(15, 0.5, 10)
+	floor2.position = Vector3(0, 4, 0)
+	floor2.material = floor_mat
+	combiner.add_child(floor2)
+	
+	# Stairwell cutout in floor2
+	var stair_hole = CSGBox3D.new()
+	stair_hole.size = Vector3(3, 2, 4)
+	stair_hole.position = Vector3(-5, 4, -2)
+	stair_hole.operation = CSGShape3D.OPERATION_SUBTRACTION
+	combiner.add_child(stair_hole)
+	
+	# Stairs (simple ramp)
+	var ramp = CSGPolygon3D.new()
+	ramp.polygon = PackedVector2Array([Vector2(0,0), Vector2(4, 4), Vector2(4, 0)])
+	ramp.depth = 2.0
+	ramp.position = Vector3(-6, 0, -1)
+	ramp.rotation_degrees.y = -90
+	ramp.material = floor_mat
+	combiner.add_child(ramp)
+	
+	# Doors on ground floor
+	var door1 = CSGBox3D.new()
+	door1.size = Vector3(2, 3, 2)
+	door1.position = Vector3(0, 1.5, 5)
+	door1.operation = CSGShape3D.OPERATION_SUBTRACTION
+	combiner.add_child(door1)
+	
+	var door2 = CSGBox3D.new()
+	door2.size = Vector3(2, 3, 2)
+	door2.position = Vector3(0, 1.5, -5)
+	door2.operation = CSGShape3D.OPERATION_SUBTRACTION
+	combiner.add_child(door2)
+	
+	# Windows on ground floor
+	var win1 = CSGBox3D.new()
+	win1.size = Vector3(3, 1.5, 2)
+	win1.position = Vector3(4, 1.5, 5)
+	win1.operation = CSGShape3D.OPERATION_SUBTRACTION
+	combiner.add_child(win1)
+	
+	var win2 = CSGBox3D.new()
+	win2.size = Vector3(3, 1.5, 2)
+	win2.position = Vector3(-4, 1.5, 5)
+	win2.operation = CSGShape3D.OPERATION_SUBTRACTION
+	combiner.add_child(win2)
+	
+	# Windows on second floor
+	var win3 = CSGBox3D.new()
+	win3.size = Vector3(4, 2, 2)
+	win3.position = Vector3(0, 5.5, 5)
+	win3.operation = CSGShape3D.OPERATION_SUBTRACTION
+	combiner.add_child(win3)
+	
+	# Bomb Site Area
+	var site = Area3D.new()
+	site.name = site_name
+	site.set_script(load("res://scripts/match/bomb_site.gd"))
+	site.position = pos + Vector3(0, 1, 0)
+	var site_col = CollisionShape3D.new()
+	site_col.shape = BoxShape3D.new()
+	site_col.shape.size = Vector3(4, 2, 4)
+	site.add_child(site_col)
+	parent.add_child(site)
+	
+	# Add some cover (crates)
+	for i in range(4):
+		var crate = CSGBox3D.new()
+		crate.size = Vector3(1.2, 1.2, 1.2)
+		crate.position = pos + Vector3(randf_range(-4, 4), 0.6, randf_range(-4, 4))
+		crate.material = floor_mat
+		crate.use_collision = true
+		parent.add_child(crate)
 
 func _on_player_connected(id: int):
 	# If we are hosting a real server, we'd spawn the player here.

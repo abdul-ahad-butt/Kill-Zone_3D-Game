@@ -8,6 +8,7 @@ var win_sound: AudioStream
 var thunder_sound: AudioStream
 var button_sound: AudioStream
 var ambient_wind: AudioStream
+var bomb_beep_sound: AudioStream
 
 const SAVE_PATH = "user://audio_settings.cfg"
 var master_volume: float = 100.0
@@ -89,6 +90,8 @@ func _generate_sounds():
 	
 	# Ambient wind
 	ambient_wind = _create_noise_burst(10.0, 2000, 0.3)
+	
+	bomb_beep_sound = _create_chime(1200.0, 0.1)
 	
 	gunshot_sound = load("res://Assets/audio/gunshot.wav")
 	if not gunshot_sound:
