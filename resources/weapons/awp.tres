@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3 uid="uid://awp"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_wdata"]
+[resource]
+script = ExtResource("1_wdata")
+weapon_name = "AWP"
+damage = 115.0
+fire_rate = 0.8
+magazine_size = 10
+reserve_ammo = 30
+reload_time = 3.5
+spread_base = 25.0
+spread_moving = 50.0
+spread_ads = 0.0
+range = 200.0
+ads_fov = 15.0
+ads_position = Vector3(0, -0.15, -0.4)
+default_position = Vector3(0.3, -0.3, -0.6)

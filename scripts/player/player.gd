@@ -7,9 +7,12 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @export var team: Team.TeamId = Team.TeamId.NONE
 @export var health: int = 100
+@export var armor: int = 0
+@export var has_defuse_kit: bool = false
 
 @export var primary_weapon: WeaponData
 @export var secondary_weapon: WeaponData
+var melee_weapon: WeaponData
 var current_weapon: WeaponData
 var current_viewmodel: Node3D
 var _recoil_tween: Tween
@@ -261,12 +264,58 @@ func _physics_process(delta):
 		equip_weapon(primary_weapon)
 	elif Input.is_action_just_pressed("switch_weapon_2") and secondary_weapon:
 		equip_weapon(secondary_weapon)
+	elif Input.is_action_just_pressed("switch_weapon_3") and melee_weapon:
+		equip_weapon(melee_weapon)
+		
+	if Input.is_action_just_pressed("drop_weapon") and current_weapon and current_weapon != melee_weapon:
+		rpc_id(1, "server_drop_weapon")
 		
 	if Input.is_action_just_pressed("throw_grenade") and grenades_count > 0:
 		grenades_count -= 1
 		var h = get_node_or_null("HUD")
 		if h and h.has_method("update_ammo"): h.update_ammo(current_ammo, reserve_ammo) # Or a dedicated grenade counter
 		rpc_id(1, "server_throw_grenade", camera.global_transform)
+
+@rpc("any_peer", "call_local", "reliable")
+func server_drop_weapon():
+	if not multiplayer.is_server(): return
+	var sender = multiplayer.get_remote_sender_id()
+	if sender != get_multiplayer_authority(): return
+	if current_weapon and current_weapon != melee_weapon:
+		_spawn_weapon_drop(current_weapon, global_position + Vector3(0, 1.5, 0))
+		rpc("client_dropped_weapon")
+
+func _spawn_weapon_drop(wpn: WeaponData, pos: Vector3):
+	var drop_scene = load("res://scenes/weapons/weapon_drop.tscn")
+	if drop_scene:
+		var d = drop_scene.instantiate()
+		d.weapon_data = wpn
+		d.position = pos
+		get_node("/root/World").add_child(d)
+
+@rpc("authority", "call_local", "reliable")
+func client_dropped_weapon():
+	if current_weapon == primary_weapon:
+		primary_weapon = null
+	elif current_weapon == secondary_weapon:
+		secondary_weapon = null
+		
+	if secondary_weapon: equip_weapon(secondary_weapon)
+	elif primary_weapon: equip_weapon(primary_weapon)
+	elif melee_weapon: equip_weapon(melee_weapon)
+	else:
+		if current_viewmodel: current_viewmodel.queue_free()
+		current_weapon = null
+
+@rpc("authority", "call_local", "reliable")
+func client_pickup_weapon(path: String):
+	if not is_multiplayer_authority(): return
+	var wpn = load(path)
+	if wpn.weapon_name == "Pistol" or wpn.weapon_name == "Glock":
+		secondary_weapon = wpn
+	else:
+		primary_weapon = wpn
+	equip_weapon(wpn)
 
 func _start_reload():
 	if current_ammo == current_weapon.mag_size or reserve_ammo <= 0: return
@@ -424,15 +473,22 @@ func take_damage(amount: int, attacker_team: Team.TeamId, attacker_id: int = 1, 
 	if MatchManager.current_state != MatchManager.MatchState.LIVE: return
 	if NetworkManager.is_team_mode and attacker_team == team: return
 	
-	health -= amount
-	rpc("sync_health", health)
+	var actual_damage = amount
+	if armor > 0:
+		actual_damage = amount / 2
+		armor -= amount / 2
+		if armor < 0: armor = 0
+		
+	health -= actual_damage
+	rpc("sync_health", health, armor)
 	
 	if health <= 0:
 		die(attacker_id, weapon_name)
 
 @rpc("authority", "call_local", "reliable")
-func sync_health(new_health: int):
+func sync_health(new_health: int, new_armor: int = 0):
 	health = new_health
+	armor = new_armor
 	if get_node_or_null("HUD"): get_node("HUD").update_health(health)
 	if health <= 0 and not multiplayer.is_server():
 		pass # Client side death effects
@@ -457,7 +513,12 @@ func die(attacker_id: int, weapon_name: String = "Weapon"):
 	var kill_text = "%s eliminated %s [%s]" % [attacker_name, victim_name, wpn_name]
 	
 	if has_bomb:
-		pass # Logic to drop bomb
+		pass # drop bomb
+		
+	if primary_weapon:
+		_spawn_weapon_drop(primary_weapon, global_position + Vector3(0, 1, 0))
+	elif secondary_weapon:
+		_spawn_weapon_drop(secondary_weapon, global_position + Vector3(0, 1, 0))
 	
 	rpc("sync_death", kill_text)
 	queue_free()

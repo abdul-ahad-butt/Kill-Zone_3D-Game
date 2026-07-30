@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3 uid="uid://pistol"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_wdata"]
+[resource]
+script = ExtResource("1_wdata")
+weapon_name = "Pistol"
+damage = 25.0
+fire_rate = 5.0
+magazine_size = 12
+reserve_ammo = 60
+reload_time = 1.5
+spread_base = 1.0
+spread_moving = 3.0
+spread_ads = 0.2
+range = 50.0
+ads_fov = 60.0
+ads_position = Vector3(0, -0.15, -0.4)
+default_position = Vector3(0.3, -0.3, -0.6)

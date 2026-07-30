@@ -7,6 +7,10 @@
 [ext_resource type="Material" path="res://resources/materials/brick.tres" id="3_i7141"]
 [ext_resource type="Material" path="res://resources/materials/metal.tres" id="4_4mrxx"]
 [ext_resource type="Script" path="res://scripts/environment/map_decorator.gd" id="5_decorator"]
+[ext_resource type="Script" path="res://scripts/environment/weather_manager.gd" id="6_weather"]
+[ext_resource type="PackedScene" path="res://scenes/environment/rain_particles.tscn" id="7_rain"]
+[ext_resource type="Material" path="res://resources/materials/asphalt.tres" id="8_asphalt"]
+[ext_resource type="Material" path="res://resources/materials/wood.tres" id="9_wood"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_nav1"]
 
@@ -37,6 +41,9 @@ fog_enabled = true
 fog_light_color = Color(0.6, 0.7, 0.8, 1)
 fog_density = 0.003
 fog_sky_affect = 0.5
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.0
+volumetric_fog_albedo = Color(0.65, 0.75, 0.85, 1)
 
 [node name="World" type="Node3D" unique_id=65326711]
 script = ExtResource("1_world")
@@ -61,86 +68,85 @@ use_collision = true
 
 [node name="Ground" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=319492723]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-size = Vector3(200, 1, 200)
+size = Vector3(120, 1, 200)
 material = ExtResource("2_qfnet")
 
-[node name="BuildingA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1317948560]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 4, 0)
-size = Vector3(16, 8, 16)
+[node name="Street" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=987654321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+size = Vector3(20, 0.1, 160)
+material = ExtResource("8_asphalt")
+
+[node name="PoliceStation" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1317948560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 4, 50)
+size = Vector3(20, 8, 20)
 material = ExtResource("3_i7141")
 
-[node name="InteriorA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=1125458000]
+[node name="Interior" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/PoliceStation" unique_id=1125458000]
+operation = 2
+size = Vector3(19, 7, 19)
+
+[node name="Door1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/PoliceStation" unique_id=1902740841]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -2.5, 0)
+operation = 2
+size = Vector3(2, 3, 4)
+
+[node name="SiteA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=532743647]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 4, 20)
+size = Vector3(16, 8, 16)
+material = ExtResource("1_71j4m")
+
+[node name="InteriorA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/SiteA" unique_id=286601313]
 operation = 2
 size = Vector3(15, 7, 15)
 
-[node name="DoorA1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=1902740841]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5, 8)
-operation = 2
-size = Vector3(4, 3, 2)
-
-[node name="DoorA2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=1280008887]
+[node name="DoorA" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/SiteA" unique_id=169352221]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -2.5, 0)
 operation = 2
 size = Vector3(2, 3, 4)
 
-[node name="WindowA1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=111111111]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, -4)
-operation = 2
-size = Vector3(2, 2, 2)
-
-[node name="WindowA2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingA" unique_id=111111112]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, 4)
-operation = 2
-size = Vector3(2, 2, 2)
-
-[node name="BuildingB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=532743647]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 4, 0)
-size = Vector3(16, 8, 16)
+[node name="Market" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1539133479]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+size = Vector3(15, 6, 15)
 material = ExtResource("3_i7141")
 
-[node name="InteriorB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=286601313]
+[node name="MarketInterior" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/Market" unique_id=95637676]
 operation = 2
-size = Vector3(15, 7, 15)
+size = Vector3(17, 5, 17)
 
-[node name="DoorB1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=169352221]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5, -8)
-operation = 2
-size = Vector3(4, 3, 2)
-
-[node name="DoorB2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=480689589]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -2.5, 0)
-operation = 2
-size = Vector3(2, 3, 4)
-
-[node name="WindowB1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=222222221]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1, -4)
-operation = 2
-size = Vector3(2, 2, 2)
-
-[node name="WindowB2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/BuildingB" unique_id=222222222]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1, 4)
-operation = 2
-size = Vector3(2, 2, 2)
-
-[node name="CenterStructure" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1539133479]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-size = Vector3(10, 6, 10)
+[node name="SiteB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=392902175]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 6, -20)
+size = Vector3(30, 12, 30)
 material = ExtResource("4_4mrxx")
 
-[node name="RoofRamp" type="CSGPolygon3D" parent="NavigationRegion3D/MapGeometry/CenterStructure" unique_id=95637676]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 5, -3, -5)
-polygon = PackedVector2Array(0, 0, 0, 6, 10, 0)
-depth = 4.0
+[node name="InteriorB" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/SiteB" unique_id=1407494099]
+operation = 2
+size = Vector3(29, 11, 29)
 
-[node name="CoverWall1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=392902175]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 15)
-size = Vector3(6, 2, 1)
-material = ExtResource("1_71j4m")
+[node name="DoorB1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry/SiteB" unique_id=12341234]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, -4.5, 0)
+operation = 2
+size = Vector3(2, 5, 8)
 
-[node name="CoverWall2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=1407494099]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, -15)
-size = Vector3(6, 2, 1)
-material = ExtResource("1_71j4m")
+[node name="Container1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=2001]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.25, 0)
+size = Vector3(2.5, 2.5, 6)
+material = ExtResource("4_4mrxx")
+
+[node name="Container2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=2002]
+transform = Transform3D(0.866, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866, -8, 1.25, 10)
+size = Vector3(2.5, 2.5, 6)
+material = ExtResource("4_4mrxx")
+
+[node name="Crate1" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=2003]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.75, 25)
+size = Vector3(1.5, 1.5, 1.5)
+material = ExtResource("9_wood")
+
+[node name="Crate2" type="CSGBox3D" parent="NavigationRegion3D/MapGeometry" unique_id=2004]
+transform = Transform3D(0.965, 0, -0.258, 0, 1, 0, 0.258, 0, 0.965, 4.5, 0.75, 24)
+size = Vector3(1.5, 1.5, 1.5)
+material = ExtResource("9_wood")
+
 
 [node name="Spawns" type="Node3D" parent="." unique_id=1149072706]
 
@@ -181,7 +187,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, -80)
 [node name="BombSites" type="Node3D" parent="." unique_id=1919832463]
 
 [node name="SiteA" type="Area3D" parent="BombSites" unique_id=387555126]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1, 20)
 collision_layer = 4
 collision_mask = 2
 
@@ -189,7 +195,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_A")
 
 [node name="SiteB" type="Area3D" parent="BombSites" unique_id=1738366441]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 1, -20)
 collision_layer = 4
 collision_mask = 2
 
@@ -210,3 +216,12 @@ grow_vertical = 2
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1281496174]
 environment = SubResource("Environment_e3hyu")
+
+[node name="WeatherManager" type="Node3D" parent="." node_paths=PackedStringArray("world_environment", "directional_light", "rain_particles")]
+script = ExtResource("6_weather")
+world_environment = NodePath("../WorldEnvironment")
+directional_light = NodePath("../DirectionalLight3D")
+rain_particles = NodePath("../RainParticles")
+
+[node name="RainParticles" parent="." instance=ExtResource("7_rain")]
+

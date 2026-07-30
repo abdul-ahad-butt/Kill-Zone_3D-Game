@@ -81,6 +81,9 @@ func fire(is_ads: bool, is_moving: bool) -> bool:
 	_perform_hitscan()
 	_emit_noise(30.0)
 	
+	_apply_procedural_kick()
+	
+	
 	return true
 	
 func _emit_noise(radius: float):
@@ -195,9 +198,11 @@ func _perform_hitscan():
 			var sender = multiplayer.get_remote_sender_id()
 			if sender == 0: sender = 1 # Local server player
 			rpc_id(sender, "client_hit_marker", is_hs)
+			
+			rpc("spawn_impact", hit_pos, result.normal, 1)
 		else:
 			# Hit environment
-			rpc("spawn_impact", hit_pos, result.normal)
+			rpc("spawn_impact", hit_pos, result.normal, 0)
 			
 	# Spawn tracer for everyone
 	rpc("spawn_tracer", global_position, hit_pos)
@@ -229,13 +234,18 @@ func spawn_tracer(start: Vector3, end: Vector3):
 	tween.tween_callback(mi.queue_free)
 
 @rpc("authority", "call_local", "unreliable")
-func spawn_impact(pos: Vector3, normal: Vector3):
-	var impact_scene = load("res://scenes/effects/wall_impact.tscn")
+func spawn_impact(pos: Vector3, normal: Vector3, type: int = 0):
+	var impact_scene
+	if type == 0:
+		impact_scene = load("res://scenes/effects/bullet_impact.tscn")
+	else:
+		impact_scene = load("res://scenes/effects/blood_impact.tscn")
+		
 	if impact_scene:
 		var impact = impact_scene.instantiate()
 		get_tree().current_scene.add_child(impact)
 		impact.global_position = pos
-		if normal != Vector3.UP and normal != Vector3.DOWN:
+		if normal != Vector3.UP and normal != Vector3.DOWN and normal.length_squared() > 0:
 			impact.look_at(pos + normal, Vector3.UP)
 		elif normal == Vector3.UP:
 			impact.rotation_degrees.x = 90
@@ -263,6 +273,13 @@ func reload():
 		var am = get_node_or_null("/root/AudioManager")
 		if am: am.play_3d(weapon_data.reload_sound, global_position)
 		
+	var tween = create_tween()
+	tween.tween_property(self, "rotation_degrees:x", -45.0, 0.3)
+	tween.tween_property(self, "rotation_degrees:z", 30.0, 0.3)
+	tween.tween_interval(max(0.1, weapon_data.reload_time - 0.9))
+	tween.tween_property(self, "rotation_degrees:z", 0.0, 0.3)
+	tween.tween_property(self, "rotation_degrees:x", 0.0, 0.3)
+		
 	await get_tree().create_timer(weapon_data.reload_time).timeout
 	
 	var needed = weapon_data.magazine_size - current_ammo
@@ -272,3 +289,12 @@ func reload():
 	
 	is_reloading = false
 
+func _apply_procedural_kick():
+	var tween = create_tween()
+	var original_pos = Vector3.ZERO
+	var kick_z = randf_range(0.05, 0.1)
+	var kick_up = randf_range(2.0, 5.0)
+	tween.tween_property(self, "position:z", original_pos.z + kick_z, 0.05)
+	tween.parallel().tween_property(self, "rotation_degrees:x", kick_up, 0.05)
+	tween.tween_property(self, "position:z", original_pos.z, 0.15)
+	tween.parallel().tween_property(self, "rotation_degrees:x", 0.0, 0.15)

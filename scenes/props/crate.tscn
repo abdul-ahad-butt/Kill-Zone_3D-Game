@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Material" uid="uid://wood" path="res://resources/materials/wood.tres" id="1_wood"]
+[node name="Crate" type="CSGBox3D"]
+material_override = ExtResource("1_wood")
+use_collision = true
+size = Vector3(1.5, 1.5, 1.5)

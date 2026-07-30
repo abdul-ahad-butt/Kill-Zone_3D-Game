@@ -19,6 +19,8 @@ func _ready():
 		nav.bake_navigation_mesh(false)
 		
 	NetworkManager.player_connected.connect(_on_player_connected)
+	MatchManager.round_state_changed.connect(_on_round_state_changed)
+	MatchManager.match_ended.connect(_on_match_ended)
 	
 	if NetworkManager.is_offline:
 		NetworkManager.is_team_mode = true # Default to team mode for offline so AI is strictly terrorists
@@ -145,6 +147,56 @@ func _on_thunder():
 	var timers = get_children().filter(func(c): return c is Timer)
 	if timers.size() > 0:
 		timers[0].wait_time = randf_range(15.0, 40.0)
+
+func _on_match_ended(winner: int):
+	var hud = get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("_show_banner"):
+		var winner_str = "POLICE" if winner == Team.TeamId.POLICE else "TERRORISTS"
+		hud._show_banner("MATCH OVER: " + winner_str + " WINS!", Color(1.0, 0.8, 0.2))
+		
+	# Wait 5 seconds then reload the level
+	var t = get_tree().create_timer(5.0)
+	t.timeout.connect(func(): get_tree().reload_current_scene())
+
+func _on_round_state_changed(new_state: int):
+	if new_state == MatchManager.MatchState.ROUND_START:
+		_reset_round()
+
+func _reset_round():
+	if not multiplayer.is_server(): return
+	
+	# Clear weapon drops and bomb
+	for drop in get_tree().get_nodes_in_group("weapon_drops"):
+		drop.queue_free()
+	for bomb in get_tree().get_nodes_in_group("bomb"):
+		bomb.queue_free()
+		
+	var p_team = NetworkManager.local_player_team
+	var local_p = get_node_or_null("1")
+	if not local_p:
+		_spawn_player(1, p_team)
+	else:
+		local_p.health = 100
+		local_p.global_position = _get_random_spawn(p_team)
+		local_p.rpc("sync_health", 100, local_p.armor)
+		local_p.has_bomb = false
+		
+	var enemy_team = Team.TeamId.TERRORIST if p_team == Team.TeamId.POLICE else Team.TeamId.POLICE
+	if NetworkManager.is_team_mode:
+		for i in range(2, 6): _reset_bot(i, p_team)
+		for i in range(6, 11): _reset_bot(i, enemy_team)
+	else:
+		_reset_bot(2, enemy_team)
+
+func _reset_bot(id: int, team: Team.TeamId):
+	var b_name = "Bot_" + str(id)
+	var b = get_node_or_null(b_name)
+	if not b:
+		_spawn_bot(id, team, _get_random_spawn(team))
+	else:
+		b.health = 100
+		b.global_position = _get_random_spawn(team)
+		b.has_bomb = false
 
 func _apply_hq_materials():
 	var grass = load("res://Assets/textures/mat_grass.tres")
